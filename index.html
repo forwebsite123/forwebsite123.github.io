@@ -3,10 +3,115 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>我的网站</title>
+  <title>Jiqi Kiara</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 40px 20px;
+      text-align: center;
+    }
+
+    .avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      font-size: 36px;
+      margin: 10px 0;
+    }
+
+    .bio {
+      color: #64748b;
+      font-size: 16px;
+      margin-bottom: 30px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      margin: 5px;
+      border-radius: 999px;
+      text-decoration: none;
+      color: white;
+      background: #ec4899;
+      transition: 0.3s;
+    }
+
+    .btn:hover {
+      background: #db2777;
+    }
+
+    .gallery {
+      margin-top: 50px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    .gallery img {
+      width: 100%;
+      border-radius: 12px;
+      object-fit: cover;
+      transition: 0.3s;
+    }
+
+    .gallery img:hover {
+      transform: scale(1.05);
+    }
+
+    .footer {
+      margin-top: 50px;
+      color: #94a3b8;
+      font-size: 14px;
+    }
+  </style>
 </head>
+
 <body>
-  <h1>你好，这是我的网站</h1>
-  <p>已经开始上线了。</p>
+  <div class="container">
+
+    <!-- 头像 -->
+    <img src="https://via.placeholder.com/120" class="avatar" />
+
+    <!-- 名字 -->
+    <h1>Jiqi Kiara</h1>
+
+    <!-- 简介 -->
+    <p class="bio">
+       Love life, photos & creativity ✨  
+    </p>
+
+    <!-- 按钮 -->
+    <a href="#" class="btn">Instagram</a>
+    <a href="#" class="btn">Contact Me</a>
+
+    <!-- 照片展示 -->
+    <div class="gallery">
+      <img src="https://via.placeholder.com/400" />
+      <img src="https://via.placeholder.com/400" />
+      <img src="https://via.placeholder.com/400" />
+      <img src="https://via.placeholder.com/400" />
+    </div>
+
+    <!-- 底部 -->
+    <div class="footer">
+      © 2026 Jiqi Kiara
+    </div>
+
+  </div>
 </body>
 </html>
