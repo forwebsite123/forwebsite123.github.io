@@ -31,16 +31,17 @@
       margin-bottom: 40px;
     }
 
-    .title-group {
+    .top-left {
       display: flex;
       flex-direction: column;
       gap: 8px;
     }
 
-    .cn-title {
-      font-size: 26px;
-      color: #8b5e5e;
-      letter-spacing: 1px;
+    .site-note {
+      font-size: 14px;
+      font-style: italic;
+      color: rgba(122, 87, 87, 0.7);
+      letter-spacing: 0.3px;
     }
 
     .back {
@@ -56,69 +57,150 @@
       line-height: 1;
     }
 
+    .title-group {
+      margin-bottom: 36px;
+    }
+
+    .cn-title {
+      font-size: 26px;
+      color: #8b5e5e;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+
+    .en-subtitle {
+      font-size: 16px;
+      font-style: italic;
+      color: rgba(122, 87, 87, 0.68);
+    }
+
     .grid-wrap {
-      margin-top: 40px;
+      margin-top: 24px;
       display: flex;
       justify-content: center;
     }
 
-    .continent-grid {
-      width: 100%;
-      max-width: 980px;
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 34px 40px;
-      align-items: start;
+    .country-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 28px 36px;
+      max-width: 760px;
+      margin: 0 auto;
     }
 
-    .top-center {
-      grid-column: 2 / span 2;
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 34px 40px;
-    }
-
-    .bottom-row {
-      grid-column: 1 / -1;
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 34px 40px;
-    }
-
-    .continent-card {
+    .country-card {
+      width: 150px;
+      min-height: 100px;
+      padding: 12px;
+      border: 1.5px solid #a87a7a;
+      background: rgba(255,255,255,0.25);
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 170px;
-      padding: 20px;
       text-decoration: none;
       color: #8b5e5e;
-      border: 1.5px solid #a87a7a;
-      background: rgba(255,255,255,0.28);
       transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
     }
 
-    .continent-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 14px 28px rgba(122, 87, 87, 0.08);
-      background: rgba(255,255,255,0.58);
+    .country-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 24px rgba(122, 87, 87, 0.08);
+      background: rgba(255,255,255,0.55);
     }
 
-    .continent-card.featured {
-      min-height: 190px;
-      color: #7d4f4f;
-    }
-
-    .card-text {
+    .country-name {
       text-align: center;
-      font-size: 26px;
-      line-height: 1.35;
+      font-size: 24px;
+      line-height: 1.25;
       font-style: italic;
-      font-weight: 500;
     }
 
-    .card-text.small {
+    .map-section {
+      margin-top: 90px;
+      text-align: center;
+    }
+
+    .map-title {
       font-size: 22px;
+      font-style: italic;
+      color: #8b5e5e;
+      margin-bottom: 10px;
+    }
+
+    .map-note {
+      font-size: 14px;
+      color: rgba(122, 87, 87, 0.65);
+      margin-bottom: 26px;
+      line-height: 1.8;
+    }
+
+    .map-wrap {
+      width: 100%;
+      max-width: 1000px;
+      margin: 0 auto;
+      background: rgba(255,255,255,0.25);
+      border: 1px solid rgba(168, 122, 122, 0.16);
+      padding: 18px;
+    }
+
+    .world-map {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .world-map .country {
+      fill: #e9e3dc;
+      stroke: #ffffff;
+      stroke-width: 1.2;
+      transition: fill 0.2s ease, opacity 0.2s ease;
+      opacity: 0.95;
+    }
+
+    .world-map .country:hover {
+      fill: #d7c8bc;
+    }
+
+    .world-map .visited {
+      fill: #b98585;
+      opacity: 1;
+    }
+
+    .world-map text {
+      font-size: 18px;
+      fill: rgba(122, 87, 87, 0.72);
+      font-family: "Times New Roman", Georgia, serif;
+    }
+
+    .legend {
+      margin-top: 18px;
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      font-size: 14px;
+      color: rgba(122, 87, 87, 0.72);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .legend-box {
+      width: 18px;
+      height: 18px;
+      border: 1px solid rgba(122, 87, 87, 0.15);
+    }
+
+    .legend-box.default {
+      background: #e9e3dc;
+    }
+
+    .legend-box.visited {
+      background: #b98585;
     }
 
     .footer-note {
@@ -130,43 +212,30 @@
       color: rgba(122, 87, 87, 0.7);
     }
 
-    @media (max-width: 980px) {
-      .continent-grid,
-      .top-center,
-      .bottom-row {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .top-center,
-      .bottom-row {
-        grid-column: auto;
-      }
-    }
-
     @media (max-width: 640px) {
       .page {
         padding: 24px 16px 60px;
       }
 
-      .continent-grid,
-      .top-center,
-      .bottom-row {
-        grid-template-columns: 1fr;
-        gap: 20px;
+      .country-grid {
+        gap: 18px;
       }
 
-      .continent-card,
-      .continent-card.featured {
-        min-height: 130px;
+      .country-card {
+        width: 130px;
+        min-height: 86px;
       }
 
-      .card-text {
-        font-size: 24px;
-      }
-
-      .card-text.small {
+      .country-name {
         font-size: 20px;
+      }
+
+      .map-wrap {
+        padding: 10px;
+      }
+
+      .world-map text {
+        font-size: 14px;
       }
     }
   </style>
@@ -174,44 +243,121 @@
 <body>
   <div class="page">
     <div class="topbar">
-      <div class="title-group">
-        <div class="cn-title">漂流坐标</div>
+      <div class="top-left">
+        <div class="site-note">A place to leave trace.</div>
         <a href="home.html" class="back">← Back</a>
       </div>
       <a href="search.html" class="search-btn" aria-label="Search">⌕</a>
     </div>
 
+    <div class="title-group">
+      <div class="cn-title">漂流坐标</div>
+      <div class="en-subtitle">Print Coordinates</div>
+    </div>
+
     <div class="grid-wrap">
-      <div class="continent-grid">
-        <div class="top-center">
-          <a href="asia.html" class="continent-card featured">
-            <div class="card-text">Asia</div>
-          </a>
+      <div class="country-grid">
+        <a href="asia.html" class="country-card">
+          <div class="country-name">Asia</div>
+        </a>
 
-          <a href="europe.html" class="continent-card featured">
-            <div class="card-text">Europe</div>
-          </a>
-        </div>
+        <a href="europe.html" class="country-card">
+          <div class="country-name">Europe</div>
+        </a>
 
-        <div class="bottom-row">
-          <a href="north-america.html" class="continent-card">
-            <div class="card-text small">North<br>America</div>
-          </a>
+        <a href="north-america.html" class="country-card">
+          <div class="country-name">North<br>America</div>
+        </a>
 
-          <a href="south-america.html" class="continent-card">
-            <div class="card-text small">South<br>America</div>
-          </a>
+        <a href="south-america.html" class="country-card">
+          <div class="country-name">South<br>America</div>
+        </a>
 
-          <a href="oceania.html" class="continent-card">
-            <div class="card-text">Oceania</div>
-          </a>
+        <a href="oceania.html" class="country-card">
+          <div class="country-name">Oceania</div>
+        </a>
 
-          <a href="antarctica.html" class="continent-card">
-            <div class="card-text">Antarctica</div>
-          </a>
-        </div>
+        <a href="antarctica.html" class="country-card">
+          <div class="country-name">Antarctica</div>
+        </a>
       </div>
     </div>
+
+    <section class="map-section">
+      <div class="map-title">Visited Places</div>
+      <div class="map-note">
+        已到访国家会被高亮显示。<br>
+        你后面只需要改下面 SVG 里带有 <code>visited</code> 的国家类名，或者用 JavaScript 动态加。
+      </div>
+
+      <div class="map-wrap">
+        <!-- 简化版世界地图（按洲块状示意，高亮可直接用） -->
+        <svg class="world-map" viewBox="0 0 1200 620" xmlns="http://www.w3.org/2000/svg" aria-label="World map">
+          <!-- North America -->
+          <a href="north-america.html">
+            <path id="NA" class="country" d="M110 120 L250 90 L360 120 L350 210 L260 250 L180 235 L120 180 Z"></path>
+          </a>
+
+          <!-- South America -->
+          <a href="south-america.html">
+            <path id="SA" class="country" d="M310 285 L370 320 L392 395 L372 495 L330 560 L300 520 L315 450 L290 375 Z"></path>
+          </a>
+
+          <!-- Europe -->
+          <a href="europe.html">
+            <path id="EU" class="country visited" d="M565 130 L645 115 L705 135 L695 182 L625 192 L572 168 Z"></path>
+          </a>
+
+          <!-- Africa -->
+          <path id="AF" class="country" d="M575 220 L665 215 L722 275 L702 400 L638 500 L560 455 L545 330 Z"></path>
+
+          <!-- Asia -->
+          <a href="asia.html">
+            <path id="AS" class="country visited" d="M710 110 L965 105 L1085 165 L1060 300 L938 342 L810 322 L742 255 L705 185 Z"></path>
+          </a>
+
+          <!-- Oceania -->
+          <a href="oceania.html">
+            <path id="OC" class="country" d="M955 430 L1045 445 L1095 485 L1060 532 L975 520 L930 475 Z"></path>
+          </a>
+
+          <!-- Antarctica -->
+          <a href="antarctica.html">
+            <path id="AN" class="country" d="M310 575 L890 575 L850 610 L350 610 Z"></path>
+          </a>
+
+          <!-- 国家级高亮点（你去过的国家） -->
+          <!-- 中国 -->
+          <circle id="CN" class="visited" cx="885" cy="215" r="10" fill="#8f6262"></circle>
+          <!-- 日本 -->
+          <circle id="JP" class="visited" cx="995" cy="220" r="9" fill="#8f6262"></circle>
+          <!-- 泰国 -->
+          <circle id="TH" class="visited" cx="900" cy="270" r="8" fill="#8f6262"></circle>
+          <!-- 法国 -->
+          <circle id="FR" class="visited" cx="615" cy="155" r="8" fill="#8f6262"></circle>
+
+          <!-- 标签 -->
+          <text x="175" y="80">North America</text>
+          <text x="308" y="275">South America</text>
+          <text x="600" y="95">Europe</text>
+          <text x="610" y="205">Africa</text>
+          <text x="855" y="88">Asia</text>
+          <text x="985" y="420">Oceania</text>
+          <text x="520" y="566">Antarctica</text>
+        </svg>
+
+        <div class="legend">
+          <div class="legend-item">
+            <span class="legend-box default"></span>
+            <span>Not visited</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-box visited"></span>
+            <span>Visited</span>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <div class="footer-note">
       places I have passed, and places that stayed.
