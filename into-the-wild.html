@@ -3,38 +3,83 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>沉浸体验</title>
+  <title>Into the Wild</title>
+
   <style>
     body {
       margin: 0;
-      padding: 40px 24px;
       background: #fcfbf8;
+      font-family: "Times New Roman", serif;
       color: #6e4a4a;
-      font-family: "Times New Roman", Georgia, serif;
     }
-    .wrap {
+
+    .page {
       max-width: 900px;
-      margin: 0 auto;
+      margin: auto;
+      padding: 60px 20px;
+      text-align: center;
     }
-    a {
-      color: #7a5757;
+
+    .back {
+      position: absolute;
+      left: 20px;
+      top: 20px;
       text-decoration: none;
+      color: #7a5757;
     }
+
     h1 {
-      font-weight: 400;
-      margin-top: 24px;
+      font-size: 28px;
+      font-style: italic;
+      margin-bottom: 80px;
     }
-    p {
-      font-size: 18px;
+
+    .cards {
+      display: flex;
+      justify-content: center;
+      gap: 80px;
+      flex-wrap: wrap;
+    }
+
+    .card {
+      border: 2px solid #9c7373;
+      padding: 40px 60px;
+      font-size: 40px;
+      font-style: italic;
+      text-decoration: none;
+      color: #7a5757;
+      transition: 0.3s;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      background: rgba(255,255,255,0.6);
+    }
+
+    .note {
+      margin-top: 60px;
+      font-size: 16px;
       line-height: 1.8;
+      color: #8b6b6b;
     }
   </style>
 </head>
+
 <body>
-  <div class="wrap">
-    <a href="home.html">← Back</a>
-    <h1>沉浸体验 · Into the Wild</h1>
-    <p>这里放第四个页面的内容。</p>
+  <a href="home.html" class="back">← Back</a>
+
+  <div class="page">
+    <h1>Into the Wild</h1>
+
+    <div class="cards">
+      <a href="snowboarding.html" class="card">Snowboarding</a>
+      <a href="diving.html" class="card">Diving</a>
+    </div>
+
+    <div class="note">
+      These are the moments when I step outside of routine,<br>
+      into something more intense, more alive.
+    </div>
   </div>
 </body>
 </html>
