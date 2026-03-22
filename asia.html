@@ -1,1 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Asia</title>
 
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #fcfbf8;
+      color: #6e4a4a;
+      font-family: "Times New Roman", Georgia, serif;
+    }
+
+    .page {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 34px 28px 90px;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 36px;
+    }
+
+    .top-left {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .site-note {
+      font-size: 14px;
+      font-style: italic;
+      color: rgba(122, 87, 87, 0.7);
+      letter-spacing: 0.3px;
+    }
+
+    .back {
+      text-decoration: none;
+      color: rgba(122, 87, 87, 0.75);
+      font-size: 15px;
+    }
+
+    .search-btn {
+      text-decoration: none;
+      color: #8a6666;
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .title {
+      margin: 16px 0 34px;
+      font-size: 68px;
+      line-height: 1;
+      font-style: italic;
+      font-weight: 500;
+      color: #8b5e5e;
+    }
+
+    .country-section {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .country-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 140px);
+      gap: 22px;
+      align-items: start;
+    }
+
+    .country-card {
+      min-height: 92px;
+      padding: 12px;
+      border: 1.5px solid #a87a7a;
+      background: rgba(255,255,255,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      color: #8b5e5e;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    .country-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 24px rgba(122, 87, 87, 0.08);
+      background: rgba(255,255,255,0.55);
+    }
+
+    .country-name {
+      font-size: 24px;
+      line-height: 1.25;
+      text-align: center;
+    }
+
+    .country-note {
+      margin-top: 6px;
+      font-size: 15px;
+      color: rgba(122, 87, 87, 0.68);
+      line-height: 1.9;
+      max-width: 700px;
+    }
+
+    .footer-note {
+      text-align: center;
+      margin-top: 120px;
+      font-size: 14px;
+      font-style: italic;
+      letter-spacing: 1px;
+      color: rgba(122, 87, 87, 0.7);
+    }
+
+    @media (max-width: 980px) {
+      .country-grid {
+        grid-template-columns: repeat(3, 140px);
+      }
+
+      .title {
+        font-size: 56px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page {
+        padding: 24px 16px 60px;
+      }
+
+      .title {
+        font-size: 44px;
+      }
+
+      .country-grid {
+        grid-template-columns: repeat(2, minmax(120px, 1fr));
+        gap: 16px;
+      }
+
+      .country-card {
+        min-height: 82px;
+      }
+
+      .country-name {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div class="top-left">
+        <div class="site-note">A place to leave trace.</div>
+        <a href="print-coordinates.html" class="back">← Back</a>
+      </div>
+
+      <a href="search.html" class="search-btn" aria-label="Search">⌕</a>
+    </div>
+
+    <h1 class="title">Asia</h1>
+
+    <div class="country-section">
+      <div class="country-grid">
+        <a href="china.html" class="country-card">
+          <div class="country-name">中国</div>
+        </a>
+
+        <a href="japan.html" class="country-card">
+          <div class="country-name">日本</div>
+        </a>
+
+        <a href="korea.html" class="country-card">
+          <div class="country-name">韩国</div>
+        </a>
+
+        <a href="singapore.html" class="country-card">
+          <div class="country-name">新加坡</div>
+        </a>
+
+        <a href="thailand.html" class="country-card">
+          <div class="country-name">泰国</div>
+        </a>
+      </div>
+
+      <div class="country-note">
+        More countries can be added here later. Each block can jump to its own country page.
+      </div>
+    </div>
+
+    <div class="footer-note">
+      places held in one continent.
+    </div>
+  </div>
+</body>
+</html>
