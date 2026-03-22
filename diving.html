@@ -1,2 +1,404 @@
-<h1>Diving</h1>
-<a href="into-the-wild.html">← Back</a>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Diving</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #fcfbf8;
+      color: #6e4a4a;
+      font-family: "Times New Roman", Georgia, serif;
+    }
+
+    .page {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 28px 28px 90px;
+      position: relative;
+    }
+
+    .topline {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 36px;
+    }
+
+    .site-note {
+      font-size: 16px;
+      color: rgba(122, 87, 87, 0.78);
+      font-style: italic;
+      letter-spacing: 0.3px;
+    }
+
+    .search-btn {
+      text-decoration: none;
+      color: #8a6666;
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .title-wrap {
+      margin-bottom: 30px;
+    }
+
+    .page-title {
+      margin: 0;
+      font-size: 56px;
+      font-style: italic;
+      font-weight: 500;
+      color: #8b5e5e;
+      line-height: 1.05;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 10px;
+      text-decoration: none;
+      color: rgba(122, 87, 87, 0.75);
+      font-size: 15px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 22px;
+      align-items: start;
+    }
+
+    .timeline-side {
+      position: sticky;
+      top: 30px;
+      height: 100%;
+      min-height: 500px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .timeline-line {
+      position: relative;
+      width: 1px;
+      background: rgba(122, 87, 87, 0.35);
+      min-height: 700px;
+    }
+
+    .timeline-top,
+    .timeline-bottom {
+      position: absolute;
+      left: -22px;
+      font-size: 16px;
+      color: rgba(122, 87, 87, 0.78);
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      letter-spacing: 2px;
+    }
+
+    .timeline-top {
+      top: 0;
+    }
+
+    .timeline-bottom {
+      bottom: 0;
+    }
+
+    .entries {
+      display: flex;
+      flex-direction: column;
+      gap: 72px;
+    }
+
+    .entry {
+      display: grid;
+      grid-template-columns: 280px auto 220px;
+      gap: 44px;
+      align-items: start;
+    }
+
+    .left-col {
+      min-width: 0;
+    }
+
+    .entry-meta {
+      font-size: 30px;
+      color: #9a6666;
+      margin-bottom: 18px;
+      line-height: 1.2;
+    }
+
+    .entry-meta .dot {
+      font-size: 36px;
+      vertical-align: middle;
+      margin-right: 10px;
+    }
+
+    .record-card {
+      width: 170px;
+      display: block;
+      border: 1px solid rgba(122, 87, 87, 0.18);
+      background: white;
+      box-shadow: 0 8px 24px rgba(122, 87, 87, 0.06);
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .record-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 30px rgba(122, 87, 87, 0.12);
+    }
+
+    .record-card img {
+      width: 100%;
+      display: block;
+    }
+
+    .record-caption {
+      margin-top: 10px;
+      font-size: 15px;
+      color: rgba(122, 87, 87, 0.7);
+      line-height: 1.7;
+    }
+
+    .middle-col {
+      min-width: 0;
+    }
+
+    .photo-grid {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .photo-grid img {
+      width: 170px;
+      height: 170px;
+      object-fit: cover;
+      background: white;
+      border: 1.4px solid #b08c8c;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .photo-grid img:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 28px rgba(122, 87, 87, 0.12);
+    }
+
+    .right-col {
+      padding-top: 52px;
+    }
+
+    .entry-note {
+      font-size: 15px;
+      line-height: 1.95;
+      color: rgba(122, 87, 87, 0.75);
+      max-width: 180px;
+    }
+
+    .page-footer {
+      text-align: center;
+      margin-top: 100px;
+      font-size: 14px;
+      font-style: italic;
+      letter-spacing: 1px;
+      color: rgba(122, 87, 87, 0.7);
+    }
+
+    /* 放大层 */
+    #lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.88);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      padding: 26px;
+    }
+
+    #lightbox img {
+      max-width: 92vw;
+      max-height: 90vh;
+      object-fit: contain;
+      background: white;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+
+    .close-tip {
+      position: absolute;
+      top: 24px;
+      right: 28px;
+      color: rgba(255,255,255,0.84);
+      font-size: 14px;
+      letter-spacing: 1px;
+    }
+
+    @media (max-width: 1100px) {
+      .entry {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+
+      .right-col {
+        padding-top: 0;
+      }
+
+      .entry-note {
+        max-width: none;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .timeline-side {
+        display: none;
+      }
+
+      .page-title {
+        font-size: 42px;
+      }
+
+      .entry-meta {
+        font-size: 24px;
+      }
+
+      .photo-grid img {
+        width: calc(33.333% - 14px);
+        min-width: 96px;
+        height: 120px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topline">
+      <div class="site-note">A place to leave trace.</div>
+      <a href="search.html" class="search-btn" aria-label="Search">⌕</a>
+    </div>
+
+    <div class="title-wrap">
+      <h1 class="page-title">Snowboarding</h1>
+      <a href="into-the-wild.html" class="back-link">← Back</a>
+    </div>
+
+    <div class="layout">
+      <div class="timeline-side">
+        <div class="timeline-line">
+          <div class="timeline-top">NEW</div>
+          <div class="timeline-bottom">OLD</div>
+        </div>
+      </div>
+
+      <div class="entries">
+
+        <!-- 一条记录 -->
+        <div class="entry">
+          <div class="left-col">
+            <div class="entry-meta"><span class="dot">•</span>2026.02.18 + Niseko</div>
+
+            <div class="record-card">
+              <img src="111.jpeg" alt="record 1" class="zoomable">
+            </div>
+
+            <div class="record-caption">
+              uploaded record / track snapshot
+            </div>
+          </div>
+
+          <div class="middle-col">
+            <div class="photo-grid">
+              <img src="111.jpeg" alt="snow photo 1" class="zoomable">
+              <img src="111.jpeg" alt="snow photo 2" class="zoomable">
+              <img src="111.jpeg" alt="snow photo 3" class="zoomable">
+            </div>
+          </div>
+
+          <div class="right-col">
+            <div class="entry-note">
+              Light snow, soft landing, and a day that felt longer than it really was.
+              I wanted to keep this one here, quietly.
+            </div>
+          </div>
+        </div>
+
+        <!-- 一条记录 -->
+        <div class="entry">
+          <div class="left-col">
+            <div class="entry-meta"><span class="dot">•</span>2026.01.30 + Hakuba</div>
+
+            <div class="record-card">
+              <img src="111.jpeg" alt="record 2" class="zoomable">
+            </div>
+
+            <div class="record-caption">
+              uploaded record / trail screenshot
+            </div>
+          </div>
+
+          <div class="middle-col">
+            <div class="photo-grid">
+              <img src="111.jpeg" alt="snow photo 4" class="zoomable">
+              <img src="111.jpeg" alt="snow photo 5" class="zoomable">
+              <img src="111.jpeg" alt="snow photo 6" class="zoomable">
+            </div>
+          </div>
+
+          <div class="right-col">
+            <div class="entry-note">
+              The air was colder, the sky cleaner, and everything looked almost unreal
+              against the white.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="page-footer">
+      somewhere between speed and stillness.
+    </div>
+  </div>
+
+  <div id="lightbox" onclick="closeLightbox()">
+    <div class="close-tip">tap anywhere to close</div>
+    <img id="lightbox-img" src="" alt="large preview">
+  </div>
+
+  <script>
+    const zoomables = document.querySelectorAll('.zoomable');
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+
+    zoomables.forEach((img) => {
+      img.addEventListener('click', function (event) {
+        event.stopPropagation();
+        lightbox.style.display = 'flex';
+        lightboxImg.src = this.src;
+        lightboxImg.alt = this.alt || 'large preview';
+      });
+    });
+
+    function closeLightbox() {
+      lightbox.style.display = 'none';
+      lightboxImg.src = '';
+    }
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') {
+        closeLightbox();
+      }
+    });
+  </script>
+</body>
+</html>
