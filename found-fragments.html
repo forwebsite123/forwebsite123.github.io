@@ -3,38 +3,350 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>人间拾遗</title>
+  <title>人间拾遗 · Found Fragments</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      padding: 40px 24px;
       background: #fcfbf8;
       color: #6e4a4a;
       font-family: "Times New Roman", Georgia, serif;
     }
-    .wrap {
-      max-width: 900px;
+
+    .page {
+      max-width: 1200px;
       margin: 0 auto;
+      padding: 36px 24px 80px;
     }
-    a {
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 28px;
+    }
+
+    .back {
       color: #7a5757;
       text-decoration: none;
+      font-size: 16px;
     }
-    h1 {
+
+    .search-btn {
+      color: #7a5757;
+      text-decoration: none;
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .intro {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      margin-bottom: 28px;
+      color: #7a5757;
+    }
+
+    .timeline-note {
+      width: 70px;
+      flex-shrink: 0;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      font-size: 14px;
+      letter-spacing: 1px;
+      opacity: 0.8;
+      padding-top: 12px;
+    }
+
+    .intro-text {
+      font-size: 15px;
+      line-height: 1.9;
+      max-width: 860px;
+    }
+
+    .fragment-list {
+      display: flex;
+      flex-direction: column;
+      gap: 42px;
+    }
+
+    .fragment-item {
+      display: grid;
+      grid-template-columns: 140px 1fr 260px;
+      gap: 28px;
+      align-items: start;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(122, 87, 87, 0.18);
+    }
+
+    .date {
+      font-size: 28px;
+      color: #7a5757;
       font-weight: 400;
-      margin-top: 24px;
+      letter-spacing: 1px;
+      padding-top: 8px;
+      white-space: nowrap;
     }
-    p {
+
+    .center-block {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .thumbs {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .thumbs img {
+      width: 140px;
+      height: 170px;
+      object-fit: cover;
+      border: 1.5px solid #b08c8c;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      background: white;
+    }
+
+    .thumbs img:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 24px rgba(122, 87, 87, 0.12);
+    }
+
+    .desc {
+      min-height: 120px;
+      padding: 18px 20px;
+      border: 1.5px solid #b08c8c;
+      background: rgba(255,255,255,0.45);
+      font-size: 17px;
+      line-height: 1.9;
+      color: #7a5757;
+    }
+
+    .meta {
+      padding-top: 8px;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .tag {
       font-size: 18px;
-      line-height: 1.8;
+      font-style: italic;
+      color: #8a6666;
+    }
+
+    /* 放大层 */
+    #lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.88);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      padding: 24px;
+    }
+
+    #lightbox img {
+      max-width: 92vw;
+      max-height: 88vh;
+      object-fit: contain;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      animation: zoomIn 0.25s ease;
+      background: white;
+    }
+
+    #lightbox .close-tip {
+      position: absolute;
+      top: 24px;
+      right: 28px;
+      color: rgba(255,255,255,0.86);
+      font-size: 14px;
+      letter-spacing: 1px;
+    }
+
+    @keyframes zoomIn {
+      from {
+        transform: scale(0.95);
+        opacity: 0;
+      }
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .fragment-item {
+        grid-template-columns: 1fr;
+        gap: 18px;
+      }
+
+      .date {
+        padding-top: 0;
+      }
+
+      .timeline-note {
+        display: none;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page {
+        padding: 24px 16px 56px;
+      }
+
+      .thumbs img {
+        width: 30%;
+        min-width: 96px;
+        height: 132px;
+      }
+
+      .desc {
+        font-size: 16px;
+      }
+
+      .tag {
+        font-size: 16px;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <a href="home.html">← Back</a>
-    <h1>人间拾遗 · Found Fragments</h1>
-    <p>这里放第三个页面的内容。</p>
+  <div class="page">
+    <div class="topbar">
+      <a href="home.html" class="back">← Back</a>
+      <a href="search.html" class="search-btn" aria-label="Search">⌕</a>
+    </div>
+
+    <div class="intro">
+      <div class="timeline-note">滚动 · 向下</div>
+      <div class="intro-text">
+        <strong>人间拾遗 · Found Fragments</strong><br>
+        这里记录的是被我留住的一些碎片：某一天的光线、路过时按下快门的瞬间、
+        没有被认真命名却仍然值得记住的小小片段。点击小图，可以放大查看。
+      </div>
+    </div>
+
+    <div class="fragment-list">
+
+      <div class="fragment-item">
+        <div class="date">2026.03.18</div>
+
+        <div class="center-block">
+          <div class="thumbs">
+            <img src="111.jpeg" alt="fragment 1">
+            <img src="111.jpeg" alt="fragment 2">
+            <img src="111.jpeg" alt="fragment 3">
+          </div>
+
+          <div class="desc">
+            傍晚的风很轻，拍下这些照片的时候并没有想太多，
+            只是觉得那一刻的街道、颜色和人的状态都很值得被留下来。
+          </div>
+        </div>
+
+        <div class="meta">
+          <div class="tags">
+            <span class="tag">street</span>
+            <span class="tag">light</span>
+            <span class="tag">passing moment</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="fragment-item">
+        <div class="date">2026.03.12</div>
+
+        <div class="center-block">
+          <div class="thumbs">
+            <img src="111.jpeg" alt="fragment 4">
+            <img src="111.jpeg" alt="fragment 5">
+            <img src="111.jpeg" alt="fragment 6">
+          </div>
+
+          <div class="desc">
+            有些图像并不需要很完整，它们像是突然被捡到的一块碎片，
+            正因为不完整，反而更像记忆本身。
+          </div>
+        </div>
+
+        <div class="meta">
+          <div class="tags">
+            <span class="tag">memory</span>
+            <span class="tag">fragment</span>
+            <span class="tag">daily</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="fragment-item">
+        <div class="date">2026.03.05</div>
+
+        <div class="center-block">
+          <div class="thumbs">
+            <img src="111.jpeg" alt="fragment 7">
+            <img src="111.jpeg" alt="fragment 8">
+            <img src="111.jpeg" alt="fragment 9">
+          </div>
+
+          <div class="desc">
+            一些很轻的东西：窗边的影子、刚好经过的人、路上看见的一小段颜色。
+            它们没有故事标题，但我还是想把它们留在这里。
+          </div>
+        </div>
+
+        <div class="meta">
+          <div class="tags">
+            <span class="tag">shadow</span>
+            <span class="tag">window</span>
+            <span class="tag">quiet</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>
+
+  <!-- 放大层 -->
+  <div id="lightbox" onclick="closeLightbox()">
+    <div class="close-tip">tap anywhere to close</div>
+    <img id="lightbox-img" src="" alt="large preview">
+  </div>
+
+  <script>
+    const thumbnails = document.querySelectorAll('.thumbs img');
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+
+    thumbnails.forEach((img) => {
+      img.addEventListener('click', function (event) {
+        event.stopPropagation();
+        lightbox.style.display = 'flex';
+        lightboxImg.src = this.src;
+        lightboxImg.alt = this.alt || 'large preview';
+      });
+    });
+
+    function closeLightbox() {
+      lightbox.style.display = 'none';
+      lightboxImg.src = '';
+    }
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') {
+        closeLightbox();
+      }
+    });
+  </script>
 </body>
 </html>
