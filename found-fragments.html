@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>人间拾遗 · Found Fragments</title>
+  <title>Found Fragments</title>
+
   <style>
     * {
       box-sizing: border-box;
@@ -17,131 +18,227 @@
     }
 
     .page {
-      max-width: 1200px;
+      max-width: 1280px;
       margin: 0 auto;
-      padding: 36px 24px 80px;
+      padding: 34px 28px 90px;
+      position: relative;
     }
 
     .topbar {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      margin-bottom: 28px;
+      margin-bottom: 26px;
     }
 
     .back {
-      color: #7a5757;
       text-decoration: none;
-      font-size: 16px;
+      color: rgba(122, 87, 87, 0.78);
+      font-size: 15px;
     }
 
     .search-btn {
-      color: #7a5757;
       text-decoration: none;
-      font-size: 24px;
+      color: #8a6666;
+      font-size: 28px;
       line-height: 1;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 70px 1fr;
+      gap: 26px;
+      align-items: start;
+    }
+
+    /* 左侧时间轴 */
+    .timeline-side {
+      position: sticky;
+      top: 28px;
+      min-height: 760px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .timeline-line {
+      position: relative;
+      width: 1px;
+      background: rgba(122, 87, 87, 0.36);
+      min-height: 760px;
+    }
+
+    .timeline-arrow {
+      position: absolute;
+      top: -8px;
+      left: -6px;
+      font-size: 26px;
+      color: rgba(122, 87, 87, 0.75);
+      line-height: 1;
+    }
+
+    .timeline-text {
+      position: absolute;
+      top: 80px;
+      left: -22px;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      font-size: 16px;
+      letter-spacing: 2px;
+      color: rgba(122, 87, 87, 0.8);
+    }
+
+    .timeline-note {
+      position: absolute;
+      top: 210px;
+      left: -32px;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      font-size: 12px;
+      line-height: 1.6;
+      color: rgba(122, 87, 87, 0.62);
+    }
+
+    /* 右侧主区域 */
+    .main {
+      min-width: 0;
     }
 
     .intro {
       display: flex;
-      gap: 20px;
-      align-items: flex-start;
-      margin-bottom: 28px;
-      color: #7a5757;
-    }
-
-    .timeline-note {
-      width: 70px;
-      flex-shrink: 0;
-      writing-mode: vertical-rl;
-      text-orientation: mixed;
-      font-size: 14px;
-      letter-spacing: 1px;
-      opacity: 0.8;
-      padding-top: 12px;
-    }
-
-    .intro-text {
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 26px;
+      color: rgba(122, 87, 87, 0.78);
       font-size: 15px;
       line-height: 1.9;
-      max-width: 860px;
     }
 
-    .fragment-list {
+    .intro-left {
+      max-width: 760px;
+    }
+
+    .intro-title {
+      font-size: 34px;
+      color: #8b5e5e;
+      font-style: italic;
+      margin-bottom: 8px;
+    }
+
+    .intro-right {
+      max-width: 220px;
+      font-size: 14px;
+      line-height: 1.9;
+      text-align: left;
+    }
+
+    .entries {
       display: flex;
       flex-direction: column;
-      gap: 42px;
+      gap: 34px;
     }
 
-    .fragment-item {
+    .entry {
       display: grid;
-      grid-template-columns: 140px 1fr 260px;
-      gap: 28px;
+      grid-template-columns: 360px 1fr 180px;
+      gap: 34px;
       align-items: start;
-      padding-bottom: 16px;
-      border-bottom: 1px solid rgba(122, 87, 87, 0.18);
     }
 
-    .date {
-      font-size: 28px;
-      color: #7a5757;
-      font-weight: 400;
-      letter-spacing: 1px;
-      padding-top: 8px;
+    /* 左列：日期 + 小图 */
+    .entry-left {
+      min-width: 0;
+    }
+
+    .date-line {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 18px;
+      color: #946565;
+    }
+
+    .date-line::before,
+    .date-line::after {
+      content: "";
+      display: block;
+      height: 1px;
+      background: rgba(122, 87, 87, 0.46);
+      flex: 1;
+    }
+
+    .date-text {
+      font-size: 30px;
+      line-height: 1;
       white-space: nowrap;
+      letter-spacing: 1px;
     }
 
-    .center-block {
+    .thumb-row {
       display: flex;
-      flex-direction: column;
-      gap: 16px;
+      gap: 14px;
+      flex-wrap: nowrap;
     }
 
-    .thumbs {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .thumbs img {
-      width: 140px;
-      height: 170px;
+    .thumb-row img {
+      width: 104px;
+      height: 126px;
       object-fit: cover;
-      border: 1.5px solid #b08c8c;
+      display: block;
+      background: #fff;
+      border: 1.4px solid #b08c8c;
       cursor: pointer;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
-      background: white;
     }
 
-    .thumbs img:hover {
-      transform: translateY(-3px);
+    .thumb-row img:hover {
+      transform: translateY(-2px);
       box-shadow: 0 10px 24px rgba(122, 87, 87, 0.12);
     }
 
-    .desc {
-      min-height: 120px;
-      padding: 18px 20px;
-      border: 1.5px solid #b08c8c;
-      background: rgba(255,255,255,0.45);
-      font-size: 17px;
-      line-height: 1.9;
-      color: #7a5757;
+    /* 中列：纯文字 */
+    .entry-middle {
+      min-height: 126px;
+      padding-top: 6px;
     }
 
-    .meta {
-      padding-top: 8px;
+    .entry-text {
+      max-width: 520px;
+      font-size: 18px;
+      line-height: 1.95;
+      color: rgba(122, 87, 87, 0.78);
+    }
+
+    /* 右列：tag */
+    .entry-right {
+      padding-top: 10px;
     }
 
     .tags {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 10px 12px;
+      align-items: flex-start;
     }
 
     .tag {
+      text-decoration: none;
       font-size: 18px;
       font-style: italic;
-      color: #8a6666;
+      color: #9a6d6d;
+      transition: opacity 0.2s ease;
+    }
+
+    .tag:hover {
+      opacity: 0.65;
+    }
+
+    .footer-note {
+      text-align: center;
+      margin-top: 90px;
+      font-size: 14px;
+      font-style: italic;
+      letter-spacing: 1px;
+      color: rgba(122, 87, 87, 0.7);
     }
 
     /* 放大层 */
@@ -160,58 +257,67 @@
       max-width: 92vw;
       max-height: 88vh;
       object-fit: contain;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-      animation: zoomIn 0.25s ease;
       background: white;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
     }
 
-    #lightbox .close-tip {
+    .close-tip {
       position: absolute;
       top: 24px;
       right: 28px;
-      color: rgba(255,255,255,0.86);
+      color: rgba(255,255,255,0.84);
       font-size: 14px;
       letter-spacing: 1px;
     }
 
-    @keyframes zoomIn {
-      from {
-        transform: scale(0.95);
-        opacity: 0;
-      }
-      to {
-        transform: scale(1);
-        opacity: 1;
-      }
-    }
-
-    @media (max-width: 980px) {
-      .fragment-item {
+    @media (max-width: 1100px) {
+      .entry {
         grid-template-columns: 1fr;
         gap: 18px;
       }
 
-      .date {
+      .entry-middle,
+      .entry-right {
         padding-top: 0;
       }
 
-      .timeline-note {
-        display: none;
+      .intro {
+        flex-direction: column;
       }
     }
 
-    @media (max-width: 640px) {
+    @media (max-width: 760px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .timeline-side {
+        display: none;
+      }
+
       .page {
-        padding: 24px 16px 56px;
+        padding: 24px 16px 60px;
       }
 
-      .thumbs img {
-        width: 30%;
-        min-width: 96px;
-        height: 132px;
+      .intro-title {
+        font-size: 28px;
       }
 
-      .desc {
+      .date-text {
+        font-size: 24px;
+      }
+
+      .thumb-row {
+        gap: 10px;
+      }
+
+      .thumb-row img {
+        width: calc(33.333% - 7px);
+        min-width: 88px;
+        height: 120px;
+      }
+
+      .entry-text {
         font-size: 16px;
       }
 
@@ -225,111 +331,144 @@
   <div class="page">
     <div class="topbar">
       <a href="home.html" class="back">← Back</a>
-      <div class="small-title">A place to leave trace.</div>
-
+      <a href="search.html" class="search-btn" aria-label="Search">⌕</a>
     </div>
 
-    <div class="intro">
-      <div class="timeline-note">滚动 · 向下</div>
-      <div class="intro-text">
-        <strong>人间拾遗 · Found Fragments</strong><br>
-        这里记录的是被我留住的一些碎片：某一天的光线、路过时按下快门的瞬间、
-        没有被认真命名却仍然值得记住的小小片段。点击小图，可以放大查看。
-      </div>
-    </div>
-
-    <div class="fragment-list">
-
-      <div class="fragment-item">
-        <div class="date">2026.03.18</div>
-
-        <div class="center-block">
-          <div class="thumbs">
-            <img src="111.jpeg" alt="fragment 1">
-            <img src="111.jpeg" alt="fragment 2">
-            <img src="111.jpeg" alt="fragment 3">
-          </div>
-
-          <div class="desc">
-            傍晚的风很轻，拍下这些照片的时候并没有想太多，
-            只是觉得那一刻的街道、颜色和人的状态都很值得被留下来。
-          </div>
-        </div>
-
-        <div class="meta">
-          <div class="tags">
-            <span class="tag">street</span>
-            <span class="tag">light</span>
-            <span class="tag">passing moment</span>
-          </div>
+    <div class="layout">
+      <div class="timeline-side">
+        <div class="timeline-line">
+          <div class="timeline-arrow">↑</div>
+          <div class="timeline-text">滚动</div>
+          <div class="timeline-note">上面的日期是我自己编辑的拍摄日期，不是上传日期</div>
         </div>
       </div>
 
-      <div class="fragment-item">
-        <div class="date">2026.03.12</div>
-
-        <div class="center-block">
-          <div class="thumbs">
-            <img src="111.jpeg" alt="fragment 4">
-            <img src="111.jpeg" alt="fragment 5">
-            <img src="111.jpeg" alt="fragment 6">
+      <div class="main">
+        <div class="intro">
+          <div class="intro-left">
+            <div class="intro-title">Found Fragments</div>
+            A place for things I wanted to keep: passing light, unimportant corners,
+            unfinished moods, and small images that still felt worth saving.
+            Click any photo to enlarge it.
           </div>
-
-          <div class="desc">
-            有些图像并不需要很完整，它们像是突然被捡到的一块碎片，
-            正因为不完整，反而更像记忆本身。
+          <div class="intro-right">
+            搜索功能以后可以在这里做。<br>
+            右侧的 tag 可以点击，进入对应标签下的照片集合页。
           </div>
         </div>
 
-        <div class="meta">
-          <div class="tags">
-            <span class="tag">memory</span>
-            <span class="tag">fragment</span>
-            <span class="tag">daily</span>
+        <div class="entries">
+
+          <!-- 第一组 -->
+          <div class="entry">
+            <div class="entry-left">
+              <div class="date-line">
+                <div class="date-text">2026.03.18</div>
+              </div>
+              <div class="thumb-row">
+                <img src="111.jpeg" alt="fragment 1" class="zoomable">
+                <img src="111.jpeg" alt="fragment 2" class="zoomable">
+                <img src="111.jpeg" alt="fragment 3" class="zoomable">
+              </div>
+            </div>
+
+            <div class="entry-middle">
+              <div class="entry-text">
+                The kind of afternoon that did not ask to be remembered,
+                but stayed anyway. I kept these images because they felt like
+                pieces of something unfinished rather than complete stories.
+              </div>
+            </div>
+
+            <div class="entry-right">
+              <div class="tags">
+                <a href="tag.html?tag=light" class="tag">light</a>
+                <a href="tag.html?tag=street" class="tag">street</a>
+                <a href="tag.html?tag=passing" class="tag">passing</a>
+              </div>
+            </div>
           </div>
+
+          <!-- 第二组 -->
+          <div class="entry">
+            <div class="entry-left">
+              <div class="date-line">
+                <div class="date-text">2026.03.12</div>
+              </div>
+              <div class="thumb-row">
+                <img src="111.jpeg" alt="fragment 4" class="zoomable">
+                <img src="111.jpeg" alt="fragment 5" class="zoomable">
+                <img src="111.jpeg" alt="fragment 6" class="zoomable">
+              </div>
+            </div>
+
+            <div class="entry-middle">
+              <div class="entry-text">
+                Some pictures feel less like documents and more like fragments
+                that were picked up on the way. I wanted this page to stay loose,
+                quiet, and slightly incomplete.
+              </div>
+            </div>
+
+            <div class="entry-right">
+              <div class="tags">
+                <a href="tag.html?tag=memory" class="tag">memory</a>
+                <a href="tag.html?tag=daily" class="tag">daily</a>
+                <a href="tag.html?tag=fragment" class="tag">fragment</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- 第三组 -->
+          <div class="entry">
+            <div class="entry-left">
+              <div class="date-line">
+                <div class="date-text">2026.03.05</div>
+              </div>
+              <div class="thumb-row">
+                <img src="111.jpeg" alt="fragment 7" class="zoomable">
+                <img src="111.jpeg" alt="fragment 8" class="zoomable">
+                <img src="111.jpeg" alt="fragment 9" class="zoomable">
+              </div>
+            </div>
+
+            <div class="entry-middle">
+              <div class="entry-text">
+                Nothing dramatic happened that day. Maybe that is exactly why
+                these photos belong here — they are close to ordinary life,
+                and still a little difficult to explain.
+              </div>
+            </div>
+
+            <div class="entry-right">
+              <div class="tags">
+                <a href="tag.html?tag=quiet" class="tag">quiet</a>
+                <a href="tag.html?tag=window" class="tag">window</a>
+                <a href="tag.html?tag=shadow" class="tag">shadow</a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="footer-note">
+          collected, not explained.
         </div>
       </div>
-
-      <div class="fragment-item">
-        <div class="date">2026.03.05</div>
-
-        <div class="center-block">
-          <div class="thumbs">
-            <img src="111.jpeg" alt="fragment 7">
-            <img src="111.jpeg" alt="fragment 8">
-            <img src="111.jpeg" alt="fragment 9">
-          </div>
-
-          <div class="desc">
-            一些很轻的东西：窗边的影子、刚好经过的人、路上看见的一小段颜色。
-            它们没有故事标题，但我还是想把它们留在这里。
-          </div>
-        </div>
-
-        <div class="meta">
-          <div class="tags">
-            <span class="tag">shadow</span>
-            <span class="tag">window</span>
-            <span class="tag">quiet</span>
-          </div>
-        </div>
-      </div>
-
     </div>
   </div>
 
-  <!-- 放大层 -->
   <div id="lightbox" onclick="closeLightbox()">
     <div class="close-tip">tap anywhere to close</div>
     <img id="lightbox-img" src="" alt="large preview">
   </div>
 
   <script>
-    const thumbnails = document.querySelectorAll('.thumbs img');
+    const zoomables = document.querySelectorAll('.zoomable');
     const lightbox = document.getElementById('lightbox');
     const lightboxImg = document.getElementById('lightbox-img');
 
-    thumbnails.forEach((img) => {
+    zoomables.forEach((img) => {
       img.addEventListener('click', function (event) {
         event.stopPropagation();
         lightbox.style.display = 'flex';
