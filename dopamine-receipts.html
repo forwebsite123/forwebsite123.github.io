@@ -1,948 +1,252 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dopamine Ledger</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script>
+function openModal(idx) {
+  const w = allWorkouts[idx];
+  document.getElementById('modal-title').textContent = `${w.typeLabel} · ${fmtDate(w.start)}`;
 
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  const dur = fmtDur(w.duration || 0);
+  const extraStats = [];
 
-    :root {
-      --bg: #fcfbf8;
-      --surface: #ffffff;
-      --surface2: #f0ede6;
-      --border: #e2dfd7;
-      --text: #6e4a4a;
-      --muted: rgba(122, 87, 87, 0.72);
-      --accent: #8b5e5e;
-    }
-
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: "Times New Roman", Georgia, serif;
-      min-height: 100vh;
-    }
-
-    .page {
-      max-width: 1240px;
-      margin: 0 auto;
-      padding: 34px 28px 90px;
-      min-height: 100vh;
-    }
-
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 34px;
-    }
-
-    .top-left {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .site-note {
-      font-size: 14px;
-      font-style: italic;
-      color: var(--muted);
-      letter-spacing: 0.3px;
-    }
-
-    .back {
-      text-decoration: none;
-      color: rgba(122, 87, 87, 0.75);
-      font-size: 15px;
-    }
-
-    .search-btn {
-      text-decoration: none;
-      color: #8a6666;
-      font-size: 28px;
-      line-height: 1;
-    }
-
-    .title-wrap {
-      margin-bottom: 26px;
-    }
-
-    .title {
-      margin: 0 0 6px;
-      font-size: 58px;
-      line-height: 1;
-      font-style: italic;
-      font-weight: 500;
-      color: var(--accent);
-      font-family: "Cormorant Garamond", serif;
-    }
-
-    .subtitle {
-      font-size: 16px;
-      color: var(--muted);
-      line-height: 1.8;
-      max-width: 760px;
-    }
-
-    .source-panel {
-      margin-top: 24px;
-      margin-bottom: 30px;
-      padding: 20px 22px;
-      border: 1px solid rgba(168, 122, 122, 0.18);
-      background: rgba(255,255,255,0.42);
-      border-radius: 10px;
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 16px;
-      align-items: center;
-    }
-
-    .source-label {
-      font-size: 11px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
-
-    .source-url {
-      font-size: 14px;
-      line-height: 1.7;
-      word-break: break-all;
-      color: var(--text);
-    }
-
-    .source-hint {
-      margin-top: 8px;
-      font-size: 13px;
-      line-height: 1.8;
-      color: var(--muted);
-    }
-
-    .source-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .btn {
-      font-family: "Times New Roman", Georgia, serif;
-      font-size: 14px;
-      padding: 10px 16px;
-      border: 1px solid rgba(168, 122, 122, 0.28);
-      background: var(--surface);
-      color: var(--accent);
-      cursor: pointer;
-      border-radius: 6px;
-      transition: 0.15s ease;
-    }
-
-    .btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 10px 20px rgba(122, 87, 87, 0.06);
-      background: #fffaf7;
-    }
-
-    .status {
-      margin-bottom: 26px;
-      padding: 14px 16px;
-      border: 1px solid rgba(168, 122, 122, 0.18);
-      background: rgba(255,255,255,0.35);
-      border-radius: 8px;
-      color: var(--muted);
-      font-size: 15px;
-      line-height: 1.7;
-    }
-
-    .status.error {
-      border-color: rgba(170, 96, 96, 0.35);
-      background: rgba(255, 246, 246, 0.85);
-      color: #9a4e4e;
-    }
-
-    .status.hidden { display: none; }
-
-    .data-section { display: none; }
-    .data-section.visible { display: block; }
-
-    .stats-bar {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 0;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-      margin-bottom: 36px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-    }
-
-    .stat-cell {
-      background: var(--surface);
-      padding: 22px 28px;
-      border-right: 1px solid var(--border);
-    }
-
-    .stat-cell:last-child { border-right: none; }
-
-    .stat-label {
-      font-size: 10px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
-
-    .stat-value {
-      font-family: "Cormorant Garamond", serif;
-      font-size: 32px;
-      font-weight: 300;
-      color: var(--accent);
-    }
-
-    .filter-row {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      margin-bottom: 28px;
-      align-items: center;
-    }
-
-    .filter-label {
-      font-size: 11px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-right: 6px;
-    }
-
-    .filter-btn {
-      font-family: 'Jost', sans-serif;
-      font-size: 11px;
-      letter-spacing: 0.06em;
-      padding: 5px 14px;
-      border: 1px solid var(--border);
-      background: var(--surface);
-      color: var(--muted);
-      cursor: pointer;
-      border-radius: 20px;
-      transition: all 0.15s;
-    }
-
-    .filter-btn:hover {
-      border-color: var(--accent);
-      color: var(--text);
-    }
-
-    .filter-btn.active {
-      background: var(--accent);
-      color: #fff;
-      border-color: var(--accent);
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 16px;
-    }
-
-    .card {
-      background: var(--surface);
-      padding: 28px 28px 22px;
-      cursor: pointer;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      transition: box-shadow 0.2s, transform 0.15s;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .card:hover {
-      box-shadow: 0 6px 20px rgba(0,0,0,0.07);
-      transform: translateY(-2px);
-    }
-
-    .card.has-route::after {
-      content: '↗';
-      position: absolute;
-      bottom: 16px;
-      right: 18px;
-      font-size: 16px;
-      color: var(--border);
-    }
-
-    .card-type {
-      font-size: 10px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 14px;
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      font-family: 'Jost', sans-serif;
-    }
-
-    .type-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    .card-duration {
-      font-family: "Cormorant Garamond", serif;
-      font-size: 48px;
-      font-weight: 300;
-      line-height: 1;
-      margin-bottom: 2px;
-      color: var(--accent);
-    }
-
-    .card-duration-unit {
-      font-family: "Cormorant Garamond", serif;
-      font-size: 20px;
-      font-weight: 300;
-      color: var(--muted);
-    }
-
-    .card-meta {
-      margin-top: 18px;
-      padding-top: 16px;
-      border-top: 1px solid var(--border);
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .meta-label {
-      font-size: 10px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 3px;
-      font-family: 'Jost', sans-serif;
-    }
-
-    .meta-value {
-      font-size: 14px;
-      font-weight: 400;
-    }
-
-    .card-date {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 16px;
-      letter-spacing: 0.04em;
-      padding-bottom: 4px;
-      font-family: 'Jost', sans-serif;
-    }
-
-    .empty-message {
-      text-align: center;
-      padding: 56px 20px;
-      color: var(--muted);
-      font-size: 22px;
-      font-family: "Cormorant Garamond", serif;
-      font-style: italic;
-      grid-column: 1 / -1;
-    }
-
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(20,18,14,0.6);
-      backdrop-filter: blur(4px);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-    }
-
-    .modal-overlay.open { display: flex; }
-
-    .modal {
-      background: var(--surface);
-      border-radius: 16px;
-      width: 100%;
-      max-width: 700px;
-      max-height: 90vh;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 24px 60px rgba(0,0,0,0.18);
-    }
-
-    .modal-header {
-      padding: 22px 28px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-shrink: 0;
-      position: sticky;
-      top: 0;
-      background: var(--surface);
-      z-index: 10;
-      border-radius: 16px 16px 0 0;
-    }
-
-    .modal-title {
-      font-family: "Cormorant Garamond", serif;
-      font-size: 24px;
-      font-weight: 300;
-      font-style: italic;
-    }
-
-    .modal-close {
-      background: var(--surface2);
-      border: none;
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      font-size: 16px;
-      cursor: pointer;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    #route-map {
-      height: 300px;
-      flex-shrink: 0;
-      background: var(--surface2);
-    }
-
-    .modal-body { padding: 24px 28px 28px; }
-
-    .modal-stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 1px;
-      background: var(--border);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      margin-bottom: 20px;
-      overflow: hidden;
-    }
-
-    .modal-stat {
-      background: var(--surface);
-      padding: 14px 18px;
-    }
-
-    .no-route-msg {
-      text-align: center;
-      padding: 48px 24px;
-      color: var(--muted);
-      font-size: 13px;
-      background: var(--surface2);
-      font-family: 'Jost', sans-serif;
-    }
-
-    .footer-note {
-      text-align: center;
-      margin-top: 90px;
-      font-size: 14px;
-      font-style: italic;
-      letter-spacing: 1px;
-      color: rgba(122, 87, 87, 0.7);
-    }
-
-    @media (max-width: 860px) {
-      .source-panel {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 640px) {
-      .page {
-        padding: 24px 16px 60px;
-      }
-
-      .title {
-        font-size: 42px;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="page">
-    <div class="topbar">
-      <div class="top-left">
-        <div class="site-note">A place to leave trace.</div>
-        <a href="home.html" class="back">← Back</a>
-      </div>
-      <a href="search.html" class="search-btn" aria-label="Search">⌕</a>
-    </div>
-
-    <div class="title-wrap">
-      <h1 class="title">Dopamine Ledger</h1>
-      <div class="subtitle">
-        从 GitHub 上的 JSON 文件直接读取运动记录。你只要把导出的 JSON 上传到 GitHub，
-        这个页面就会自动渲染统计、筛选、路线和详情。
-      </div>
-    </div>
-
-    <div class="source-panel">
-      <div>
-        <div class="source-label">GitHub JSON source</div>
-        <div class="source-url" id="source-url-display"></div>
-        <div class="source-hint">
-          这里需要的是 raw GitHub JSON 链接。你也可以通过
-          <code>?src=你的raw-json地址</code>
-          临时覆盖。
+  if (w.hr) {
+    extraStats.push(`
+      <div class="modal-stat">
+        <div class="stat-label">平均心率</div>
+        <div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">
+          ${Math.round(w.hr)} <span style="font-size:14px;color:var(--muted)">bpm</span>
         </div>
       </div>
-      <div class="source-actions">
-        <button class="btn" id="reload-btn" type="button">Reload Data</button>
-        <button class="btn" id="export-btn" type="button">Export JSON</button>
-      </div>
-    </div>
+    `);
+  }
 
-    <div id="status" class="status">Preparing to fetch data…</div>
+  const NO_SPEED = new Set([
+    'Tennis','TableTennis','Badminton','Basketball','Soccer','Volleyball',
+    'Wrestling','Boxing','MartialArts','Gymnastics','Dance','Yoga',
+    'Pilates','Barre','CoreTraining','FunctionalStrengthTraining',
+    'HighIntensityIntervalTraining'
+  ]);
 
-    <div class="data-section" id="data-section">
-      <div class="stats-bar" id="stats-bar"></div>
-      <div class="filter-row" id="filter-row">
-        <span class="filter-label">筛选</span>
-      </div>
-      <div class="grid" id="grid"></div>
-    </div>
+  if (w.typeKey === 'Swimming' && w.dist && w.duration > 0) {
+    const dv = parseFloat(w.dist);
+    const du = (w.distUnit || '').toLowerCase();
+    const distM = (du === 'm' || du === 'meter' || du === 'meters') ? dv : dv * 1000;
 
-    <div class="footer-note">
-      measured in motion, kept in memory.
-    </div>
-  </div>
-
-  <div class="modal-overlay" id="modal-overlay">
-    <div class="modal">
-      <div class="modal-header">
-        <span class="modal-title" id="modal-title"></span>
-        <button class="modal-close" onclick="closeModal()">×</button>
-      </div>
-      <div id="route-map"></div>
-      <div class="modal-body">
-        <div class="modal-stats" id="modal-stats"></div>
-        <div id="modal-runs"></div>
-      </div>
-    </div>
-  </div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-  <script>
-
-    const RAW_JSON_URL = "https://raw.githubusercontent.com/forwebsite123/forwebsite123.github.io/main/dopamine-ledger-2026-03-23.json";
-
-    const LABELS = {
-      Running:'跑步', Cycling:'骑行', Swimming:'游泳', Walking:'步行',
-      Hiking:'登山', Yoga:'瑜伽', FunctionalStrengthTraining:'力量训练',
-      CoreTraining:'核心训练', HighIntensityIntervalTraining:'HIIT',
-      Dance:'舞蹈', Pilates:'普拉提', Rowing:'划船', Elliptical:'椭圆机',
-      StairClimbing:'爬楼', MindAndBody:'身心练习', Other:'其他',
-      CrossTraining:'综合训练', MixedCardio:'有氧混合', WaterFitness:'水中健身',
-      Snowboarding:'单板滑雪', Skiing:'滑雪', Surfing:'冲浪',
-      Golf:'高尔夫', Tennis:'网球', Soccer:'足球', Basketball:'篮球',
-    };
-
-    const COLORS = {
-      Running:'#c8503a', Cycling:'#4a7fa5', Swimming:'#3a8a7a',
-      Walking:'#7a7a5a', Hiking:'#6a8a4a', Yoga:'#9a6aaa',
-      FunctionalStrengthTraining:'#4a5a8a', CoreTraining:'#5a6a9a',
-      HighIntensityIntervalTraining:'#c84a3a', Dance:'#b06a9a',
-      Skiing:'#4a8aaa', Snowboarding:'#3a7aaa',
-    };
-
-    let allWorkouts = [];
-    let leafletMap = null;
-
-    function getSourceUrl() {
-      const url = new URL(window.location.href);
-      return url.searchParams.get('src') || RAW_JSON_URL;
-    }
-
-    function typeKey(raw) {
-      return (raw || '').replace('HKWorkoutActivityType', '');
-    }
-
-    function getLabel(raw, fallbackKey) {
-      const k = fallbackKey || typeKey(raw);
-      return LABELS[k] || k || '其他';
-    }
-
-    function getColor(raw, fallbackKey) {
-      const k = fallbackKey || typeKey(raw);
-      return COLORS[k] || '#888882';
-    }
-
-    function fmtDur(secs) {
-      const m = Math.round((secs || 0) / 60);
-      if (m < 60) return { val: m, unit: 'min' };
-      const h = Math.floor(m / 60);
-      const r = m % 60;
-      return { val: h, unit: r > 0 ? `h ${r}m` : 'h' };
-    }
-
-    function fmtDate(str) {
-      if (!str) return '—';
-      return new Date(str).toLocaleDateString('zh-CN', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
-    }
-
-    function fmtCal(v) {
-      if (!v) return '—';
-      return Math.round(parseFloat(v)) + ' kcal';
-    }
-
-    function fmtDist(v, u) {
-      if (!v) return '—';
-      const n = parseFloat(v);
-      const unit = (u || '').toLowerCase();
-      if (!u) return n.toFixed(1) + ' km';
-      if (unit === 'm' || unit === 'meter' || unit === 'meters') {
-        return n >= 1000 ? (n / 1000).toFixed(1) + ' km' : Math.round(n) + ' m';
-      }
-      if (unit.includes('m') && !unit.includes('km')) {
-        return (n / 1000).toFixed(1) + ' km';
-      }
-      return n.toFixed(2) + ' km';
-    }
-
-    function normalizeWorkout(w) {
-      const typeK = w.typeKey || typeKey(w.typeRaw);
-      const route = w.routeCoords || w.route || null;
-
-      return {
-        ...w,
-        typeKey: typeK,
-        typeLabel: w.typeLabel || getLabel(w.typeRaw, typeK),
-        route,
-        hasRoute: !!(route && route.length > 1)
-      };
-    }
-
-    function setStatus(message, isError = false) {
-      const el = document.getElementById('status');
-      el.textContent = message;
-      el.classList.remove('hidden', 'error');
-      if (isError) el.classList.add('error');
-    }
-
-    function hideStatus() {
-      document.getElementById('status').classList.add('hidden');
-    }
-
-    function renderStats(ws) {
-      const totalMin = ws.reduce((s, w) => s + ((w.duration || 0) / 60), 0);
-      const totalCal = ws.reduce((s, w) => s + (w.cal || 0), 0);
-      const types = new Set(ws.map(w => w.typeLabel)).size;
-      const withRoute = ws.filter(w => w.hasRoute).length;
-
-      document.getElementById('stats-bar').innerHTML = `
-        <div class="stat-cell"><div class="stat-label">运动次数</div><div class="stat-value">${ws.length}</div></div>
-        <div class="stat-cell"><div class="stat-label">总时长</div><div class="stat-value">${Math.round(totalMin / 60)}<span style="font-size:18px;color:var(--muted)"> h</span></div></div>
-        <div class="stat-cell"><div class="stat-label">消耗热量</div><div class="stat-value">${Math.round(totalCal / 1000)}<span style="font-size:18px;color:var(--muted)"> k</span></div></div>
-        <div class="stat-cell"><div class="stat-label">有路线记录</div><div class="stat-value">${withRoute}</div></div>
-      `;
-    }
-
-    function renderFilters(ws) {
-      const counts = {};
-      ws.forEach(w => {
-        counts[w.typeKey] = (counts[w.typeKey] || 0) + 1;
-      });
-
-      const row = document.getElementById('filter-row');
-      row.innerHTML = '<span class="filter-label">筛选</span>';
-
-      const allBtn = document.createElement('button');
-      allBtn.className = 'filter-btn active';
-      allBtn.dataset.key = 'all';
-      allBtn.textContent = `全部 (${ws.length})`;
-      allBtn.onclick = () => setFilter('all');
-      row.appendChild(allBtn);
-
-      Object.entries(counts).sort((a, b) => b[1] - a[1]).forEach(([key, cnt]) => {
-        const btn = document.createElement('button');
-        btn.className = 'filter-btn';
-        btn.dataset.key = key;
-        btn.textContent = `${LABELS[key] || key} (${cnt})`;
-        btn.onclick = () => setFilter(key);
-        row.appendChild(btn);
-      });
-    }
-
-    function setFilter(key) {
-      document.querySelectorAll('.filter-btn').forEach(b => {
-        b.classList.toggle('active', b.dataset.key === key);
-      });
-      const filtered = key === 'all' ? allWorkouts : allWorkouts.filter(w => w.typeKey === key);
-      renderGrid(filtered);
-      renderStats(filtered);
-    }
-
-    function renderGrid(ws) {
-      const grid = document.getElementById('grid');
-      const clean = ws.filter(w => (w.duration || 0) > 60 || w.cal || w.dist);
-
-      if (!clean.length) {
-        grid.innerHTML = '<div class="empty-message">No records.</div>';
-        return;
-      }
-
-      grid.innerHTML = clean.map(w => {
-        const idx = allWorkouts.indexOf(w);
-        const dur = fmtDur(w.duration || 0);
-        const color = getColor(w.typeRaw, w.typeKey);
-        return `
-          <div class="card${w.hasRoute ? ' has-route' : ''}" onclick="openModal(${idx})">
-            <div class="card-type" style="color:${color}">
-              <span class="type-dot" style="background:${color}"></span>
-              ${w.typeLabel}
-            </div>
-            <div class="card-duration">${dur.val}<span class="card-duration-unit"> ${dur.unit}</span></div>
-            <div class="card-meta">
-              <div>
-                <div class="meta-label">热量</div>
-                <div class="meta-value">${fmtCal(w.cal)}</div>
-              </div>
-              <div>
-                <div class="meta-label">距离</div>
-                <div class="meta-value">${w.dist ? fmtDist(w.dist, w.distUnit) : '—'}</div>
-              </div>
-            </div>
-            <div class="card-date">${fmtDate(w.start)}</div>
+    if (distM > 10) {
+      const pace100sec = Math.round(w.duration / distM * 100);
+      const pm = Math.floor(pace100sec / 60);
+      const ps = pace100sec % 60;
+      extraStats.push(`
+        <div class="modal-stat">
+          <div class="stat-label">平均配速</div>
+          <div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">
+            ${pm}'${String(ps).padStart(2,'0')}" <span style="font-size:14px;color:var(--muted)">/100m</span>
           </div>
-        `;
-      }).join('');
+        </div>
+      `);
     }
+  }
 
-    function openModal(idx) {
-      const w = allWorkouts[idx];
-      document.getElementById('modal-title').textContent = `${w.typeLabel} · ${fmtDate(w.start)}`;
-
-      const dur = fmtDur(w.duration || 0);
-      const extraStats = [];
-
-      if (w.hr) {
-        extraStats.push(`<div class="modal-stat"><div class="stat-label">平均心率</div><div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">${Math.round(w.hr)} <span style="font-size:14px;color:var(--muted)">bpm</span></div></div>`);
-      }
-
-      if (w.pace) {
-        const pm = Math.floor(w.pace);
-        const ps = Math.round((w.pace - pm) * 60);
-        extraStats.push(`<div class="modal-stat"><div class="stat-label">配速</div><div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">${pm}'${String(ps).padStart(2,'0')}" <span style="font-size:14px;color:var(--muted)">/km</span></div></div>`);
-      } else if (w.speed) {
-        extraStats.push(`<div class="modal-stat"><div class="stat-label">平均速度</div><div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">${Number(w.speed).toFixed(1)} <span style="font-size:14px;color:var(--muted)">km/h</span></div></div>`);
-      }
-
-      if (w.vertDrop) {
-        extraStats.push(`<div class="modal-stat"><div class="stat-label">垂直落差</div><div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">${w.vertDrop} <span style="font-size:14px;color:var(--muted)">m</span></div></div>`);
-      }
-
-      if (w.elevGain) {
-        extraStats.push(`<div class="modal-stat"><div class="stat-label">爬升</div><div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">${w.elevGain} <span style="font-size:14px;color:var(--muted)">m</span></div></div>`);
-      }
-
-      if (w.tempC !== null && w.tempC !== undefined) {
-        extraStats.push(`<div class="modal-stat"><div class="stat-label">气温</div><div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">${w.tempC} <span style="font-size:14px;color:var(--muted)">°C</span></div></div>`);
-      }
-
-      if (w.humidity !== null && w.humidity !== undefined) {
-        extraStats.push(`<div class="modal-stat"><div class="stat-label">湿度</div><div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">${w.humidity} <span style="font-size:14px;color:var(--muted)">%</span></div></div>`);
-      }
-
-      if (w.airQuality !== null && w.airQuality !== undefined) {
-        extraStats.push(`<div class="modal-stat"><div class="stat-label">空气质量</div><div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">${w.airQuality}</div></div>`);
-      }
-
-      if (w.lapLength) {
-        extraStats.push(`<div class="modal-stat"><div class="stat-label">泳池长度</div><div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">${w.lapLength} <span style="font-size:14px;color:var(--muted)">m</span></div></div>`);
-      }
-
-      if (w.strokeCount) {
-        extraStats.push(`<div class="modal-stat"><div class="stat-label">总划水次数</div><div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">${w.strokeCount}</div></div>`);
-      }
-
-      document.getElementById('modal-stats').innerHTML = `
-        <div class="modal-stat"><div class="stat-label">时长</div><div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">${dur.val} ${dur.unit}</div></div>
-        <div class="modal-stat"><div class="stat-label">热量</div><div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">${fmtCal(w.cal)}</div></div>
-        <div class="modal-stat"><div class="stat-label">距离</div><div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">${w.dist ? fmtDist(w.dist, w.distUnit) : '—'}</div></div>
-        ${extraStats.join('')}
-      `;
-
-      const runsContainer = document.getElementById('modal-runs');
-      if (w.runs && w.runs.length > 0) {
-        const rows = w.runs.map((seg, i) => {
-          const durSec = typeof seg === 'object' ? seg.durSec : seg;
-          const mins = Math.floor(durSec / 60);
-          const secs = Math.round(durSec % 60);
-          const durStr = mins > 0 ? (secs > 0 ? `${mins}m${secs}s` : `${mins} min`) : `${secs}s`;
-          return `
-            <tr style="border-bottom:1px solid var(--border)">
-              <td style="padding:8px 10px 8px 0;color:var(--muted);font-size:12px;white-space:nowrap">第${i + 1}段</td>
-              <td style="padding:8px 10px">${durStr}</td>
-            </tr>
-          `;
-        }).join('');
-
-        runsContainer.innerHTML = `
-          <div style="margin-top:16px;border:1px solid var(--border);border-radius:4px;overflow:hidden">
-            <div style="padding:10px 16px 8px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">共 ${w.runs.length} 段</div>
-            <div style="overflow-x:auto">
-              <table style="width:100%;border-collapse:collapse;font-size:13px">
-                <tbody>${rows}</tbody>
-              </table>
-            </div>
+  if (!NO_SPEED.has(w.typeKey) && w.typeKey !== 'Swimming') {
+    if (w.pace) {
+      const pm = Math.floor(w.pace);
+      const ps = Math.round((w.pace - pm) * 60);
+      extraStats.push(`
+        <div class="modal-stat">
+          <div class="stat-label">配速</div>
+          <div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">
+            ${pm}'${String(ps).padStart(2,'0')}" <span style="font-size:14px;color:var(--muted)">/km</span>
           </div>
-        `;
-      } else {
-        runsContainer.innerHTML = '';
-      }
-
-      document.getElementById('modal-overlay').classList.add('open');
-      setTimeout(() => initMap(w), 80);
+        </div>
+      `);
+    } else if (w.speed) {
+      extraStats.push(`
+        <div class="modal-stat">
+          <div class="stat-label">平均速度</div>
+          <div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">
+            ${Number(w.speed).toFixed(1)} <span style="font-size:14px;color:var(--muted)">km/h</span>
+          </div>
+        </div>
+      `);
     }
+  }
 
-    function initMap(w) {
-      const mapEl = document.getElementById('route-map');
+  if (w.vertDrop && w.vertDrop > 10) {
+    extraStats.push(`
+      <div class="modal-stat">
+        <div class="stat-label">垂直落差</div>
+        <div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">
+          ${w.vertDrop} <span style="font-size:14px;color:var(--muted)">m</span>
+        </div>
+      </div>
+    `);
+  }
 
-      if (leafletMap) {
-        leafletMap.remove();
-        leafletMap = null;
-      }
+  if (w.elevGain && w.elevGain > 10 && !['Snowboarding','Skiing','DownhillSkiing'].includes(w.typeKey)) {
+    extraStats.push(`
+      <div class="modal-stat">
+        <div class="stat-label">爬升</div>
+        <div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">
+          ${w.elevGain} <span style="font-size:14px;color:var(--muted)">m</span>
+        </div>
+      </div>
+    `);
+  }
 
-      mapEl.style.height = '300px';
-      mapEl.innerHTML = '';
-      leafletMap = L.map(mapEl, { zoomControl: true, attributionControl: false });
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19
-      }).addTo(leafletMap);
+  if (w.tempC !== null && w.tempC !== undefined) {
+    extraStats.push(`
+      <div class="modal-stat">
+        <div class="stat-label">气温</div>
+        <div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">
+          ${w.tempC} <span style="font-size:14px;color:var(--muted)">°C</span>
+        </div>
+      </div>
+    `);
+  }
 
-      const color = getColor(w.typeRaw, w.typeKey);
+  if (w.humidity !== null && w.humidity !== undefined) {
+    extraStats.push(`
+      <div class="modal-stat">
+        <div class="stat-label">湿度</div>
+        <div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">
+          ${w.humidity} <span style="font-size:14px;color:var(--muted)">%</span>
+        </div>
+      </div>
+    `);
+  }
 
-      if (w.route && w.route.length > 1) {
-        const poly = L.polyline(w.route, {
-          color,
-          weight: 3,
-          opacity: 0.85
-        }).addTo(leafletMap);
+  if (w.airQuality !== null && w.airQuality !== undefined) {
+    extraStats.push(`
+      <div class="modal-stat">
+        <div class="stat-label">空气质量</div>
+        <div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">
+          ${w.airQuality}
+        </div>
+      </div>
+    `);
+  }
 
-        L.circleMarker(w.route[0], {
-          radius: 6,
-          fillColor: '#fff',
-          color,
-          weight: 2,
-          fillOpacity: 1
-        }).addTo(leafletMap);
-
-        L.circleMarker(w.route[w.route.length - 1], {
-          radius: 6,
-          fillColor: color,
-          color,
-          weight: 2,
-          fillOpacity: 1
-        }).addTo(leafletMap);
-
-        leafletMap.fitBounds(poly.getBounds(), { padding: [24, 24] });
-      } else if (w.locationPin) {
-        L.circleMarker(w.locationPin, {
-          radius: 10,
-          fillColor: color,
-          color: '#fff',
-          weight: 2,
-          fillOpacity: 0.9
-        }).addTo(leafletMap);
-        leafletMap.setView(w.locationPin, 15);
-      } else {
-        mapEl.style.height = '80px';
-        mapEl.innerHTML = '<div class="no-route-msg">没有位置记录</div>';
-        if (leafletMap) {
-          leafletMap.remove();
-          leafletMap = null;
-        }
-      }
+  if (w.typeKey === 'Swimming') {
+    if (w.lapLength) {
+      extraStats.push(`
+        <div class="modal-stat">
+          <div class="stat-label">泳池长度</div>
+          <div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">
+            ${w.lapLength} <span style="font-size:14px;color:var(--muted)">m</span>
+          </div>
+        </div>
+      `);
     }
-
-    function closeModal() {
-      document.getElementById('modal-overlay').classList.remove('open');
-      if (leafletMap) {
-        leafletMap.remove();
-        leafletMap = null;
-      }
+    if (w.strokeCount) {
+      extraStats.push(`
+        <div class="modal-stat">
+          <div class="stat-label">总划水次数</div>
+          <div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">
+            ${w.strokeCount}
+          </div>
+        </div>
+      `);
     }
+  }
 
-    document.getElementById('modal-overlay').addEventListener('click', e => {
-      if (e.target === e.currentTarget) closeModal();
-    });
+  document.getElementById('modal-stats').innerHTML = `
+    <div class="modal-stat">
+      <div class="stat-label">时长</div>
+      <div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">
+        ${dur.val} ${dur.unit}
+      </div>
+    </div>
+    <div class="modal-stat">
+      <div class="stat-label">热量</div>
+      <div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">
+        ${fmtCal(w.cal)}
+      </div>
+    </div>
+    <div class="modal-stat">
+      <div class="stat-label">距离</div>
+      <div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">
+        ${w.dist ? fmtDist(w.dist, w.distUnit) : '—'}
+      </div>
+    </div>
+    ${extraStats.join('')}
+  `;
 
-    async function loadJSONData() {
-      const sourceUrl = getSourceUrl();
-      document.getElementById('source-url-display').textContent = sourceUrl;
+  const runsContainer = document.getElementById('modal-runs');
 
-      if (!sourceUrl || sourceUrl.includes('your-username') || sourceUrl.includes('your-repo')) {
-        setStatus('请先把 RAW_JSON_URL 改成你自己的 GitHub raw JSON 地址，或通过 ?src= 传入。', true);
-        return;
+  if (w.runs && w.runs.length > 0) {
+    const runsWord = w.typeKey === 'Swimming' ? '圈' : '趟';
+
+    const rows = w.runs.map((seg, i) => {
+      const isObj = typeof seg === 'object';
+      const durSec = isObj ? seg.durSec : seg;
+      const mins = Math.floor(durSec / 60);
+      const secs = Math.round(durSec % 60);
+      const durStr = mins > 0 ? (secs > 0 ? `${mins}m${secs}s` : `${mins} min`) : `${secs}s`;
+
+      const cells = [];
+      cells.push(`
+        <td style="padding:5px 10px 5px 0;color:var(--muted);font-size:12px;white-space:nowrap">
+          第${i + 1}${runsWord}
+        </td>
+      `);
+      cells.push(`<td style="padding:5px 10px">${durStr}</td>`);
+
+      if (isObj && seg.dist) {
+        const d = seg.dist;
+        cells.push(`
+          <td style="padding:5px 10px">
+            ${d < 1 ? Math.round(d * 1000) + 'm' : d.toFixed(2) + ' km'}
+          </td>
+        `);
       }
 
-      setStatus('Fetching JSON data from GitHub…');
-
-      try {
-        const response = await fetch(sourceUrl, { cache: 'no-store' });
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const data = await response.json();
-        const workouts = Array.isArray(data) ? data : (data.workouts || []);
-
-        if (!workouts.length) {
-          setStatus('JSON 已读取成功，但没有找到 workouts 数组或数组为空。', true);
-          document.getElementById('data-section').classList.remove('visible');
-          return;
-        }
-
-        allWorkouts = workouts.map(normalizeWorkout).sort((a, b) => new Date(b.start) - new Date(a.start));
-
-        document.getElementById('data-section').classList.add('visible');
-        renderStats(allWorkouts);
-        renderFilters(allWorkouts);
-        renderGrid(allWorkouts);
-        hideStatus();
-      } catch (error) {
-        setStatus(`无法读取 JSON。请确认 raw 地址正确、仓库公开、JSON 格式有效。(${error.message})`, true);
-        document.getElementById('data-section').classList.remove('visible');
+      if (isObj && seg.strokeStyle) {
+        cells.push(`<td style="padding:5px 10px;color:var(--muted)">${seg.strokeStyle}</td>`);
       }
-    }
 
-    function exportJSON() {
-      if (!allWorkouts || allWorkouts.length === 0) return;
-      const json = JSON.stringify({
-        exported: new Date().toISOString(),
-        workouts: allWorkouts
-      }, null, 2);
+      if (isObj && seg.pace100) {
+        const pm = Math.floor(seg.pace100 / 60);
+        const ps = String(seg.pace100 % 60).padStart(2, '0');
+        cells.push(`<td style="padding:5px 10px">${pm}'${ps}"/100m</td>`);
+      }
 
-      const blob = new Blob([json], { type: 'application/json' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'dopamine-ledger-export-' + new Date().toISOString().slice(0, 10) + '.json';
-      a.click();
-    }
+      if (isObj && seg.vertDrop) {
+        cells.push(`<td style="padding:5px 10px">↓${seg.vertDrop}m</td>`);
+      }
 
-    document.getElementById('reload-btn').addEventListener('click', loadJSONData);
-    document.getElementById('export-btn').addEventListener('click', exportJSON);
+      if (isObj && seg.speed) {
+        cells.push(`<td style="padding:5px 10px">${Number(seg.speed).toFixed(1)} km/h</td>`);
+      }
 
-    loadJSONData();
-  </script>
-</body>
-</html>
+      if (isObj && seg.maxSpeed) {
+        cells.push(`<td style="padding:5px 10px;color:var(--muted)">最高${Number(seg.maxSpeed).toFixed(1)}</td>`);
+      }
+
+      if (isObj && seg.hr) {
+        cells.push(`<td style="padding:5px 10px">${Math.round(seg.hr)} bpm</td>`);
+      }
+
+      if (isObj && seg.strokes) {
+        cells.push(`<td style="padding:5px 10px;color:var(--muted)">${seg.strokes}划</td>`);
+      }
+
+      return `<tr style="border-bottom:1px solid var(--border)">${cells.join('')}</tr>`;
+    }).join('');
+
+    runsContainer.innerHTML = `
+      <div style="margin-top:16px;border:1px solid var(--border);border-radius:4px;overflow:hidden">
+        <div style="padding:10px 16px 8px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">
+          共 ${w.runs.length} ${runsWord}
+        </div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  } else {
+    runsContainer.innerHTML = '';
+  }
+
+  document.getElementById('modal-overlay').classList.add('open');
+  setTimeout(() => initMap(w), 80);
+}
+</script>
