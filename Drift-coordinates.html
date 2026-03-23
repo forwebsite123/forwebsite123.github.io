@@ -195,7 +195,7 @@
     }
 
     .custom-popup h4 {
-      margin: 0 0 8px;
+      margin: 0 0 10px;
       color: #8b5e5e;
       font-size: 16px;
     }
@@ -207,6 +207,46 @@
       border-radius: 8px;
       margin: 6px 0;
       display: block;
+      cursor: zoom-in;
+    }
+
+    .popup-gallery {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scroll-behavior: smooth;
+      margin: 6px 0 8px;
+    }
+
+    .popup-gallery::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    .popup-gallery::-webkit-scrollbar-thumb {
+      background: rgba(156, 110, 110, 0.35);
+      border-radius: 999px;
+    }
+
+    .popup-gallery::-webkit-scrollbar-track {
+      background: rgba(215, 192, 192, 0.18);
+      border-radius: 999px;
+    }
+
+    .popup-gallery img {
+      flex: 0 0 auto;
+      width: 180px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 8px;
+      display: block;
+      cursor: zoom-in;
+      transition: transform 0.18s ease, opacity 0.18s ease;
+    }
+
+    .popup-gallery img:hover {
+      transform: translateY(-2px);
+      opacity: 0.92;
     }
 
     .leaflet-popup-content-wrapper {
@@ -232,6 +272,103 @@
 
     .continent-tooltip:before {
       display: none;
+    }
+
+    /* Lightbox */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(34, 23, 23, 0.78);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 28px;
+    }
+
+    .lightbox.active {
+      display: flex;
+    }
+
+    .lightbox-inner {
+      position: relative;
+      width: min(1000px, 92vw);
+      max-height: 88vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lightbox-img {
+      max-width: 100%;
+      max-height: 88vh;
+      border-radius: 14px;
+      box-shadow: 0 18px 60px rgba(0,0,0,0.22);
+      background: #fff;
+      display: block;
+    }
+
+    .lightbox-caption {
+      position: absolute;
+      left: 50%;
+      bottom: -42px;
+      transform: translateX(-50%);
+      color: rgba(255,255,255,0.9);
+      font-size: 14px;
+      letter-spacing: 0.4px;
+      text-align: center;
+      width: 100%;
+      pointer-events: none;
+    }
+
+    .lightbox-btn,
+    .lightbox-close {
+      position: absolute;
+      border: none;
+      background: rgba(255,255,255,0.14);
+      color: #fff;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+      transition: background 0.18s ease, transform 0.18s ease;
+    }
+
+    .lightbox-btn:hover,
+    .lightbox-close:hover {
+      background: rgba(255,255,255,0.22);
+      transform: scale(1.04);
+    }
+
+    .lightbox-close {
+      top: 20px;
+      right: 22px;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .lightbox-btn {
+      top: 50%;
+      transform: translateY(-50%);
+      width: 48px;
+      height: 64px;
+      border-radius: 14px;
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .lightbox-btn:hover {
+      transform: translateY(-50%) scale(1.04);
+    }
+
+    .lightbox-prev {
+      left: 18px;
+    }
+
+    .lightbox-next {
+      right: 18px;
     }
 
     @media (max-width: 760px) {
@@ -260,6 +397,39 @@
 
       #leaflet-map {
         height: 480px;
+      }
+
+      .popup-gallery img {
+        width: 150px;
+        height: 100px;
+      }
+
+      .lightbox {
+        padding: 16px;
+      }
+
+      .lightbox-btn {
+        width: 42px;
+        height: 56px;
+        font-size: 24px;
+      }
+
+      .lightbox-prev {
+        left: 8px;
+      }
+
+      .lightbox-next {
+        right: 8px;
+      }
+
+      .lightbox-close {
+        top: 10px;
+        right: 10px;
+      }
+
+      .lightbox-caption {
+        bottom: -34px;
+        font-size: 13px;
       }
     }
   </style>
@@ -316,6 +486,19 @@
     </div>
   </div>
 
+  <!-- Lightbox -->
+  <div id="lightbox" class="lightbox" aria-hidden="true">
+    <button class="lightbox-close" id="lightbox-close" aria-label="Close">×</button>
+    <button class="lightbox-btn lightbox-prev" id="lightbox-prev" aria-label="Previous image">‹</button>
+
+    <div class="lightbox-inner">
+      <img id="lightbox-img" class="lightbox-img" src="" alt="" />
+      <div id="lightbox-caption" class="lightbox-caption"></div>
+    </div>
+
+    <button class="lightbox-btn lightbox-next" id="lightbox-next" aria-label="Next image">›</button>
+  </div>
+
   <script>
     const map = L.map('leaflet-map', {
       zoomControl: true,
@@ -340,249 +523,186 @@
 
     const continentHoverStyle = {
       fillColor: '#cfaeae',
-      fillOpacity: 0.60
+      fillOpacity: 0.62
     };
 
-    function bindContinentPolygon(coords, pageUrl, name) {
-      const polygon = L.polygon(coords, continentStyle).addTo(map);
+    function bindContinentRegion(shapes, pageUrl, name, tooltipLatLng = null) {
+      const layers = [];
 
-      polygon.bindTooltip(name, {
+      shapes.forEach(coords => {
+        const polygon = L.polygon(coords, continentStyle).addTo(map);
+        layers.push(polygon);
+      });
+
+      const tooltipTarget = L.marker(
+        tooltipLatLng || layers[0].getBounds().getCenter(),
+        { opacity: 0 }
+      ).addTo(map);
+
+      tooltipTarget.bindTooltip(name, {
         permanent: false,
         direction: 'center',
         className: 'continent-tooltip'
       });
 
-      polygon.on('mouseover', function () {
-        polygon.setStyle(continentHoverStyle);
-      });
+      function setHoverStyle() {
+        layers.forEach(layer => layer.setStyle(continentHoverStyle));
+        tooltipTarget.openTooltip();
+      }
 
-      polygon.on('mouseout', function () {
-        polygon.setStyle(continentStyle);
-      });
+      function resetStyle() {
+        layers.forEach(layer => layer.setStyle(continentStyle));
+        tooltipTarget.closeTooltip();
+      }
 
-      polygon.on('click', function () {
+      function goPage() {
         window.location.href = pageUrl;
+      }
+
+      layers.forEach(layer => {
+        layer.on('mouseover', setHoverStyle);
+        layer.on('mouseout', resetStyle);
+        layer.on('click', goPage);
       });
 
-      return polygon;
+      return layers;
     }
 
-    // North America
-    bindContinentPolygon(
-      [
-        [72, -168],
-        [70, -150],
-        [68, -138],
-        [71, -126],
-        [69, -112],
-        [64, -98],
-        [58, -90],
-        [53, -84],
-        [48, -80],
-        [44, -76],
-        [41, -72],
-        [37, -68],
-        [31, -72],
-        [26, -81],
-        [22, -92],
-        [21, -105],
-        [24, -117],
-        [28, -128],
-        [34, -138],
-        [42, -150],
-        [52, -160],
-        [63, -166],
-        [72, -168]
-      ],
-      'north-america.html',
-      'North America'
-    );
+    const continents = [
+      {
+        name: 'North America',
+        page: 'north-america.html',
+        tooltip: [48, -105],
+        shapes: [
+          [
+            [72, -168], [71, -160], [69, -150], [68, -140], [70, -130],
+            [68, -120], [65, -110], [61, -100], [57, -93], [53, -87],
+            [49, -83], [46, -79], [42, -75], [38, -72], [33, -75],
+            [28, -80], [24, -88], [21, -97], [21, -107], [24, -117],
+            [28, -124], [33, -130], [39, -136], [45, -145], [52, -154],
+            [60, -163], [67, -168], [72, -168]
+          ],
+          [
+            [83, -73], [82, -56], [79, -33], [74, -20], [69, -24],
+            [63, -40], [60, -52], [63, -62], [69, -70], [76, -74],
+            [83, -73]
+          ]
+        ]
+      },
+      {
+        name: 'South America',
+        page: 'south-america.html',
+        tooltip: [-15, -60],
+        shapes: [
+          [
+            [13, -81], [11, -78], [9, -74], [7, -70], [4, -66],
+            [1, -62], [-3, -58], [-8, -55], [-13, -53], [-18, -52],
+            [-23, -53], [-28, -55], [-33, -58], [-38, -61], [-43, -64],
+            [-48, -67], [-53, -69], [-55, -71], [-52, -73], [-47, -73],
+            [-41, -72], [-34, -71], [-27, -70], [-20, -69], [-13, -68],
+            [-6, -67], [0, -68], [5, -71], [9, -75], [13, -81]
+          ]
+        ]
+      },
+      {
+        name: 'Europe',
+        page: 'europe.html',
+        tooltip: [54, 15],
+        shapes: [
+          [
+            [71, -10], [71, -4], [70, 3], [69, 10], [67, 18],
+            [65, 24], [63, 30], [60, 35], [57, 39], [54, 40],
+            [51, 38], [48, 34], [45, 30], [43, 26], [41, 22],
+            [40, 17], [40, 12], [41, 7], [43, 2], [46, -2],
+            [49, -5], [53, -8], [58, -10], [64, -11], [69, -11],
+            [71, -10]
+          ],
+          [
+            [59, -10], [58, -7], [56, -5], [54, -3], [52, -2],
+            [50, -4], [50, -7], [52, -9], [55, -10], [59, -10]
+          ]
+        ]
+      },
+      {
+        name: 'Africa',
+        page: 'africa.html',
+        tooltip: [5, 18],
+        shapes: [
+          [
+            [37, -17], [36, -10], [35, -2], [34, 7], [33, 16],
+            [31, 24], [27, 31], [22, 35], [16, 40], [9, 44],
+            [1, 47], [-8, 45], [-17, 41], [-25, 35], [-31, 28],
+            [-35, 20], [-35, 11], [-32, 3], [-27, -4], [-20, -9],
+            [-12, -13], [-3, -16], [8, -16], [19, -15], [29, -15],
+            [37, -17]
+          ]
+        ]
+      },
+      {
+        name: 'Asia',
+        page: 'asia.html',
+        tooltip: [38, 95],
+        shapes: [
+          [
+            [78, 42], [77, 52], [76, 63], [74, 75], [72, 88],
+            [70, 100], [67, 112], [63, 124], [58, 136], [52, 146],
+            [46, 154], [39, 159], [32, 160], [26, 154], [20, 146],
+            [15, 136], [10, 126], [7, 116], [6, 106], [7, 95],
+            [10, 84], [14, 73], [20, 63], [27, 55], [35, 48],
+            [44, 44], [55, 43], [66, 42], [78, 42]
+          ],
+          [
+            [45, 141], [43, 145], [39, 144], [35, 140], [33, 136],
+            [35, 132], [39, 134], [42, 138], [45, 141]
+          ],
+          [
+            [7, 95], [5, 100], [2, 105], [-2, 110], [-4, 116],
+            [-3, 122], [0, 126], [4, 125], [6, 119], [6, 112],
+            [7, 105], [7, 95]
+          ]
+        ]
+      },
+      {
+        name: 'Oceania',
+        page: 'oceania.html',
+        tooltip: [-24, 138],
+        shapes: [
+          [
+            [-10, 113], [-13, 118], [-16, 126], [-19, 134], [-23, 142],
+            [-28, 149], [-33, 153], [-38, 150], [-42, 144], [-43, 136],
+            [-41, 128], [-37, 120], [-31, 115], [-24, 113], [-16, 112],
+            [-10, 113]
+          ],
+          [
+            [-34, 166], [-37, 171], [-41, 175], [-45, 174], [-47, 169],
+            [-43, 166], [-38, 165], [-34, 166]
+          ]
+        ]
+      },
+      {
+        name: 'Antarctica',
+        page: 'antarctica.html',
+        tooltip: [-72, 0],
+        shapes: [
+          [
+            [-60, -180], [-61, -150], [-63, -120], [-65, -90], [-67, -60],
+            [-68, -30], [-69, 0], [-68, 30], [-67, 60], [-65, 90],
+            [-63, 120], [-61, 150], [-60, 180], [-78, 180], [-80, 120],
+            [-81, 60], [-82, 0], [-81, -60], [-80, -120], [-78, -180],
+            [-60, -180]
+          ]
+        ]
+      }
+    ];
 
-    // South America
-    bindContinentPolygon(
-      [
-        [13, -81],
-        [11, -76],
-        [9, -71],
-        [7, -66],
-        [4, -61],
-        [0, -57],
-        [-5, -54],
-        [-10, -52],
-        [-16, -51],
-        [-22, -52],
-        [-28, -54],
-        [-34, -57],
-        [-40, -60],
-        [-46, -63],
-        [-51, -66],
-        [-54, -68],
-        [-55, -70],
-        [-52, -71],
-        [-47, -72],
-        [-41, -72],
-        [-34, -71],
-        [-27, -70],
-        [-20, -69],
-        [-13, -68],
-        [-6, -67],
-        [1, -69],
-        [7, -73],
-        [11, -77],
-        [13, -81]
-      ],
-      'south-america.html',
-      'South America'
-    );
-
-    // Europe - 收紧到更真实的欧洲范围，避免与亚洲重叠
-    bindContinentPolygon(
-      [
-        [71, -10],
-        [70, -2],
-        [69, 8],
-        [67, 18],
-        [64, 28],
-        [60, 36],
-        [56, 40],
-        [52, 39],
-        [49, 34],
-        [46, 30],
-        [43, 25],
-        [41, 20],
-        [40, 14],
-        [40, 8],
-        [41, 2],
-        [44, -3],
-        [49, -7],
-        [55, -10],
-        [62, -11],
-        [68, -11],
-        [71, -10]
-      ],
-      'europe.html',
-      'Europe'
-    );
-
-    // Africa - 顶部向东北微抬，与欧洲更自然衔接
-    bindContinentPolygon(
-      [
-        [37, -17],
-        [36, -7],
-        [35, 2],
-        [34, 11],
-        [31, 20],
-        [27, 28],
-        [22, 34],
-        [15, 39],
-        [7, 43],
-        [-3, 45],
-        [-12, 43],
-        [-20, 39],
-        [-27, 33],
-        [-32, 25],
-        [-35, 16],
-        [-35, 8],
-        [-31, 1],
-        [-25, -5],
-        [-17, -10],
-        [-7, -14],
-        [4, -16],
-        [16, -16],
-        [27, -16],
-        [37, -17]
-      ],
-      'africa.html',
-      'Africa'
-    );
-
-    // Asia - 从 45E 左右开始，避开欧洲；形状更像东亚、东南亚展开
-    bindContinentPolygon(
-      [
-        [78, 45],
-        [76, 56],
-        [74, 68],
-        [72, 82],
-        [69, 96],
-        [65, 110],
-        [60, 123],
-        [55, 136],
-        [49, 148],
-        [43, 157],
-        [35, 160],
-        [28, 154],
-        [22, 146],
-        [17, 136],
-        [12, 126],
-        [8, 116],
-        [5, 104],
-        [6, 92],
-        [9, 80],
-        [13, 69],
-        [19, 60],
-        [27, 52],
-        [36, 47],
-        [45, 45],
-        [55, 44],
-        [66, 44],
-        [78, 45]
-      ],
-      'asia.html',
-      'Asia'
-    );
-
-    // Oceania
-    bindContinentPolygon(
-      [
-        [-9, 111],
-        [-12, 120],
-        [-15, 130],
-        [-18, 140],
-        [-23, 149],
-        [-28, 154],
-        [-34, 153],
-        [-39, 149],
-        [-43, 141],
-        [-44, 132],
-        [-41, 122],
-        [-36, 115],
-        [-28, 111],
-        [-20, 110],
-        [-12, 110],
-        [-9, 111]
-      ],
-      'oceania.html',
-      'Oceania'
-    );
-
-    // Antarctica
-    bindContinentPolygon(
-      [
-        [-60, -180],
-        [-62, -150],
-        [-64, -120],
-        [-66, -90],
-        [-67, -60],
-        [-68, -30],
-        [-69, 0],
-        [-68, 30],
-        [-67, 60],
-        [-66, 90],
-        [-64, 120],
-        [-62, 150],
-        [-60, 180],
-        [-78, 180],
-        [-80, 120],
-        [-81, 60],
-        [-82, 0],
-        [-81, -60],
-        [-80, -120],
-        [-78, -180],
-        [-60, -180]
-      ],
-      'antarctica.html',
-      'Antarctica'
-    );
+    continents.forEach(continent => {
+      bindContinentRegion(
+        continent.shapes,
+        continent.page,
+        continent.name,
+        continent.tooltip
+      );
+    });
 
     function createGlowIcon() {
       return L.divIcon({
@@ -623,40 +743,187 @@
         lat: 48.8566,
         lng: 2.3522,
         title: 'France',
-        img: ['https://picsum.photos/seed/france/300/200','https://picsum.photos/seed/france/300/200','https://picsum.photos/seed/france/300/200']
+        imgs: [
+          'https://picsum.photos/seed/france-1/1000/700',
+          'https://picsum.photos/seed/france-2/1000/700',
+          'https://picsum.photos/seed/france-3/1000/700'
+        ]
       },
       {
         lat: 39.9042,
         lng: 116.4074,
         title: 'China',
-        img: 'https://picsum.photos/seed/china/300/200'
+        imgs: [
+          'https://picsum.photos/seed/china-1/1000/700',
+          'https://picsum.photos/seed/china-2/1000/700',
+          'https://picsum.photos/seed/china-3/1000/700'
+        ]
       },
       {
         lat: 35.6762,
         lng: 139.6503,
         title: 'Japan',
-        img: 'https://picsum.photos/seed/japan/300/200'
+        imgs: [
+          'https://picsum.photos/seed/japan-1/1000/700',
+          'https://picsum.photos/seed/japan-2/1000/700',
+          'https://picsum.photos/seed/japan-3/1000/700'
+        ]
       },
       {
         lat: 13.7563,
         lng: 100.5018,
         title: 'Thailand',
-        img: 'https://picsum.photos/seed/thailand/300/200'
+        imgs: [
+          'https://picsum.photos/seed/thailand-1/1000/700',
+          'https://picsum.photos/seed/thailand-2/1000/700',
+          'https://picsum.photos/seed/thailand-3/1000/700'
+        ]
       }
     ];
 
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function renderImages(imgs, title) {
+      if (!imgs || imgs.length === 0) return '';
+
+      if (imgs.length === 1) {
+        return `
+          <img
+            src="${imgs[0]}"
+            class="popup-img"
+            alt="${escapeHtml(title)}"
+            data-gallery="${escapeHtml(title)}"
+            data-index="0"
+          >
+        `;
+      }
+
+      return `
+        <div class="popup-gallery">
+          ${imgs.map((src, index) => `
+            <img
+              src="${src}"
+              alt="${escapeHtml(title)} ${index + 1}"
+              data-gallery="${escapeHtml(title)}"
+              data-index="${index}"
+            >
+          `).join('')}
+        </div>
+      `;
+    }
+
     markers.forEach(point => {
+      const popupHtml = `
+        <div class="custom-popup">
+          <h4>${escapeHtml(point.title)}</h4>
+          ${renderImages(point.imgs, point.title)}
+          <p>点击图片可放大查看 · 点击地图洲块可进入对应页面</p>
+        </div>
+      `;
+
       L.marker([point.lat, point.lng], {
         icon: createGlowIcon()
       })
         .addTo(map)
-        .bindPopup(`
-          <div class="custom-popup">
-            <h4>${point.title}</h4>
-            <img src="${point.img}" class="popup-img" alt="${point.title}">
-            <p>点击地图洲块可进入对应页面</p>
-          </div>
-        `);
+        .bindPopup(popupHtml);
+    });
+
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    const lightboxCaption = document.getElementById('lightbox-caption');
+    const lightboxClose = document.getElementById('lightbox-close');
+    const lightboxPrev = document.getElementById('lightbox-prev');
+    const lightboxNext = document.getElementById('lightbox-next');
+
+    let activeGallery = [];
+    let activeTitle = '';
+    let activeIndex = 0;
+
+    function updateLightbox() {
+      if (!activeGallery.length) return;
+      lightboxImg.src = activeGallery[activeIndex];
+      lightboxImg.alt = `${activeTitle} ${activeIndex + 1}`;
+      lightboxCaption.textContent = `${activeTitle} · ${activeIndex + 1} / ${activeGallery.length}`;
+      lightboxPrev.style.display = activeGallery.length > 1 ? 'block' : 'none';
+      lightboxNext.style.display = activeGallery.length > 1 ? 'block' : 'none';
+    }
+
+    function openLightbox(title, imgs, index) {
+      activeTitle = title;
+      activeGallery = imgs.slice();
+      activeIndex = index;
+      updateLightbox();
+      lightbox.classList.add('active');
+      lightbox.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+      lightbox.classList.remove('active');
+      lightbox.setAttribute('aria-hidden', 'true');
+      lightboxImg.src = '';
+      document.body.style.overflow = '';
+    }
+
+    function showPrevImage() {
+      if (!activeGallery.length) return;
+      activeIndex = (activeIndex - 1 + activeGallery.length) % activeGallery.length;
+      updateLightbox();
+    }
+
+    function showNextImage() {
+      if (!activeGallery.length) return;
+      activeIndex = (activeIndex + 1) % activeGallery.length;
+      updateLightbox();
+    }
+
+    document.addEventListener('click', function (event) {
+      const target = event.target;
+
+      if (target.matches('.popup-gallery img, .popup-img')) {
+        const galleryName = target.dataset.gallery;
+        const clickedIndex = Number(target.dataset.index || 0);
+        const point = markers.find(item => item.title === galleryName);
+
+        if (point && point.imgs && point.imgs.length) {
+          openLightbox(point.title, point.imgs, clickedIndex);
+        }
+      }
+    });
+
+    lightboxClose.addEventListener('click', closeLightbox);
+    lightboxPrev.addEventListener('click', function (e) {
+      e.stopPropagation();
+      showPrevImage();
+    });
+    lightboxNext.addEventListener('click', function (e) {
+      e.stopPropagation();
+      showNextImage();
+    });
+
+    lightbox.addEventListener('click', function (e) {
+      if (e.target === lightbox) {
+        closeLightbox();
+      }
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (!lightbox.classList.contains('active')) return;
+
+      if (e.key === 'Escape') {
+        closeLightbox();
+      } else if (e.key === 'ArrowLeft') {
+        showPrevImage();
+      } else if (e.key === 'ArrowRight') {
+        showNextImage();
+      }
     });
   </script>
 </body>
