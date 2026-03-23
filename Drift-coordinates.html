@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>漂流坐标 · Drift Coordinates</title>
 
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
   <style>
     * {
       box-sizing: border-box;
@@ -140,62 +146,12 @@
       box-shadow: 0 18px 50px rgba(122, 87, 87, 0.06);
     }
 
-    .world-map {
+    /* 新的地图容器 */
+    #leaflet-map {
       width: 100%;
-      height: auto;
-      display: block;
-    }
-
-    .ocean {
-      fill: #f7f4ef;
-    }
-
-    .continent {
-      fill: #e8dfd6;
-      stroke: #ffffff;
-      stroke-width: 2.2;
-      transition: fill 0.2s ease, transform 0.2s ease;
-      cursor: pointer;
-    }
-
-    .continent:hover {
-      fill: #ddd0c4;
-    }
-
-    .continent.visited-area {
-      fill: #d7c0c0;
-    }
-
-    .map-label {
-      font-size: 20px;
-      fill: rgba(122, 87, 87, 0.66);
-      font-style: italic;
-      letter-spacing: 0.5px;
-    }
-
-    .route-line {
-      fill: none;
-      stroke: rgba(168, 122, 122, 0.32);
-      stroke-width: 1.8;
-      stroke-dasharray: 7 7;
-    }
-
-    .pin-glow {
-      fill: rgba(185, 133, 133, 0.18);
-    }
-
-    .pin {
-      fill: #9c6e6e;
-      stroke: #fff;
-      stroke-width: 2;
-    }
-
-    .pin-label {
-      font-size: 15px;
-      fill: #8b5e5e;
-      font-family: "Times New Roman", Georgia, serif;
-      font-style: italic;
-      letter-spacing: 0.2px;
+      height: 620px;
+      border-radius: 12px;
+      overflow: hidden;
     }
 
     .legend {
@@ -225,8 +181,8 @@
     .legend-block {
       width: 18px;
       height: 14px;
-      background: #e8dfd6;
-      border: 1px solid rgba(122, 87, 87, 0.08);
+      background: #d7c0c0;
+      border: 1px solid rgba(122, 87, 87, 0.12);
     }
 
     .footer-note {
@@ -236,6 +192,31 @@
       font-style: italic;
       letter-spacing: 1px;
       color: rgba(122, 87, 87, 0.7);
+    }
+
+    .custom-popup h4 {
+      margin: 0 0 8px;
+      color: #8b5e5e;
+      font-size: 16px;
+    }
+
+    .popup-img {
+      width: 200px;
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin: 6px 0;
+      display: block;
+    }
+
+    .leaflet-popup-content-wrapper {
+      border-radius: 12px;
+    }
+
+    .leaflet-popup-content {
+      margin: 12px 14px;
+      color: #6e4a4a;
+      font-family: "Times New Roman", Georgia, serif;
     }
 
     @media (max-width: 760px) {
@@ -262,12 +243,8 @@
         border-radius: 8px;
       }
 
-      .map-label {
-        font-size: 14px;
-      }
-
-      .pin-label {
-        font-size: 11px;
+      #leaflet-map {
+        height: 480px;
       }
     }
   </style>
@@ -303,120 +280,12 @@
       </div>
 
       <div class="map-wrap">
-        <svg class="world-map" viewBox="0 0 1200 650" xmlns="http://www.w3.org/2000/svg" aria-label="World map">
-          <rect class="ocean" x="0" y="0" width="1200" height="650" rx="22" />
-
-          <!-- 柔和路线 -->
-          <path class="route-line" d="M632 182 C720 170, 820 188, 895 226" />
-          <path class="route-line" d="M890 232 C905 250, 908 280, 900 314" />
-
-          <!-- North America -->
-          <a href="north-america.html">
-            <path class="continent visited-area" d="M88 154
-              C120 118, 208 92, 282 100
-              C346 106, 400 132, 410 168
-              C415 192, 395 220, 356 238
-              C322 255, 278 270, 236 270
-              C198 269, 152 250, 124 222
-              C102 200, 85 176, 88 154 Z" />
-          </a>
-
-          <!-- South America -->
-          <a href="south-america.html">
-            <path class="continent visited-area" d="M306 302
-              C338 314, 364 336, 378 370
-              C390 400, 390 440, 377 476
-              C364 512, 341 550, 316 575
-              C298 593, 280 590, 272 564
-              C267 546, 273 516, 284 486
-              C293 460, 295 434, 288 404
-              C281 374, 285 338, 306 302 Z" />
-          </a>
-
-          <!-- Europe -->
-          <a href="europe.html">
-            <path class="continent visited-area" d="M555 140
-              C585 120, 628 113, 667 120
-              C702 126, 730 141, 738 160
-              C743 173, 734 187, 712 195
-              C683 206, 646 211, 609 204
-              C576 198, 549 184, 543 167
-              C538 156, 542 148, 555 140 Z" />
-          </a>
-
-          <!-- Africa -->
-          <a href="africa.html">
-            <path class="continent visited-area" d="M586 236
-              C628 220, 675 223, 713 245
-              C748 265, 769 304, 772 347
-              C775 398, 755 453, 719 497
-              C691 531, 652 546, 623 530
-              C595 513, 578 472, 573 424
-              C569 386, 568 346, 565 308
-              C562 278, 567 250, 586 236 Z" />
-          </a>
-          <!-- Asia -->
-          <a href="asia.html">
-            <path class="continent visited-area" d="M724 123
-              C786 100, 882 95, 970 106
-              C1035 114, 1094 135, 1131 166
-              C1154 186, 1159 212, 1144 239
-              C1131 264, 1102 283, 1067 291
-              C1039 297, 1010 306, 986 322
-              C956 343, 918 352, 875 347
-              C834 343, 793 327, 768 302
-              C743 278, 729 248, 717 215
-              C706 184, 700 152, 724 123 Z" />
-          </a>
-
-          <!-- Oceania -->
-          <a href="oceania.html">
-            <path class="continent visited-area" d="M936 445
-              C966 430, 1009 428, 1044 438
-              C1077 448, 1102 470, 1102 492
-              C1102 511, 1081 527, 1049 531
-              C1010 537, 963 528, 932 511
-              C910 499, 901 479, 906 463
-              C910 453, 920 446, 936 445 Z" />
-          </a>
-
-
-
-          <!-- 标签 -->
-          <text class="map-label" x="150" y="122">North America</text>
-          <text class="map-label" x="276" y="296">South America</text>
-          <text class="map-label" x="595" y="104">Europe</text>
-          <text class="map-label" x="620" y="222">Africa</text>
-          <text class="map-label" x="900" y="90">Asia</text>
-          <text class="map-label" x="975" y="424">Oceania</text>
-
-
-          <!-- 已到访点 -->
-          <!-- France -->
-          <circle class="pin-glow" cx="625" cy="182" r="16" />
-          <circle class="pin" cx="625" cy="182" r="6" />
-          <text class="pin-label" x="639" y="178">France</text>
-
-          <!-- China -->
-          <circle class="pin-glow" cx="885" cy="224" r="18" />
-          <circle class="pin" cx="885" cy="224" r="7" />
-          <text class="pin-label" x="900" y="220">China</text>
-
-          <!-- Japan -->
-          <circle class="pin-glow" cx="987" cy="222" r="17" />
-          <circle class="pin" cx="987" cy="222" r="6.5" />
-          <text class="pin-label" x="1000" y="218">Japan</text>
-
-          <!-- Thailand -->
-          <circle class="pin-glow" cx="900" cy="310" r="16" />
-          <circle class="pin" cx="900" cy="310" r="6" />
-          <text class="pin-label" x="914" y="306">Thailand</text>
-        </svg>
+        <div id="leaflet-map" aria-label="World map"></div>
 
         <div class="legend">
           <div class="legend-item">
             <span class="legend-block"></span>
-            <span>Continent</span>
+            <span>Clickable continent area</span>
           </div>
           <div class="legend-item">
             <span class="legend-dot"></span>
@@ -430,5 +299,203 @@
       places I have passed, and places that stayed.
     </div>
   </div>
+
+  <script>
+    const map = L.map('leaflet-map', {
+      zoomControl: true,
+      scrollWheelZoom: true,
+      worldCopyJump: false
+    }).setView([20, 20], 2);
+
+    // 高德地图 HTTPS 底图
+    L.tileLayer(
+      'https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}',
+      {
+        subdomains: ['1', '2', '3', '4'],
+        attribution: '© 高德地图'
+      }
+    ).addTo(map);
+
+    // 洲块样式
+    const continentStyle = {
+      color: '#ffffff',
+      weight: 1.5,
+      fillColor: '#d7c0c0',
+      fillOpacity: 0.45
+    };
+
+    const continentHoverStyle = {
+      fillColor: '#cdaaaa',
+      fillOpacity: 0.62
+    };
+
+    function bindContinentPolygon(coords, pageUrl, name) {
+      const polygon = L.polygon(coords, continentStyle).addTo(map);
+
+      polygon.bindTooltip(name, {
+        permanent: false,
+        direction: 'center',
+        className: 'continent-tip'
+      });
+
+      polygon.on('mouseover', function () {
+        polygon.setStyle(continentHoverStyle);
+      });
+
+      polygon.on('mouseout', function () {
+        polygon.setStyle(continentStyle);
+      });
+
+      polygon.on('click', function () {
+        window.location.href = pageUrl;
+      });
+
+      return polygon;
+    }
+
+    // 近似洲块范围（可继续微调）
+    bindContinentPolygon(
+      [
+        [72, -168],
+        [72, -50],
+        [12, -50],
+        [12, -168]
+      ],
+      'north-america.html',
+      'North America'
+    );
+
+    bindContinentPolygon(
+      [
+        [13, -82],
+        [13, -34],
+        [-58, -34],
+        [-58, -82]
+      ],
+      'south-america.html',
+      'South America'
+    );
+
+    bindContinentPolygon(
+      [
+        [72, -10],
+        [72, 45],
+        [35, 45],
+        [35, -10]
+      ],
+      'europe.html',
+      'Europe'
+    );
+
+    bindContinentPolygon(
+      [
+        [37, -20],
+        [37, 55],
+        [-35, 55],
+        [-35, -20]
+      ],
+      'africa.html',
+      'Africa'
+    );
+
+    bindContinentPolygon(
+      [
+        [80, 45],
+        [80, 180],
+        [0, 180],
+        [0, 45]
+      ],
+      'asia.html',
+      'Asia'
+    );
+
+    bindContinentPolygon(
+      [
+        [0, 110],
+        [0, 180],
+        [-50, 180],
+        [-50, 110]
+      ],
+      'oceania.html',
+      'Oceania'
+    );
+
+    // 发光点图标
+    function createGlowIcon(label) {
+      return L.divIcon({
+        className: '',
+        html: `
+          <div style="position: relative; width: 20px; height: 20px;">
+            <div style="
+              position: absolute;
+              left: 50%;
+              top: 50%;
+              width: 18px;
+              height: 18px;
+              background: rgba(185,133,133,0.28);
+              border-radius: 50%;
+              transform: translate(-50%, -50%);
+              box-shadow: 0 0 0 8px rgba(185,133,133,0.10);
+            "></div>
+            <div style="
+              position: absolute;
+              left: 50%;
+              top: 50%;
+              width: 10px;
+              height: 10px;
+              background: #9c6e6e;
+              border: 2px solid #fff;
+              border-radius: 50%;
+              transform: translate(-50%, -50%);
+            "></div>
+          </div>
+        `,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+      });
+    }
+
+    // 已到访地点
+    const markers = [
+      {
+        lat: 48.8566,
+        lng: 2.3522,
+        title: 'France',
+        img: 'https://picsum.photos/seed/france/300/200'
+      },
+      {
+        lat: 39.9042,
+        lng: 116.4074,
+        title: 'China',
+        img: 'https://picsum.photos/seed/china/300/200'
+      },
+      {
+        lat: 35.6762,
+        lng: 139.6503,
+        title: 'Japan',
+        img: 'https://picsum.photos/seed/japan/300/200'
+      },
+      {
+        lat: 13.7563,
+        lng: 100.5018,
+        title: 'Thailand',
+        img: 'https://picsum.photos/seed/thailand/300/200'
+      }
+    ];
+
+    markers.forEach(point => {
+      L.marker([point.lat, point.lng], {
+        icon: createGlowIcon(point.title)
+      })
+        .addTo(map)
+        .bindPopup(`
+          <div class="custom-popup">
+            <h4>${point.title}</h4>
+            <img src="${point.img}" class="popup-img" alt="${point.title}">
+            <p>点击地图洲块可进入对应页面</p>
+          </div>
+        `);
+    });
+  </script>
 </body>
 </html>
