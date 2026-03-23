@@ -1,1 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>guangzhou</title>
 
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #f7f6f3;
+      color: #6d6662;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .page {
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 26px 28px 40px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+
+    .top-left {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .site-note {
+      font-size: 14px;
+      font-style: italic;
+      color: rgba(109, 102, 98, 0.72);
+    }
+
+    .back {
+      text-decoration: none;
+      font-size: 14px;
+      color: rgba(109, 102, 98, 0.78);
+    }
+
+    .search-btn {
+      text-decoration: none;
+      color: rgba(109, 102, 98, 0.7);
+      font-size: 26px;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 250px;
+      gap: 26px;
+    }
+
+    /* 画廊 */
+    .masonry {
+      column-count: 5;
+      column-gap: 6px;
+    }
+
+    .photo-item {
+      break-inside: avoid;
+      margin-bottom: 6px;
+      background: #ece9e4;
+    }
+
+    .photo-item img {
+      width: 100%;
+      cursor: pointer;
+    }
+
+    /* 右侧 */
+    .sidebar-title {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .tag-list,
+    .camera-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .tag-link {
+      text-decoration: none;
+      font-size: 15px;
+      color: #c2bbb3;
+    }
+
+    .tag-link:hover {
+      color: #8c847d;
+    }
+
+    /* ✅ cameras 完全复用 tag 样式 */
+    .camera-item {
+      text-decoration: none;
+      font-size: 15px;
+      color: #c2bbb3;
+    }
+
+    .camera-item:hover {
+      color: #8c847d;
+    }
+
+    #lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.9);
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #lightbox img {
+      max-width: 90vw;
+      max-height: 90vh;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+
+    <div class="topbar">
+      <div class="top-left">
+        <div class="site-note">A place to leave trace.</div>
+        <a href="antarctica.html" class="back">← Back</a>
+      </div>
+      <a href="search.html" class="search-btn">⌕</a>
+    </div>
+
+    <div class="content">
+
+      <!-- 左侧 -->
+      <div class="masonry">
+        <div class="photo-item"><img src="111.jpeg" class="zoomable"></div>
+        <div class="photo-item"><img src="111.jpeg" class="zoomable"></div>
+        <div class="photo-item"><img src="111.jpeg" class="zoomable"></div>
+      </div>
+
+      <!-- 右侧 -->
+      <aside>
+
+        <div class="sidebar-title">🏷 TAGS</div>
+        <div class="tag-list">
+          <a href="tag.html?tag=people" class="tag-link">人</a>
+          <a href="tag.html?tag=park" class="tag-link">公园</a>
+        </div>
+
+        <div class="sidebar-title">📷 CAMERAS</div>
+        <div class="camera-list">
+          <!-- ✅ 已改成可点击 -->
+          <a href="tag.html?tag=canon-m5" class="camera-item">CANON EOS M5</a>
+          <a href="tag.html?tag=oneplus-kb2000" class="camera-item">ONEPLUS KB2000</a>
+          <a href="tag.html?tag=oneplus-8t" class="camera-item">ONEPLUS 8T</a>
+        </div>
+
+      </aside>
+    </div>
+  </div>
+
+  <div id="lightbox" onclick="this.style.display='none'">
+    <img id="lightbox-img">
+  </div>
+
+  <script>
+    document.querySelectorAll('.zoomable').forEach(img=>{
+      img.onclick=()=>{
+        document.getElementById('lightbox').style.display='flex'
+        document.getElementById('lightbox-img').src=img.src
+      }
+    })
+  </script>
+</body>
+</html>
