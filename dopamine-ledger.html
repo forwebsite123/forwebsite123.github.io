@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dopamine Ledger</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #fafaf8;
+    --surface: #ffffff;
+    --border: #e8e6e0;
+    --text: #1a1a18;
+    --muted: #888882;
+    --accent: #2a2a28;
+  }
+
+  body {
+    font-family: 'Jost', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  header {
+    padding: 48px 40px 32px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-inner {
+    max-width: 960px;
+    margin: 0 auto;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .site-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 36px;
+    font-weight: 300;
+    font-style: italic;
+    letter-spacing: 0.01em;
+  }
+
+  .site-sub {
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 40px 80px;
+  }
+
+  /* Upload zone */
+  .upload-zone {
+    border: 1px dashed #c8c6c0;
+    border-radius: 4px;
+    padding: 56px 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    margin-bottom: 48px;
+    background: var(--surface);
+  }
+
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: var(--accent);
+    background: #f5f5f2;
+  }
+
+  .upload-zone.hidden { display: none; }
+
+  .upload-icon {
+    font-size: 28px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+  }
+
+  .upload-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 300;
+    margin-bottom: 8px;
+  }
+
+  .upload-hint {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  #file-input { display: none; }
+
+  /* Stats bar */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 40px;
+  }
+
+  .stat-cell {
+    background: var(--surface);
+    padding: 20px 24px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .stat-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 300;
+  }
+
+  /* Filters */
+  .filter-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+    align-items: center;
+  }
+
+  .filter-label {
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-right: 4px;
+  }
+
+  .filter-btn {
+    font-family: 'Jost', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    padding: 6px 16px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.15s;
+  }
+
+  .filter-btn:hover { border-color: var(--accent); color: var(--text); }
+  .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* Grid */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+
+  .card {
+    background: var(--surface);
+    padding: 24px;
+    cursor: default;
+    transition: background 0.15s;
+    position: relative;
+  }
+
+  .card:hover { background: #f8f8f5; }
+
+  .card-type {
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .type-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .card-duration {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 42px;
+    font-weight: 300;
+    line-height: 1;
+    margin-bottom: 4px;
+    letter-spacing: -0.01em;
+  }
+
+  .card-duration-unit {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-weight: 300;
+    color: var(--muted);
+  }
+
+  .card-meta {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .meta-item { }
+
+  .meta-label {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 2px;
+  }
+
+  .meta-value {
+    font-size: 14px;
+    font-weight: 400;
+  }
+
+  .card-date {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 14px;
+    letter-spacing: 0.04em;
+  }
+
+  /* Empty / loading */
+  .message {
+    text-align: center;
+    padding: 80px 24px;
+    color: var(--muted);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 300;
+    font-style: italic;
+  }
+
+  .data-section { display: none; }
+  .data-section.visible { display: block; }
+
+  /* Progress */
+  .progress-wrap {
+    text-align: center;
+    padding: 48px;
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: 0.06em;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <h1 class="site-title">Dopamine Ledger</h1>
+    <span class="site-sub">多巴胺账本</span>
+  </div>
+</header>
+
+<main>
+  <!-- Upload -->
+  <div class="upload-zone" id="upload-zone">
+    <div class="upload-icon">↑</div>
+    <div class="upload-title">上传你的苹果健康数据</div>
+    <div class="upload-hint">
+      将 export.xml 拖进来，或点击选择文件<br>
+      数据只在本地处理，不会上传到任何服务器
+    </div>
+    <input type="file" id="file-input" accept=".xml">
+  </div>
+
+  <div id="progress" style="display:none" class="progress-wrap">解析中，请稍候…</div>
+
+  <!-- Data -->
+  <div class="data-section" id="data-section">
+    <div class="stats-bar" id="stats-bar"></div>
+    <div class="filter-row" id="filter-row">
+      <span class="filter-label">筛选</span>
+    </div>
+    <div class="grid" id="grid"></div>
+  </div>
+</main>
+
+<script>
+const LABELS = {
+  Running: '跑步', Cycling: '骑行', Swimming: '游泳',
+  Walking: '步行', Hiking: '登山', Yoga: '瑜伽',
+  FunctionalStrengthTraining: '力量训练', CoreTraining: '核心训练',
+  HighIntensityIntervalTraining: 'HIIT', Dance: '舞蹈',
+  Pilates: '普拉提', Rowing: '划船', Elliptical: '椭圆机',
+  StairClimbing: '爬楼', MindAndBody: '身心练习',
+  Other: '其他', SocialDance: '社交舞', Barre: 'Barre',
+  CrossTraining: '综合训练', MixedCardio: '有氧混合',
+  WaterFitness: '水中健身', Snowboarding: '单板滑雪',
+  Skiing: '滑雪', Surfing: '冲浪', Golf: '高尔夫',
+  Tennis: '网球', Soccer: '足球', Basketball: '篮球',
+};
+
+const TYPE_COLORS = {
+  Running: '#c8503a', Cycling: '#4a7fa5', Swimming: '#3a8a7a',
+  Walking: '#7a7a5a', Hiking: '#6a8a4a', Yoga: '#9a6aaa',
+  FunctionalStrengthTraining: '#4a5a8a', CoreTraining: '#5a6a9a',
+  HighIntensityIntervalTraining: '#c84a3a', Dance: '#b06a9a',
+  Skiing: '#4a8aaa', Snowboarding: '#3a7aaa',
+};
+
+function getLabel(raw) {
+  const key = raw.replace('HKWorkoutActivityType', '');
+  return LABELS[key] || key;
+}
+
+function getColor(raw) {
+  const key = raw.replace('HKWorkoutActivityType', '');
+  return TYPE_COLORS[key] || '#888882';
+}
+
+function fmtDuration(secs) {
+  const m = Math.round(secs / 60);
+  if (m < 60) return { val: m, unit: 'min' };
+  const h = Math.floor(m / 60);
+  const rem = m % 60;
+  return { val: h, unit: rem > 0 ? `h ${rem}m` : 'h' };
+}
+
+function fmtDate(str) {
+  const d = new Date(str);
+  return d.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+function fmtCal(val) {
+  if (!val) return '—';
+  return Math.round(parseFloat(val)) + ' kcal';
+}
+
+function fmtDist(val, unit) {
+  if (!val) return '—';
+  const v = parseFloat(val);
+  if (unit && unit.includes('m') && !unit.includes('km')) {
+    return (v / 1000).toFixed(1) + ' km';
+  }
+  return v.toFixed(1) + ' km';
+}
+
+let allWorkouts = [];
+let activeFilter = 'all';
+
+function renderStats(workouts) {
+  const totalMin = workouts.reduce((s, w) => s + w.duration / 60, 0);
+  const totalCal = workouts.reduce((s, w) => s + (w.cal || 0), 0);
+  const types = new Set(workouts.map(w => w.typeLabel)).size;
+  const bar = document.getElementById('stats-bar');
+  bar.innerHTML = `
+    <div class="stat-cell"><div class="stat-label">运动次数</div><div class="stat-value">${workouts.length}</div></div>
+    <div class="stat-cell"><div class="stat-label">总时长</div><div class="stat-value">${Math.round(totalMin / 60)}<span style="font-size:18px;color:var(--muted)"> h</span></div></div>
+    <div class="stat-cell"><div class="stat-label">消耗热量</div><div class="stat-value">${Math.round(totalCal / 1000)}<span style="font-size:18px;color:var(--muted)"> k</span></div></div>
+    <div class="stat-cell"><div class="stat-label">运动种类</div><div class="stat-value">${types}</div></div>
+  `;
+}
+
+function renderFilters(workouts) {
+  const counts = {};
+  workouts.forEach(w => { counts[w.typeKey] = (counts[w.typeKey] || 0) + 1; });
+  const row = document.getElementById('filter-row');
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+
+  const allBtn = document.createElement('button');
+  allBtn.className = 'filter-btn active';
+  allBtn.dataset.key = 'all';
+  allBtn.textContent = `全部 (${workouts.length})`;
+  allBtn.onclick = () => setFilter('all');
+  row.appendChild(allBtn);
+
+  sorted.forEach(([key, cnt]) => {
+    const btn = document.createElement('button');
+    btn.className = 'filter-btn';
+    btn.dataset.key = key;
+    btn.textContent = `${LABELS[key] || key} (${cnt})`;
+    btn.onclick = () => setFilter(key);
+    row.appendChild(btn);
+  });
+}
+
+function setFilter(key) {
+  activeFilter = key;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.key === key);
+  });
+  const filtered = key === 'all' ? allWorkouts : allWorkouts.filter(w => w.typeKey === key);
+  renderGrid(filtered);
+  renderStats(filtered);
+}
+
+function renderGrid(workouts) {
+  const grid = document.getElementById('grid');
+  if (!workouts.length) {
+    grid.innerHTML = '<div class="message" style="grid-column:1/-1">No records found.</div>';
+    return;
+  }
+  grid.innerHTML = workouts.map(w => {
+    const dur = fmtDuration(w.duration);
+    const color = getColor(w.typeRaw);
+    return `
+      <div class="card">
+        <div class="card-type" style="color:${color}">
+          <span class="type-dot" style="background:${color}"></span>
+          ${w.typeLabel}
+        </div>
+        <div class="card-duration">${dur.val}<span class="card-duration-unit"> ${dur.unit}</span></div>
+        <div class="card-meta">
+          <div class="meta-item">
+            <div class="meta-label">热量</div>
+            <div class="meta-value">${fmtCal(w.cal)}</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">距离</div>
+            <div class="meta-value">${w.dist ? fmtDist(w.dist, w.distUnit) : '—'}</div>
+          </div>
+        </div>
+        <div class="card-date">${fmtDate(w.start)}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function parseXML(xmlStr) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(xmlStr, 'text/xml');
+  const records = doc.querySelectorAll('Workout');
+  const workouts = [];
+
+  records.forEach(r => {
+    const typeRaw = r.getAttribute('workoutActivityType') || '';
+    const start = r.getAttribute('startDate') || '';
+    const duration = parseFloat(r.getAttribute('duration') || '0') * 60;
+    const cal = parseFloat(r.getAttribute('totalEnergyBurned') || '0');
+    const dist = r.getAttribute('totalDistance');
+    const distUnit = r.getAttribute('totalDistanceUnit');
+    const typeKey = typeRaw.replace('HKWorkoutActivityType', '');
+    const typeLabel = getLabel(typeRaw);
+
+    if (!start) return;
+    workouts.push({ typeRaw, typeKey, typeLabel, start, duration, cal: cal || null, dist, distUnit });
+  });
+
+  workouts.sort((a, b) => new Date(b.start) - new Date(a.start));
+  return workouts;
+}
+
+// Upload zone
+const zone = document.getElementById('upload-zone');
+const fileInput = document.getElementById('file-input');
+
+zone.addEventListener('click', () => fileInput.click());
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+zone.addEventListener('drop', e => {
+  e.preventDefault();
+  zone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) processFile(file);
+});
+
+fileInput.addEventListener('change', e => {
+  if (e.target.files[0]) processFile(e.target.files[0]);
+});
+
+function processFile(file) {
+  zone.classList.add('hidden');
+  document.getElementById('progress').style.display = 'block';
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    const workouts = parseXML(e.target.result);
+    allWorkouts = workouts;
+    document.getElementById('progress').style.display = 'none';
+    const sec = document.getElementById('data-section');
+    sec.classList.add('visible');
+    renderStats(workouts);
+    renderFilters(workouts);
+    renderGrid(workouts);
+  };
+  reader.readAsText(file);
+}
+</script>
+</body>
+</html>
