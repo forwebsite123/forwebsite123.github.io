@@ -6,6 +6,10 @@
   <title>Into the Wild</title>
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       background: #fcfbf8;
@@ -16,19 +20,44 @@
     .page {
       max-width: 900px;
       margin: auto;
-      padding: 60px 20px;
-      text-align: center;
+      padding: 40px 20px 80px;
+    }
+
+    /* ✅ 统一 topbar（和前面页面一样） */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 60px;
+    }
+
+    .top-left {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .site-note {
+      font-size: 14px;
+      font-style: italic;
+      color: rgba(122, 87, 87, 0.7);
     }
 
     .back {
-      position: absolute;
-      left: 20px;
-      top: 20px;
       text-decoration: none;
-      color: #7a5757;
+      color: rgba(122, 87, 87, 0.78);
+      font-size: 15px;
+    }
+
+    .search-btn {
+      text-decoration: none;
+      color: #8a6666;
+      font-size: 26px;
+      line-height: 1;
     }
 
     h1 {
+      text-align: center;
       font-size: 28px;
       font-style: italic;
       margin-bottom: 80px;
@@ -59,18 +88,37 @@
 
     .note {
       margin-top: 60px;
+      text-align: center;
       font-size: 16px;
       line-height: 1.8;
       color: #8b6b6b;
+    }
+
+    @media (max-width: 600px) {
+      .cards {
+        gap: 30px;
+      }
+
+      .card {
+        font-size: 28px;
+        padding: 30px 40px;
+      }
     }
   </style>
 </head>
 
 <body>
-  <div class="site-note">A place to leave trace.</div>
-  <a href="home.html" class="back">← Back</a>
-
   <div class="page">
+
+    <!-- ✅ 统一后的左上角结构 -->
+    <div class="topbar">
+      <div class="top-left">
+        <div class="site-note">A place to leave trace.</div>
+        <a href="home.html" class="back">← Back</a>
+      </div>
+      <a href="search.html" class="search-btn">⌕</a>
+    </div>
+
     <h1>Into the Wild</h1>
 
     <div class="cards">
@@ -82,6 +130,7 @@
       These are the moments when I step outside of routine,<br>
       into something more intense, more alive.
     </div>
+
   </div>
 </body>
 </html>
