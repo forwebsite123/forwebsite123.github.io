@@ -31,6 +31,19 @@
       margin-bottom: 26px;
     }
 
+    .top-left {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .site-note {
+      font-size: 14px;
+      font-style: italic;
+      color: rgba(122, 87, 87, 0.7);
+      letter-spacing: 0.3px;
+    }
+
     .back {
       text-decoration: none;
       color: rgba(122, 87, 87, 0.78);
@@ -51,7 +64,6 @@
       align-items: start;
     }
 
-    /* 左侧时间轴 */
     .timeline-side {
       position: sticky;
       top: 28px;
@@ -98,7 +110,6 @@
       color: rgba(122, 87, 87, 0.62);
     }
 
-    /* 右侧主区域 */
     .main {
       min-width: 0;
     }
@@ -144,7 +155,6 @@
       align-items: start;
     }
 
-    /* 左列：日期 + 小图 */
     .entry-left {
       min-width: 0;
     }
@@ -194,7 +204,6 @@
       box-shadow: 0 10px 24px rgba(122, 87, 87, 0.12);
     }
 
-    /* 中列：纯文字 */
     .entry-middle {
       min-height: 126px;
       padding-top: 6px;
@@ -207,7 +216,6 @@
       color: rgba(122, 87, 87, 0.78);
     }
 
-    /* 右列：tag */
     .entry-right {
       padding-top: 10px;
     }
@@ -240,7 +248,6 @@
       color: rgba(122, 87, 87, 0.7);
     }
 
-    /* 放大层 */
     #lightbox {
       position: fixed;
       inset: 0;
@@ -329,119 +336,116 @@
 <body>
   <div class="page">
     <div class="topbar">
-      <a href="home.html" class="back">← Back</a>
+      <div class="top-left">
+        <div class="site-note">A place to leave trace.</div>
+        <a href="home.html" class="back">← Back</a>
+      </div>
       <a href="search.html" class="search-btn" aria-label="Search">⌕</a>
     </div>
-<div class="site-note">A place to leave trace.</div>
 
+    <div class="main">
+      <div class="intro">
+        <div class="intro-left">
+          <div class="intro-title">Found Fragments</div>
+          A place for things I wanted to keep: passing light, unimportant corners,
+          unfinished moods, and small images that still felt worth saving.
+          Click any photo to enlarge it.
+        </div>
+      </div>
 
-      <div class="main">
-        <div class="intro">
-          <div class="intro-left">
-            <div class="intro-title">Found Fragments</div>
-            A place for things I wanted to keep: passing light, unimportant corners,
-            unfinished moods, and small images that still felt worth saving.
-            Click any photo to enlarge it.
+      <div class="entries">
+
+        <div class="entry">
+          <div class="entry-left">
+            <div class="date-line">
+              <div class="date-text">2026.03.18</div>
+            </div>
+            <div class="thumb-row">
+              <img src="111.jpeg" alt="fragment 1" class="zoomable">
+              <img src="111.jpeg" alt="fragment 2" class="zoomable">
+              <img src="111.jpeg" alt="fragment 3" class="zoomable">
+            </div>
+          </div>
+
+          <div class="entry-middle">
+            <div class="entry-text">
+              The kind of afternoon that did not ask to be remembered,
+              but stayed anyway. I kept these images because they felt like
+              pieces of something unfinished rather than complete stories.
+            </div>
+          </div>
+
+          <div class="entry-right">
+            <div class="tags">
+              <a href="tag.html?tag=light" class="tag">light</a>
+              <a href="tag.html?tag=street" class="tag">street</a>
+              <a href="tag.html?tag=passing" class="tag">passing</a>
+            </div>
           </div>
         </div>
 
-        <div class="entries">
-
-          <!-- 第一组 -->
-          <div class="entry">
-            <div class="entry-left">
-              <div class="date-line">
-                <div class="date-text">2026.03.18</div>
-              </div>
-              <div class="thumb-row">
-                <img src="111.jpeg" alt="fragment 1" class="zoomable">
-                <img src="111.jpeg" alt="fragment 2" class="zoomable">
-                <img src="111.jpeg" alt="fragment 3" class="zoomable">
-              </div>
+        <div class="entry">
+          <div class="entry-left">
+            <div class="date-line">
+              <div class="date-text">2026.03.12</div>
             </div>
-
-            <div class="entry-middle">
-              <div class="entry-text">
-                The kind of afternoon that did not ask to be remembered,
-                but stayed anyway. I kept these images because they felt like
-                pieces of something unfinished rather than complete stories.
-              </div>
-            </div>
-
-            <div class="entry-right">
-              <div class="tags">
-                <a href="tag.html?tag=light" class="tag">light</a>
-                <a href="tag.html?tag=street" class="tag">street</a>
-                <a href="tag.html?tag=passing" class="tag">passing</a>
-              </div>
+            <div class="thumb-row">
+              <img src="111.jpeg" alt="fragment 4" class="zoomable">
+              <img src="111.jpeg" alt="fragment 5" class="zoomable">
+              <img src="111.jpeg" alt="fragment 6" class="zoomable">
             </div>
           </div>
 
-          <!-- 第二组 -->
-          <div class="entry">
-            <div class="entry-left">
-              <div class="date-line">
-                <div class="date-text">2026.03.12</div>
-              </div>
-              <div class="thumb-row">
-                <img src="111.jpeg" alt="fragment 4" class="zoomable">
-                <img src="111.jpeg" alt="fragment 5" class="zoomable">
-                <img src="111.jpeg" alt="fragment 6" class="zoomable">
-              </div>
-            </div>
-
-            <div class="entry-middle">
-              <div class="entry-text">
-                Some pictures feel less like documents and more like fragments
-                that were picked up on the way. I wanted this page to stay loose,
-                quiet, and slightly incomplete.
-              </div>
-            </div>
-
-            <div class="entry-right">
-              <div class="tags">
-                <a href="tag.html?tag=memory" class="tag">memory</a>
-                <a href="tag.html?tag=daily" class="tag">daily</a>
-                <a href="tag.html?tag=fragment" class="tag">fragment</a>
-              </div>
+          <div class="entry-middle">
+            <div class="entry-text">
+              Some pictures feel less like documents and more like fragments
+              that were picked up on the way. I wanted this page to stay loose,
+              quiet, and slightly incomplete.
             </div>
           </div>
 
-          <!-- 第三组 -->
-          <div class="entry">
-            <div class="entry-left">
-              <div class="date-line">
-                <div class="date-text">2026.03.05</div>
-              </div>
-              <div class="thumb-row">
-                <img src="111.jpeg" alt="fragment 7" class="zoomable">
-                <img src="111.jpeg" alt="fragment 8" class="zoomable">
-                <img src="111.jpeg" alt="fragment 9" class="zoomable">
-              </div>
-            </div>
-
-            <div class="entry-middle">
-              <div class="entry-text">
-                Nothing dramatic happened that day. Maybe that is exactly why
-                these photos belong here — they are close to ordinary life,
-                and still a little difficult to explain.
-              </div>
-            </div>
-
-            <div class="entry-right">
-              <div class="tags">
-                <a href="tag.html?tag=quiet" class="tag">quiet</a>
-                <a href="tag.html?tag=window" class="tag">window</a>
-                <a href="tag.html?tag=shadow" class="tag">shadow</a>
-              </div>
+          <div class="entry-right">
+            <div class="tags">
+              <a href="tag.html?tag=memory" class="tag">memory</a>
+              <a href="tag.html?tag=daily" class="tag">daily</a>
+              <a href="tag.html?tag=fragment" class="tag">fragment</a>
             </div>
           </div>
-
         </div>
 
-        <div class="footer-note">
-          collected, not explained.
+        <div class="entry">
+          <div class="entry-left">
+            <div class="date-line">
+              <div class="date-text">2026.03.05</div>
+            </div>
+            <div class="thumb-row">
+              <img src="111.jpeg" alt="fragment 7" class="zoomable">
+              <img src="111.jpeg" alt="fragment 8" class="zoomable">
+              <img src="111.jpeg" alt="fragment 9" class="zoomable">
+            </div>
+          </div>
+
+          <div class="entry-middle">
+            <div class="entry-text">
+              Nothing dramatic happened that day. Maybe that is exactly why
+              these photos belong here — they are close to ordinary life,
+              and still a little difficult to explain.
+            </div>
+          </div>
+
+          <div class="entry-right">
+            <div class="tags">
+              <a href="tag.html?tag=quiet" class="tag">quiet</a>
+              <a href="tag.html?tag=window" class="tag">window</a>
+              <a href="tag.html?tag=shadow" class="tag">shadow</a>
+            </div>
+          </div>
         </div>
+
+      </div>
+
+      <div class="footer-note">
+        collected, not explained.
       </div>
     </div>
   </div>
