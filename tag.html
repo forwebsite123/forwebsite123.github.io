@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tag Archive</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #fcfbf8;
+      color: #6e4a4a;
+      font-family: "Times New Roman", Georgia, serif;
+    }
+
+    .page {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 34px 28px 90px;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 34px;
+    }
+
+    .top-left {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .site-note {
+      font-size: 14px;
+      font-style: italic;
+      color: rgba(122, 87, 87, 0.7);
+      letter-spacing: 0.3px;
+    }
+
+    .back {
+      text-decoration: none;
+      color: rgba(122, 87, 87, 0.75);
+      font-size: 15px;
+    }
+
+    .search-btn {
+      text-decoration: none;
+      color: #8a6666;
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .title {
+      margin: 8px 0 8px;
+      font-size: 54px;
+      line-height: 1;
+      font-style: italic;
+      font-weight: 500;
+      color: #8b5e5e;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: rgba(122, 87, 87, 0.72);
+      line-height: 1.8;
+      margin-bottom: 34px;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 22px;
+    }
+
+    .card {
+      border: 1px solid rgba(168, 122, 122, 0.16);
+      background: rgba(255,255,255,0.35);
+      overflow: hidden;
+    }
+
+    .card img {
+      width: 100%;
+      height: 280px;
+      object-fit: cover;
+      display: block;
+      cursor: pointer;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .card img:hover {
+      transform: scale(1.02);
+      opacity: 0.96;
+    }
+
+    .card-body {
+      padding: 14px 14px 16px;
+    }
+
+    .card-title {
+      font-size: 19px;
+      color: #8b5e5e;
+      margin-bottom: 8px;
+    }
+
+    .card-page {
+      font-size: 13px;
+      color: rgba(122, 87, 87, 0.58);
+      margin-bottom: 10px;
+    }
+
+    .card-page a {
+      color: inherit;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(122, 87, 87, 0.18);
+    }
+
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag {
+      text-decoration: none;
+      font-size: 14px;
+      font-style: italic;
+      color: #9a6d6d;
+    }
+
+    .tag:hover {
+      opacity: 0.7;
+    }
+
+    .empty {
+      display: none;
+      margin-top: 40px;
+      font-size: 18px;
+      color: rgba(122, 87, 87, 0.7);
+      text-align: center;
+    }
+
+    .footer-note {
+      text-align: center;
+      margin-top: 90px;
+      font-size: 14px;
+      font-style: italic;
+      letter-spacing: 1px;
+      color: rgba(122, 87, 87, 0.7);
+    }
+
+    #lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      padding: 24px;
+    }
+
+    #lightbox img {
+      max-width: 94vw;
+      max-height: 90vh;
+      object-fit: contain;
+      background: white;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+
+    .close-tip {
+      position: absolute;
+      top: 22px;
+      right: 28px;
+      color: rgba(255,255,255,0.84);
+      font-size: 13px;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div class="top-left">
+        <div class="site-note">A place to leave trace.</div>
+        <a href="javascript:history.back()" class="back">← Back</a>
+      </div>
+      <a href="search.html" class="search-btn" aria-label="Search">⌕</a>
+    </div>
+
+    <h1 class="title" id="tagTitle">Tag</h1>
+    <div class="subtitle" id="tagSubtitle">
+      Showing all items under this tag.
+    </div>
+
+    <div class="result-grid" id="resultGrid"></div>
+    <div class="empty" id="emptyState">No content found under this tag.</div>
+
+    <div class="footer-note">
+      collected by tag, scattered across pages.
+    </div>
+  </div>
+
+  <div id="lightbox" onclick="closeLightbox()">
+    <div class="close-tip">tap anywhere to close</div>
+    <img id="lightbox-img" src="" alt="large preview">
+  </div>
+
+  <script>
+    const allTaggedItems = [
+      {
+        title: "Tokyo Street",
+        image: "111.jpeg",
+        tags: ["street", "japan", "travel"],
+        page: "japan.html",
+        pageLabel: "Japan"
+      },
+      {
+        title: "Temple Light",
+        image: "111.jpeg",
+        tags: ["temple", "japan", "quiet"],
+        page: "japan.html",
+        pageLabel: "Japan"
+      },
+      {
+        title: "Fireworks Night",
+        image: "111.jpeg",
+        tags: ["fireworks", "night", "japan"],
+        page: "japan.html",
+        pageLabel: "Japan"
+      },
+      {
+        title: "Passing Light",
+        image: "111.jpeg",
+        tags: ["light", "fragment", "street"],
+        page: "found-fragments.html",
+        pageLabel: "Found Fragments"
+      },
+      {
+        title: "Window Shadow",
+        image: "111.jpeg",
+        tags: ["shadow", "window", "quiet"],
+        page: "found-fragments.html",
+        pageLabel: "Found Fragments"
+      },
+      {
+        title: "Niseko Morning",
+        image: "111.jpeg",
+        tags: ["snow", "japan", "mountain"],
+        page: "snowboarding.html",
+        pageLabel: "Snowboarding"
+      },
+      {
+        title: "Thailand Shore",
+        image: "111.jpeg",
+        tags: ["thailand", "travel", "water"],
+        page: "thailand.html",
+        pageLabel: "Thailand"
+      }
+    ];
+
+    const params = new URLSearchParams(window.location.search);
+    const currentTag = (params.get("tag") || "").trim().toLowerCase();
+
+    const tagTitle = document.getElementById("tagTitle");
+    const tagSubtitle = document.getElementById("tagSubtitle");
+    const resultGrid = document.getElementById("resultGrid");
+    const emptyState = document.getElementById("emptyState");
+
+    if (currentTag) {
+      tagTitle.textContent = "#" + currentTag;
+      tagSubtitle.textContent = `Showing all items tagged with "${currentTag}".`;
+    } else {
+      tagTitle.textContent = "Tag";
+      tagSubtitle.textContent = "No tag selected.";
+    }
+
+    const filtered = allTaggedItems.filter(item =>
+      item.tags.some(tag => tag.toLowerCase() === currentTag)
+    );
+
+    if (!currentTag || filtered.length === 0) {
+      emptyState.style.display = "block";
+    } else {
+      filtered.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const tagsHtml = item.tags.map(tag =>
+          `<a class="tag" href="tag.html?tag=${encodeURIComponent(tag)}">${tag}</a>`
+        ).join("");
+
+        card.innerHTML = `
+          <img src="${item.image}" alt="${item.title}" class="zoomable">
+          <div class="card-body">
+            <div class="card-title">${item.title}</div>
+            <div class="card-page">from <a href="${item.page}">${item.pageLabel}</a></div>
+            <div class="card-tags">${tagsHtml}</div>
+          </div>
+        `;
+
+        resultGrid.appendChild(card);
+      });
+    }
+
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+
+    document.addEventListener('click', function (event) {
+      if (event.target.classList.contains('zoomable')) {
+        lightbox.style.display = 'flex';
+        lightboxImg.src = event.target.src;
+        lightboxImg.alt = event.target.alt || 'large preview';
+      }
+    });
+
+    function closeLightbox() {
+      lightbox.style.display = 'none';
+      lightboxImg.src = '';
+    }
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') {
+        closeLightbox();
+      }
+    });
+  </script>
+</body>
+</html>
