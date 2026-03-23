@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Singapore</title>
+  <title>guangzhou</title>
 
   <style>
     * {
@@ -44,7 +44,6 @@
       font-size: 14px;
       font-style: italic;
       color: rgba(109, 102, 98, 0.72);
-      letter-spacing: 0.2px;
     }
 
     .back {
@@ -57,52 +56,15 @@
       text-decoration: none;
       color: rgba(109, 102, 98, 0.7);
       font-size: 26px;
-      line-height: 1;
     }
 
     .content {
       display: grid;
       grid-template-columns: minmax(0, 1fr) 250px;
       gap: 26px;
-      align-items: start;
     }
 
-    /* 左侧画廊 */
-    .gallery-panel {
-      min-width: 0;
-    }
-
-    .gallery-toolbar {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-
-    .tool-btn {
-      width: 34px;
-      height: 34px;
-      border: 1px solid #ddd8d2;
-      background: #fff;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      color: #8b847e;
-      border-radius: 3px;
-      text-decoration: none;
-      font-size: 16px;
-    }
-
-    .tool-btn.active {
-      background: #f0ede8;
-    }
-
-    .tool-search {
-      margin-left: 8px;
-      font-size: 18px;
-      color: #b0a8a2;
-    }
-
+    /* 画廊 */
     .masonry {
       column-count: 5;
       column-gap: 6px;
@@ -112,47 +74,18 @@
       break-inside: avoid;
       margin-bottom: 6px;
       background: #ece9e4;
-      overflow: hidden;
     }
 
     .photo-item img {
       width: 100%;
-      display: block;
       cursor: pointer;
-      transition: transform 0.22s ease, opacity 0.22s ease;
     }
 
-    .photo-item img:hover {
-      transform: scale(1.02);
-      opacity: 0.97;
-    }
-
-    /* 右侧边栏 */
-    .sidebar {
-      padding-top: 4px;
-    }
-
-    .sidebar-cover {
-      width: 100%;
-      height: 46px;
-      background: #e9e6e1;
-      margin-bottom: 18px;
-    }
-
-    .sidebar-section {
-      margin-bottom: 28px;
-    }
-
+    /* 右侧 */
     .sidebar-title {
       font-size: 13px;
       font-weight: 700;
-      letter-spacing: 1px;
-      color: #6e6864;
       margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      text-transform: uppercase;
     }
 
     .tag-list,
@@ -162,203 +95,95 @@
       gap: 10px;
     }
 
-    .tag-link,
-    .camera-item {
+    .tag-link {
       text-decoration: none;
       font-size: 15px;
       color: #c2bbb3;
-      line-height: 1.2;
     }
 
     .tag-link:hover {
       color: #8c847d;
     }
 
-    .photo-count {
-      margin-top: 10px;
-      font-size: 18px;
-      color: #b3aca4;
-      letter-spacing: 0.5px;
+    /* ✅ cameras 完全复用 tag 样式 */
+    .camera-item {
+      text-decoration: none;
+      font-size: 15px;
+      color: #c2bbb3;
     }
 
-    .watermark {
-      margin-top: 80px;
-      font-size: 14px;
-      color: #e0dbd6;
-      line-height: 1.8;
-      word-break: break-all;
+    .camera-item:hover {
+      color: #8c847d;
     }
 
-    /* 放大层 */
     #lightbox {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.9);
+      background: rgba(0,0,0,0.9);
       display: none;
       justify-content: center;
       align-items: center;
-      z-index: 9999;
-      padding: 24px;
     }
 
     #lightbox img {
-      max-width: 94vw;
+      max-width: 90vw;
       max-height: 90vh;
-      object-fit: contain;
-      background: white;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-    }
-
-    .close-tip {
-      position: absolute;
-      top: 22px;
-      right: 28px;
-      color: rgba(255,255,255,0.84);
-      font-size: 13px;
-      letter-spacing: 1px;
-    }
-
-    @media (max-width: 1200px) {
-      .masonry {
-        column-count: 4;
-      }
-    }
-
-    @media (max-width: 980px) {
-      .content {
-        grid-template-columns: 1fr;
-      }
-
-      .sidebar {
-        order: -1;
-      }
-
-      .masonry {
-        column-count: 3;
-      }
-    }
-
-    @media (max-width: 640px) {
-      .page {
-        padding: 20px 14px 30px;
-      }
-
-      .masonry {
-        column-count: 2;
-      }
     }
   </style>
 </head>
+
 <body>
   <div class="page">
+
     <div class="topbar">
       <div class="top-left">
         <div class="site-note">A place to leave trace.</div>
         <a href="asia.html" class="back">← Back</a>
       </div>
-      <a href="search.html" class="search-btn" aria-label="Search">⌕</a>
+      <a href="search.html" class="search-btn">⌕</a>
     </div>
 
     <div class="content">
-      <!-- 左边照片墙 -->
-      <div class="gallery-panel">
-        <div class="gallery-toolbar">
-          <a href="#" class="tool-btn active">▭</a>
-          <a href="#" class="tool-btn">▦</a>
-          <span class="tool-search">⌕</span>
-        </div>
 
-        <div class="masonry">
-          <div class="photo-item"><img src="111.jpeg" alt="Japan photo 1" class="zoomable"></div>
-          <div class="photo-item"><img src="111.jpeg" alt="Japan photo 2" class="zoomable"></div>
-          <div class="photo-item"><img src="111.jpeg" alt="Japan photo 3" class="zoomable"></div>
-          <div class="photo-item"><img src="111.jpeg" alt="Japan photo 4" class="zoomable"></div>
-          <div class="photo-item"><img src="111.jpeg" alt="Japan photo 5" class="zoomable"></div>
-          <div class="photo-item"><img src="111.jpeg" alt="Japan photo 6" class="zoomable"></div>
-          <div class="photo-item"><img src="111.jpeg" alt="Japan photo 7" class="zoomable"></div>
-          <div class="photo-item"><img src="111.jpeg" alt="Japan photo 8" class="zoomable"></div>
-          <div class="photo-item"><img src="111.jpeg" alt="Japan photo 9" class="zoomable"></div>
-          <div class="photo-item"><img src="111.jpeg" alt="Japan photo 10" class="zoomable"></div>
-          <div class="photo-item"><img src="111.jpeg" alt="Japan photo 11" class="zoomable"></div>
-          <div class="photo-item"><img src="111.jpeg" alt="Japan photo 12" class="zoomable"></div>
-          <div class="photo-item"><img src="111.jpeg" alt="Japan photo 13" class="zoomable"></div>
-          <div class="photo-item"><img src="111.jpeg" alt="Japan photo 14" class="zoomable"></div>
-          <div class="photo-item"><img src="111.jpeg" alt="Japan photo 15" class="zoomable"></div>
-        </div>
+      <!-- 左侧 -->
+      <div class="masonry">
+        <div class="photo-item"><img src="111.jpeg" class="zoomable"></div>
+        <div class="photo-item"><img src="111.jpeg" class="zoomable"></div>
+        <div class="photo-item"><img src="111.jpeg" class="zoomable"></div>
       </div>
 
-      <!-- 右边信息栏 -->
-      <aside class="sidebar">
-        <div class="sidebar-cover"></div>
+      <!-- 右侧 -->
+      <aside>
 
-        <div class="sidebar-section">
-          <div class="sidebar-title">🏷 TAGS</div>
-          <div class="tag-list">
-            <a href="tag.html?tag=people" class="tag-link">人</a>
-            <a href="tag.html?tag=park" class="tag-link">公园</a>
-            <a href="tag.html?tag=travel" class="tag-link">旅行</a>
-            <a href="tag.html?tag=flowers" class="tag-link">花束</a>
-            <a href="tag.html?tag=beach" class="tag-link">海边</a>
-            <a href="tag.html?tag=cat" class="tag-link">猫</a>
-            <a href="tag.html?tag=mountain" class="tag-link">山</a>
-            <a href="tag.html?tag=street" class="tag-link">街道</a>
-            <a href="tag.html?tag=autumn" class="tag-link">秋色</a>
-            <a href="tag.html?tag=fireworks" class="tag-link">烟花</a>
-            <a href="tag.html?tag=temple" class="tag-link">寺庙</a>
-            <a href="tag.html?tag=water" class="tag-link">水边</a>
-          </div>
+        <div class="sidebar-title">🏷 TAGS</div>
+        <div class="tag-list">
+          <a href="tag.html?tag=people" class="tag-link">人</a>
+          <a href="tag.html?tag=park" class="tag-link">公园</a>
         </div>
 
-        <div class="sidebar-section">
-          <div class="sidebar-title">📷 CAMERAS</div>
-          <div class="camera-list">
-            <div class="camera-item">CANON EOS M5</div>
-            <div class="camera-item">ONEPLUS KB2000</div>
-            <div class="camera-item">ONEPLUS 8T</div>
-          </div>
+        <div class="sidebar-title">📷 CAMERAS</div>
+        <div class="camera-list">
+          <!-- ✅ 已改成可点击 -->
+          <a href="tag.html?tag=canon-m5" class="camera-item">CANON EOS M5</a>
+          <a href="tag.html?tag=oneplus-kb2000" class="camera-item">ONEPLUS KB2000</a>
+          <a href="tag.html?tag=oneplus-8t" class="camera-item">ONEPLUS 8T</a>
         </div>
 
-        <div class="sidebar-section">
-          <div class="photo-count">15 PHOTOS</div>
-        </div>
-
-        <div class="watermark">
-          Japan Archive<br>
-          id: 6120471790
-        </div>
       </aside>
     </div>
   </div>
 
-  <div id="lightbox" onclick="closeLightbox()">
-    <div class="close-tip">tap anywhere to close</div>
-    <img id="lightbox-img" src="" alt="large preview">
+  <div id="lightbox" onclick="this.style.display='none'">
+    <img id="lightbox-img">
   </div>
 
   <script>
-    const zoomables = document.querySelectorAll('.zoomable');
-    const lightbox = document.getElementById('lightbox');
-    const lightboxImg = document.getElementById('lightbox-img');
-
-    zoomables.forEach((img) => {
-      img.addEventListener('click', function (event) {
-        event.stopPropagation();
-        lightbox.style.display = 'flex';
-        lightboxImg.src = this.src;
-        lightboxImg.alt = this.alt || 'large preview';
-      });
-    });
-
-    function closeLightbox() {
-      lightbox.style.display = 'none';
-      lightboxImg.src = '';
-    }
-
-    document.addEventListener('keydown', function (event) {
-      if (event.key === 'Escape') {
-        closeLightbox();
+    document.querySelectorAll('.zoomable').forEach(img=>{
+      img.onclick=()=>{
+        document.getElementById('lightbox').style.display='flex'
+        document.getElementById('lightbox-img').src=img.src
       }
-    });
+    })
   </script>
 </body>
 </html>
