@@ -146,7 +146,6 @@
       box-shadow: 0 18px 50px rgba(122, 87, 87, 0.06);
     }
 
-    /* 新的地图容器 */
     #leaflet-map {
       width: 100%;
       height: 620px;
@@ -183,6 +182,7 @@
       height: 14px;
       background: #d7c0c0;
       border: 1px solid rgba(122, 87, 87, 0.12);
+      border-radius: 4px;
     }
 
     .footer-note {
@@ -217,6 +217,21 @@
       margin: 12px 14px;
       color: #6e4a4a;
       font-family: "Times New Roman", Georgia, serif;
+    }
+
+    .continent-tooltip {
+      background: rgba(255,255,255,0.92);
+      border: 1px solid rgba(168, 122, 122, 0.15);
+      color: #8b5e5e;
+      border-radius: 10px;
+      box-shadow: 0 8px 22px rgba(122, 87, 87, 0.08);
+      font-family: "Times New Roman", Georgia, serif;
+      font-style: italic;
+      padding: 4px 8px;
+    }
+
+    .continent-tooltip:before {
+      display: none;
     }
 
     @media (max-width: 760px) {
@@ -307,7 +322,6 @@
       worldCopyJump: false
     }).setView([20, 20], 2);
 
-    // 高德地图 HTTPS 底图
     L.tileLayer(
       'https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}',
       {
@@ -316,16 +330,15 @@
       }
     ).addTo(map);
 
-    // 洲块样式
     const continentStyle = {
       color: '#ffffff',
       weight: 1.5,
       fillColor: '#d7c0c0',
-      fillOpacity: 0.45
+      fillOpacity: 0.42
     };
 
     const continentHoverStyle = {
-      fillColor: '#cdaaaa',
+      fillColor: '#cfaeae',
       fillOpacity: 0.62
     };
 
@@ -335,7 +348,7 @@
       polygon.bindTooltip(name, {
         permanent: false,
         direction: 'center',
-        className: 'continent-tip'
+        className: 'continent-tooltip'
       });
 
       polygon.on('mouseover', function () {
@@ -353,75 +366,155 @@
       return polygon;
     }
 
-    // 近似洲块范围（可继续微调）
+    /* 用接近你前面 SVG 的不规则形状替换矩形 */
+
+    // North America
     bindContinentPolygon(
       [
         [72, -168],
-        [72, -50],
-        [12, -50],
-        [12, -168]
+        [66, -150],
+        [60, -132],
+        [58, -115],
+        [55, -100],
+        [50, -88],
+        [46, -76],
+        [40, -70],
+        [34, -74],
+        [28, -85],
+        [24, -98],
+        [21, -110],
+        [20, -122],
+        [22, -135],
+        [28, -148],
+        [38, -160],
+        [52, -168],
+        [72, -168]
       ],
       'north-america.html',
       'North America'
     );
 
+    // South America
     bindContinentPolygon(
       [
-        [13, -82],
-        [13, -34],
-        [-58, -34],
-        [-58, -82]
+        [12, -81],
+        [8, -76],
+        [3, -72],
+        [-4, -68],
+        [-12, -64],
+        [-20, -62],
+        [-30, -60],
+        [-40, -62],
+        [-50, -67],
+        [-55, -71],
+        [-52, -75],
+        [-42, -77],
+        [-30, -79],
+        [-18, -80],
+        [-6, -79],
+        [4, -78],
+        [12, -81]
       ],
       'south-america.html',
-      'South America'
+      'South-america'
     );
 
+    // Europe
     bindContinentPolygon(
       [
-        [72, -10],
-        [72, 45],
-        [35, 45],
-        [35, -10]
+        [60, -10],
+        [63, 0],
+        [62, 12],
+        [60, 24],
+        [56, 35],
+        [52, 40],
+        [48, 36],
+        [45, 28],
+        [43, 20],
+        [43, 10],
+        [45, 2],
+        [49, -5],
+        [55, -10],
+        [60, -10]
       ],
       'europe.html',
       'Europe'
     );
 
+    // Africa
     bindContinentPolygon(
       [
-        [37, -20],
-        [37, 55],
-        [-35, 55],
-        [-35, -20]
+        [36, -16],
+        [34, -2],
+        [31, 12],
+        [26, 24],
+        [18, 34],
+        [8, 40],
+        [-6, 42],
+        [-18, 38],
+        [-28, 30],
+        [-34, 22],
+        [-33, 12],
+        [-26, 2],
+        [-12, -5],
+        [2, -10],
+        [16, -12],
+        [28, -14],
+        [36, -16]
       ],
       'africa.html',
       'Africa'
     );
 
+    // Asia
     bindContinentPolygon(
       [
-        [80, 45],
-        [80, 180],
-        [0, 180],
-        [0, 45]
+        [72, 35],
+        [70, 52],
+        [68, 72],
+        [64, 92],
+        [60, 110],
+        [55, 128],
+        [49, 145],
+        [40, 155],
+        [31, 150],
+        [22, 138],
+        [16, 122],
+        [10, 105],
+        [8, 88],
+        [10, 70],
+        [16, 55],
+        [24, 44],
+        [34, 38],
+        [46, 36],
+        [58, 34],
+        [72, 35]
       ],
       'asia.html',
       'Asia'
     );
 
+    // Oceania
     bindContinentPolygon(
       [
-        [0, 110],
-        [0, 180],
-        [-50, 180],
-        [-50, 110]
+        [-10, 110],
+        [-14, 124],
+        [-18, 138],
+        [-24, 150],
+        [-30, 156],
+        [-36, 152],
+        [-40, 142],
+        [-42, 132],
+        [-40, 122],
+        [-34, 114],
+        [-24, 110],
+        [-10, 110]
       ],
       'oceania.html',
       'Oceania'
     );
 
-    // 发光点图标
-    function createGlowIcon(label) {
+    function createGlowIcon() {
       return L.divIcon({
         className: '',
         html: `
@@ -455,7 +548,6 @@
       });
     }
 
-    // 已到访地点
     const markers = [
       {
         lat: 48.8566,
@@ -485,7 +577,7 @@
 
     markers.forEach(point => {
       L.marker([point.lat, point.lng], {
-        icon: createGlowIcon(point.title)
+        icon: createGlowIcon()
       })
         .addTo(map)
         .bindPopup(`
