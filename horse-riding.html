@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Horse Riding</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #fcfbf8;
+      color: #6e4a4a;
+      font-family: "Times New Roman", Georgia, serif;
+    }
+
+    .page {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 28px 28px 90px;
+      position: relative;
+    }
+
+    .topline {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 36px;
+    }
+
+    .site-note {
+      font-size: 16px;
+      color: rgba(122, 87, 87, 0.78);
+      font-style: italic;
+      letter-spacing: 0.3px;
+    }
+
+    .search-btn {
+      text-decoration: none;
+      color: #8a6666;
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .title-wrap {
+      margin-bottom: 30px;
+    }
+
+    .page-title {
+      margin: 0;
+      font-size: 56px;
+      font-style: italic;
+      font-weight: 500;
+      color: #8b5e5e;
+      line-height: 1.05;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 10px;
+      text-decoration: none;
+      color: rgba(122, 87, 87, 0.75);
+      font-size: 15px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 22px;
+      align-items: start;
+    }
+
+    .timeline-side {
+      position: sticky;
+      top: 30px;
+      height: 100%;
+      min-height: 500px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .timeline-line {
+      position: relative;
+      width: 1px;
+      background: rgba(122, 87, 87, 0.35);
+      min-height: 700px;
+    }
+
+    .timeline-top,
+    .timeline-bottom {
+      position: absolute;
+      left: -22px;
+      font-size: 16px;
+      color: rgba(122, 87, 87, 0.78);
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      letter-spacing: 2px;
+    }
+
+    .timeline-top { top: 0; }
+    .timeline-bottom { bottom: 0; }
+
+    .entries {
+      display: flex;
+      flex-direction: column;
+      gap: 72px;
+    }
+
+    .entry {
+      display: grid;
+      grid-template-columns: 1fr 220px;
+      gap: 44px;
+      align-items: start;
+    }
+
+    .entry-meta {
+      font-size: 30px;
+      color: #9a6666;
+      margin-bottom: 18px;
+      line-height: 1.2;
+      grid-column: span 2;
+    }
+
+    .entry-meta .dot {
+      font-size: 36px;
+      vertical-align: middle;
+      margin-right: 10px;
+    }
+
+    .photo-grid {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .photo-grid img {
+      width: 170px;
+      height: 170px;
+      object-fit: cover;
+      background: white;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .photo-grid img:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 28px rgba(122, 87, 87, 0.12);
+    }
+
+    .entry-note {
+      font-size: 15px;
+      line-height: 1.95;
+      color: rgba(122, 87, 87, 0.75);
+      max-width: 180px;
+      padding-top: 10px;
+    }
+
+    .page-footer {
+      text-align: center;
+      margin-top: 100px;
+      font-size: 14px;
+      font-style: italic;
+      letter-spacing: 1px;
+      color: rgba(122, 87, 87, 0.7);
+    }
+
+    #lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.88);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      padding: 26px;
+    }
+
+    #lightbox img {
+      max-width: 92vw;
+      max-height: 90vh;
+      object-fit: contain;
+      background: white;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+
+    .close-tip {
+      position: absolute;
+      top: 24px;
+      right: 28px;
+      color: rgba(255,255,255,0.84);
+      font-size: 14px;
+      letter-spacing: 1px;
+    }
+
+    @media (max-width: 760px) {
+      .entry { grid-template-columns: 1fr; }
+      .entry-meta { grid-column: span 1; }
+      .photo-grid img { width: calc(33.333% - 14px); height: 120px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topline">
+      <div class="site-note">A place to leave traces.</div>
+      <a href="search.html" class="search-btn" aria-label="Search">⌕</a>
+    </div>
+
+    <div class="title-wrap">
+      <h1 class="page-title">Horse Riding</h1>
+      <a href="into-the-wild.html" class="back-link">← Back</a>
+    </div>
+
+    <div class="layout">
+      <div class="timeline-side">
+        <div class="timeline-line">
+          <div class="timeline-top">NEW</div>
+          <div class="timeline-bottom">OLD</div>
+        </div>
+      </div>
+
+      <div class="entries">
+        <div class="entry">
+          <div class="entry-meta"><span class="dot">•</span>2026.03.25 + Prairie</div>
+          <div class="middle-col">
+            <div class="photo-grid">
+              <img src="horse1.jpeg" class="zoomable">
+              <img src="horse2.jpeg" class="zoomable">
+              <img src="horse3.jpeg" class="zoomable">
+            </div>
+          </div>
+          <div class="right-col">
+            <div class="entry-note">
+              The connection with the horse is more honest than most human conversations.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-footer">
+      “此处曾有杂音，现已回归深蓝。”
+    </div>
+  </div>
+
+  <div id="lightbox" onclick="closeLightbox()">
+    <div class="close-tip">tap anywhere to close</div>
+    <img id="lightbox-img" src="">
+  </div>
+
+  <script>
+    const zoomables = document.querySelectorAll('.zoomable');
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+
+    zoomables.forEach((img) => {
+      img.addEventListener('click', function (event) {
+        event.stopPropagation();
+        lightbox.style.display = 'flex';
+        lightboxImg.src = this.src;
+      });
+    });
+
+    function closeLightbox() {
+      lightbox.style.display = 'none';
+    }
+
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLightbox(); });
+  </script>
+  <script data-goatcounter="https://kiara-mytrace.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+</body>
+</html>
