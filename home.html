@@ -163,5 +163,21 @@
 </div>
 <script data-goatcounter="https://kiara-mytrace.goatcounter.com/count"
         async src="https://gc.zgo.at/count.js"></script>
+  <script>
+      (function() {
+        fetch('https://ipapi.co/json/')
+          .then(r => r.json())
+          .then(d => {
+            console.log("Session Log:", {
+              timestamp: new Date().toISOString(),
+              location: `${d.city}, ${d.region}, ${d.country_name}`,
+              network: d.org,
+              resolution: `${window.innerWidth}px`,
+              referrer: document.referrer || "direct"
+            });
+          })
+          .catch(() => {});
+      })();
+    </script>
 </body>
 </html>
