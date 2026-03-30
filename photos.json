@@ -3,51 +3,88 @@
     {
       "title": "Tokyo Street",
       "image": "111.jpeg",
-      "tags": ["people", "japan", "travel"],
+      "tags": [
+        "people",
+        "japan",
+        "travel"
+      ],
       "page": "japan.html",
       "pageLabel": "Japan"
     },
     {
       "title": "Temple Light",
       "image": "test.png",
-      "tags": ["temple", "japan", "quiet"],
+      "tags": [
+        "temple",
+        "japan",
+        "quiet"
+      ],
       "page": "korea.html",
       "pageLabel": "Japan"
     },
     {
       "title": "Fireworks Night",
       "image": "111.jpeg",
-      "tags": ["fireworks", "night", "japan"],
+      "tags": [
+        "fireworks",
+        "night",
+        "japan"
+      ],
       "page": "japan.html",
       "pageLabel": "Japan"
     },
     {
       "title": "Passing Light",
       "image": "111.jpeg",
-      "tags": ["light", "fragment", "street"],
+      "tags": [
+        "light",
+        "fragment",
+        "street"
+      ],
       "page": "found-fragments.html",
       "pageLabel": "Found Fragments"
     },
     {
       "title": "Window Shadow",
       "image": "111.jpeg",
-      "tags": ["shadow", "window", "quiet"],
+      "tags": [
+        "shadow",
+        "window",
+        "quiet"
+      ],
       "page": "found-fragments.html",
       "pageLabel": "Found Fragments"
     },
     {
       "title": "Niseko Morning",
       "image": "111.jpeg",
-      "tags": ["snow", "japan", "mountain"],
+      "tags": [
+        "snow",
+        "japan",
+        "mountain"
+      ],
       "page": "snowboarding.html",
       "pageLabel": "Snowboarding"
     },
     {
       "title": "Thailand Shore",
       "image": "111.jpeg",
-      "tags": ["thailand", "travel", "water"],
+      "tags": [
+        "thailand",
+        "travel",
+        "water"
+      ],
       "page": "thailand.html",
       "pageLabel": "Thailand"
+    },
+    {
+      "title": "广州塔",
+      "image": "/images/img_4182.jpg",
+      "tags": [
+        "canton-tower"
+      ],
+      "page": "guangzhou.html",
+      "pageLabel": "Guangzhou"
     }
   ]
 }
