@@ -21,6 +21,12 @@ collections:
             fields:
               - { label: "标题", name: "title", widget: "string" }
               - { label: "图片", name: "image", widget: "image" }
-              - { label: "标签 Tags", name: "tags", widget: "list" }
+              - label: "标签 Tags"
+                name: "tags"
+                widget: "list"
+                field:
+                  label: Tag
+                  name: tag
+                  widget: string
               - { label: "页面链接", name: "page", widget: "string" }
               - { label: "页面名称", name: "pageLabel", widget: "string" }
