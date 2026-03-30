@@ -146,11 +146,7 @@
     <div class="content">
 
       <!-- 左侧 -->
-      <div class="masonry">
-        <div class="photo-item"><img src="111.jpeg" class="zoomable"></div>
-        <div class="photo-item"><img src="111.jpeg" class="zoomable"></div>
-        <div class="photo-item"><img src="111.jpeg" class="zoomable"></div>
-      </div>
+      <div class="masonry" id="masonry"></div>
 
       <!-- 右侧 -->
       <aside>
@@ -178,13 +174,23 @@
   </div>
 
   <script>
+  async function loadPhotos() {
+    const res = await fetch('/photos.json');
+    const data = await res.json();
+    const photos = data.items.filter(p => p.page === 'guangzhou.html');
+    const masonry = document.getElementById('masonry');
+    photos.forEach(p => {
+      masonry.innerHTML += `<div class="photo-item"><img src="${p.image}" class="zoomable"></div>`;
+    });
     document.querySelectorAll('.zoomable').forEach(img=>{
       img.onclick=()=>{
         document.getElementById('lightbox').style.display='flex'
         document.getElementById('lightbox-img').src=img.src
       }
-    })
-  </script>
+    });
+  }
+  loadPhotos();
+</script>
  <script data-goatcounter="https://kiara-mytrace.goatcounter.com/count"
         async src="https://gc.zgo.at/count.js"></script>
 </body>
