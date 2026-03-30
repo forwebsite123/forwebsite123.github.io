@@ -1,5 +1,6 @@
 backend:
-  name: git-gateway
+  name: github
+  repo: forwebsite123/forwebsite123.github.io
   branch: main
 
 media_folder: "images"
