@@ -1,0 +1,22 @@
+backend:
+  name: git-gateway
+  branch: main
+
+media_folder: "images"
+public_folder: "/images"
+
+collections:
+  - name: "photos"
+    label: "照片"
+    file: "photos.json"
+    format: json
+    fields:
+      - name: items
+        label: 照片列表
+        widget: list
+        fields:
+          - { label: "标题", name: "title", widget: "string" }
+          - { label: "图片", name: "image", widget: "image" }
+          - { label: "标签 Tags", name: "tags", widget: "list" }
+          - { label: "页面链接", name: "page", widget: "string" }
+          - { label: "页面名称", name: "pageLabel", widget: "string" }
