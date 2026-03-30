@@ -213,108 +213,57 @@
   </div>
 
   <script>
-    const allTaggedItems = [
-      {
-        title: "Tokyo Street",
-        image: "111.jpeg",
-        tags: ["people", "japan", "travel"],
-        page: "japan.html",
-        pageLabel: "Japan"
-      },
-      {
-        title: "Tokyo Street",
-        image: "test.png",
-        tags: ["shopping", "people", "canon-m5"],
-        page: "guangzhou.html",
-        pageLabel: "Guangzhou"
-      },
-      {
-        title: "Temple Light",
-        image: "test.png",
-        tags: ["temple", "japan", "quiet"],
-        page: "korea.html",
-        pageLabel: "Japan"
-      },
-      {
-        title: "Fireworks Night",
-        image: "111.jpeg",
-        tags: ["fireworks", "night", "japan"],
-        page: "japan.html",
-        pageLabel: "Japan"
-      },
-      {
-        title: "Passing Light",
-        image: "111.jpeg",
-        tags: ["light", "fragment", "street"],
-        page: "found-fragments.html",
-        pageLabel: "Found Fragments"
-      },
-      {
-        title: "Window Shadow",
-        image: "111.jpeg",
-        tags: ["shadow", "window", "quiet"],
-        page: "found-fragments.html",
-        pageLabel: "Found Fragments"
-      },
-      {
-        title: "Niseko Morning",
-        image: "111.jpeg",
-        tags: ["snow", "japan", "mountain"],
-        page: "snowboarding.html",
-        pageLabel: "Snowboarding"
-      },
-      {
-        title: "Thailand Shore",
-        image: "111.jpeg",
-        tags: ["thailand", "travel", "water"],
-        page: "thailand.html",
-        pageLabel: "Thailand"
+    async function loadAndFilter() {
+      const res = await fetch('/photos.json');
+      const data = await res.json();
+      const allTaggedItems = data.items;
+
+      const params = new URLSearchParams(window.location.search);
+      const currentTag = (params.get("tag") || "").trim().toLowerCase();
+
+      const tagTitle = document.getElementById("tagTitle");
+      const tagSubtitle = document.getElementById("tagSubtitle");
+      const resultGrid = document.getElementById("resultGrid");
+      const emptyState = document.getElementById("emptyState");
+
+      if (currentTag) {
+        tagTitle.textContent = "#" + currentTag;
+        tagSubtitle.textContent = `Showing all items tagged with "${currentTag}".`;
+      } else {
+        tagTitle.textContent = "Tag";
+        tagSubtitle.textContent = "No tag selected.";
       }
-    ];
 
-    const params = new URLSearchParams(window.location.search);
-    const currentTag = (params.get("tag") || "").trim().toLowerCase();
+      const filtered = allTaggedItems.filter(item =>
+        item.tags.some(tag => tag.toLowerCase() === currentTag)
+      );
 
-    const tagTitle = document.getElementById("tagTitle");
-    const tagSubtitle = document.getElementById("tagSubtitle");
-    const resultGrid = document.getElementById("resultGrid");
-    const emptyState = document.getElementById("emptyState");
+      if (!currentTag || filtered.length === 0) {
+        emptyState.style.display = "block";
+      } else {
+        filtered.forEach(item => {
+          const card = document.createElement("div");
+          card.className = "card";
 
-    if (currentTag) {
-      tagTitle.textContent = "#" + currentTag;
-      tagSubtitle.textContent = `Showing all items tagged with "${currentTag}".`;
-    } else {
-      tagTitle.textContent = "Tag";
-      tagSubtitle.textContent = "No tag selected.";
+          const tagsHtml = item.tags.map(tag =>
+            `<a class="tag" href="tag.html?tag=${encodeURIComponent(tag)}">${tag}</a>`
+          ).join("");
+
+          card.innerHTML = `
+            <img src="${item.image}" alt="${item.title}" class="zoomable">
+            <div class="card-body">
+              <div class="card-title">${item.title}</div>
+              <div class="card-page">from <a href="${item.page}">${item.pageLabel}</a></div>
+              <div class="card-tags">${tagsHtml}</div>
+            </div>
+          `;
+
+          resultGrid.appendChild(card);
+        });
+      }
     }
 
-    const filtered = allTaggedItems.filter(item =>
-      item.tags.some(tag => tag.toLowerCase() === currentTag)
-    );
-
-    if (!currentTag || filtered.length === 0) {
-      emptyState.style.display = "block";
-    } else {
-      filtered.forEach(item => {
-        const card = document.createElement("div");
-        card.className = "card";
-
-        const tagsHtml = item.tags.map(tag =>
-          `<a class="tag" href="tag.html?tag=${encodeURIComponent(tag)}">${tag}</a>`
-        ).join("");
-
-        card.innerHTML = `
-          <img src="${item.image}" alt="${item.title}" class="zoomable">
-          <div class="card-body">
-            <div class="card-title">${item.title}</div>
-            <div class="card-page">from <a href="${item.page}">${item.pageLabel}</a></div>
-            <div class="card-tags">${tagsHtml}</div>
-          </div>
-        `;
-
-        resultGrid.appendChild(card);
-      });
-    }
+    loadAndFilter();
 
     const lightbox = document.getElementById('lightbox');
     const lightboxImg = document.getElementById('lightbox-img');
