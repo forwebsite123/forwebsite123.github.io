@@ -1,0 +1,51 @@
+[
+  {
+    "title": "Tokyo Street",
+    "image": "111.jpeg",
+    "tags": ["people", "japan", "travel"],
+    "page": "japan.html",
+    "pageLabel": "Japan"
+  },
+  {
+    "title": "Temple Light",
+    "image": "test.png",
+    "tags": ["temple", "japan", "quiet"],
+    "page": "korea.html",
+    "pageLabel": "Japan"
+  },
+  {
+    "title": "Fireworks Night",
+    "image": "111.jpeg",
+    "tags": ["fireworks", "night", "japan"],
+    "page": "japan.html",
+    "pageLabel": "Japan"
+  },
+  {
+    "title": "Passing Light",
+    "image": "111.jpeg",
+    "tags": ["light", "fragment", "street"],
+    "page": "found-fragments.html",
+    "pageLabel": "Found Fragments"
+  },
+  {
+    "title": "Window Shadow",
+    "image": "111.jpeg",
+    "tags": ["shadow", "window", "quiet"],
+    "page": "found-fragments.html",
+    "pageLabel": "Found Fragments"
+  },
+  {
+    "title": "Niseko Morning",
+    "image": "111.jpeg",
+    "tags": ["snow", "japan", "mountain"],
+    "page": "snowboarding.html",
+    "pageLabel": "Snowboarding"
+  },
+  {
+    "title": "Thailand Shore",
+    "image": "111.jpeg",
+    "tags": ["thailand", "travel", "water"],
+    "page": "thailand.html",
+    "pageLabel": "Thailand"
+  }
+]
