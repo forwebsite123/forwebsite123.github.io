@@ -1,0 +1,20 @@
+name: Build and Deploy
+on:
+  push:
+    branches:
+      - main  # 确认你的主分支是 main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install and Run Pagefind
+        run: npx pagefind --site .  # 免费生成搜索索引
+      - name: Deploy to Netlify
+        uses: ntl/action-netlify@v1
+        with:
+          publish-dir: ./
+          production-deploy: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          netlify-auth-token: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          netlify-site-id: ${{ secrets.NETLIFY_SITE_ID }}
