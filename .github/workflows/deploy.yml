@@ -3,15 +3,21 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch: # 这个能让你手动点击运行
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout Code
+        uses: actions/checkout@v4  # 升级到 v4，解决 node 版本警告
 
-      - name: Install and Run Pagefind
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build Pagefind Search Index
         run: npx pagefind --site . 
 
       - name: Deploy to Netlify
