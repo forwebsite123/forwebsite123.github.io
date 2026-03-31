@@ -1,489 +1,1497 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>批量上传工具</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #fcfbf8; color: #6e4a4a; font-family: "Times New Roman", Georgia, serif; min-height: 100vh; padding: 40px 28px 80px; }
-    .page { max-width: 900px; margin: 0 auto; }
-    .header { margin-bottom: 36px; border-bottom: 1px solid rgba(168,122,122,0.2); padding-bottom: 20px; }
-    .site-note { font-size: 13px; font-style: italic; color: rgba(122,87,87,0.6); margin-bottom: 6px; }
-    h1 { font-size: 42px; font-style: italic; font-weight: 500; color: #8b5e5e; line-height: 1; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Batch Upload Tool</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap');
+  
+  :root {
+    --primary: #8b6f5e;
+    --primary-light: #c4a882;
+    --bg: #faf8f5;
+    --card: #ffffff;
+    --border: #e8ddd3;
+    --text: #4a3f35;
+    --text-light: #8a7e74;
+    --danger: #c0392b;
+    --danger-light: #e74c3c;
+    --success: #27ae60;
+    --warning: #e67e22;
+  }
 
-    /* Mode tabs */
-    .mode-tabs { display: flex; border: 1px solid rgba(168,122,122,0.25); margin-bottom: 32px; }
-    .mode-tab { flex: 1; padding: 12px; text-align: center; border: none; background: transparent; color: rgba(122,87,87,0.6); font-family: inherit; font-size: 14px; cursor: pointer; letter-spacing: 0.5px; transition: all 0.15s; }
-    .mode-tab.active { background: rgba(168,122,122,0.1); color: #8b5e5e; font-weight: 600; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    .mode-panel { display: none; }
-    .mode-panel.active { display: block; }
+  body {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
 
-    .section { margin-bottom: 28px; }
-    label { display: block; font-size: 12px; font-weight: 700; letter-spacing: 0.8px; color: rgba(122,87,87,0.65); margin-bottom: 8px; text-transform: uppercase; }
-    input[type="text"], input[type="password"], textarea, select {
-      width: 100%; padding: 12px 14px; border: 1px solid rgba(168,122,122,0.25);
-      background: rgba(255,255,255,0.6); color: #6e4a4a; font-family: inherit; font-size: 15px; outline: none; transition: border-color 0.2s;
-    }
-    textarea { resize: vertical; min-height: 80px; }
-    input:focus, textarea:focus, select:focus { border-color: rgba(168,122,122,0.6); }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  h1 {
+    font-size: 2em;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--primary);
+    margin-bottom: 8px;
+  }
 
-    /* Cards */
-    .card { border: 1px solid rgba(168,122,122,0.18); background: rgba(255,255,255,0.4); padding: 20px; margin-bottom: 14px; }
-    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-    .card-num { font-size: 13px; font-style: italic; color: rgba(122,87,87,0.5); }
-    .btn-remove { background: none; border: none; color: rgba(168,122,122,0.5); cursor: pointer; font-size: 20px; line-height: 1; }
-    .btn-remove:hover { color: #c47a7a; }
+  h2 {
+    font-size: 1.3em;
+    font-weight: 600;
+    color: var(--primary);
+    margin: 24px 0 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
 
-    /* Type toggle */
-    .type-toggle { display: flex; border: 1px solid rgba(168,122,122,0.25); margin-bottom: 16px; }
-    .type-btn { flex: 1; padding: 8px; border: none; background: transparent; color: rgba(122,87,87,0.5); font-family: inherit; font-size: 13px; cursor: pointer; transition: all 0.15s; }
-    .type-btn.active { background: rgba(168,122,122,0.12); color: #8b5e5e; font-weight: 600; }
+  h3 {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: var(--text);
+    margin: 16px 0 8px;
+  }
 
-    /* Preview */
-    .preview-area { width: 100%; height: 140px; display: flex; align-items: center; justify-content: center; background: rgba(168,122,122,0.05); border: 1px dashed rgba(168,122,122,0.25); color: rgba(122,87,87,0.4); font-size: 13px; font-style: italic; margin-bottom: 10px; cursor: pointer; overflow: hidden; }
-    .preview-area img { width: 100%; height: 100%; object-fit: cover; }
-    .video-preview { width: 100%; position: relative; padding-top: 56.25%; margin-bottom: 10px; background: rgba(168,122,122,0.05); border: 1px dashed rgba(168,122,122,0.25); }
-    .video-preview iframe { position: absolute; top:0;left:0;width:100%;height:100%;border:none; }
-    .video-placeholder { position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(122,87,87,0.4);font-size:13px;font-style:italic; }
-    .btn-file-label { display:block;width:100%;padding:9px;text-align:center;border:1px solid rgba(168,122,122,0.3);background:transparent;color:rgba(122,87,87,0.7);font-family:inherit;font-size:13px;cursor:pointer;margin-bottom:10px;transition:all 0.2s; }
-    .btn-file-label:hover { background:rgba(168,122,122,0.05); }
-    input[type="file"] { display: none; }
+  .subtitle {
+    color: var(--text-light);
+    font-style: italic;
+    margin-bottom: 24px;
+  }
 
-    /* Tags */
-    .tags-box { display:flex;flex-wrap:wrap;gap:6px;padding:8px 10px;border:1px solid rgba(168,122,122,0.25);background:rgba(255,255,255,0.6);min-height:44px;cursor:text; }
-    .tag-pill { display:inline-flex;align-items:center;gap:4px;background:rgba(168,122,122,0.12);padding:3px 8px 3px 10px;font-size:13px;font-style:italic;color:#9a6d6d; }
-    .tag-pill button { background:none;border:none;color:rgba(154,109,109,0.6);cursor:pointer;font-size:15px;line-height:1;padding:0; }
-    .tags-box input { border:none;background:transparent;outline:none;font-family:inherit;font-size:14px;color:#6e4a4a;min-width:80px;flex:1;padding:2px 4px; }
+  /* Sections */
+  .section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
 
-    .btn-add { width:100%;padding:13px;border:1px dashed rgba(168,122,122,0.35);background:transparent;color:rgba(122,87,87,0.6);font-family:inherit;font-size:14px;font-style:italic;cursor:pointer;transition:all 0.2s;margin-bottom:28px; }
-    .btn-add:hover { border-color:rgba(168,122,122,0.6);color:#8b5e5e;background:rgba(168,122,122,0.04); }
-    .btn-submit { width:100%;padding:16px;background:#8b5e5e;color:#fcfbf8;border:none;font-family:inherit;font-size:16px;font-style:italic;cursor:pointer;transition:background 0.2s; }
-    .btn-submit:hover { background:#7a5252; }
-    .btn-submit:disabled { background:rgba(139,94,94,0.4);cursor:not-allowed; }
-    .progress { height:2px;background:rgba(168,122,122,0.15);margin-top:12px;display:none; }
-    .progress-fill { height:100%;background:#8b5e5e;width:0%;transition:width 0.4s; }
-    .status { margin-top:16px;padding:14px;font-size:14px;font-style:italic;display:none; }
-    .status.success { display:block;background:rgba(100,140,100,0.08);border:1px solid rgba(100,140,100,0.3);color:#3a6a3a; }
-    .status.error { display:block;background:rgba(180,80,80,0.07);border:1px solid rgba(180,80,80,0.25);color:#8b3333; }
-    .status.loading { display:block;background:rgba(168,122,122,0.07);border:1px solid rgba(168,122,122,0.2);color:rgba(122,87,87,0.8); }
-    .hint { font-size:12px;color:rgba(122,87,87,0.5);margin-top:6px;font-style:italic; }
-    hr { border:none;border-top:1px solid rgba(168,122,122,0.15);margin:28px 0; }
-    .field-block { margin-bottom:12px; }
+  /* Form elements */
+  label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 4px;
+    font-size: 0.95em;
+  }
 
-    /* Activity entry multi-photo grid */
-    .photo-upload-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-bottom:10px; }
-    .photo-slot { position:relative;aspect-ratio:1;background:rgba(168,122,122,0.05);border:1px dashed rgba(168,122,122,0.25);cursor:pointer;overflow:hidden; }
-    .photo-slot img { width:100%;height:100%;object-fit:cover; }
-    .photo-slot .slot-label { position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:rgba(122,87,87,0.4);font-style:italic; }
-    .photo-slot .slot-remove { position:absolute;top:3px;right:3px;background:rgba(0,0,0,0.5);color:white;border:none;cursor:pointer;width:20px;height:20px;font-size:14px;display:none;align-items:center;justify-content:center; }
-    .photo-slot:hover .slot-remove { display:flex; }
-    .add-photo-slot { background:rgba(168,122,122,0.04);border:1px dashed rgba(168,122,122,0.3); }
-  </style>
+  input[type="text"], input[type="password"], input[type="date"],
+  select, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 0.95em;
+    background: var(--bg);
+    color: var(--text);
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+
+  textarea { min-height: 80px; resize: vertical; }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 0.95em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    color: #fff;
+  }
+  .btn-primary:hover { background: var(--primary-light); }
+
+  .btn-danger {
+    background: var(--danger);
+    color: #fff;
+    padding: 6px 14px;
+    font-size: 0.85em;
+  }
+  .btn-danger:hover { background: var(--danger-light); }
+
+  .btn-secondary {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 16px;
+  }
+  .btn-secondary:hover { background: var(--bg); }
+
+  .btn-small {
+    padding: 4px 10px;
+    font-size: 0.8em;
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Mode tabs */
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 12px;
+    text-align: center;
+    cursor: pointer;
+    background: var(--bg);
+    font-weight: 600;
+    font-size: 0.95em;
+    transition: all 0.2s;
+    border: none;
+    font-family: inherit;
+  }
+
+  .tab.active {
+    background: var(--primary);
+    color: #fff;
+  }
+
+  .tab:not(.active):hover {
+    background: var(--border);
+  }
+
+  /* File upload area */
+  .upload-area {
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 12px;
+    position: relative;
+  }
+
+  .upload-area:hover, .upload-area.dragover {
+    border-color: var(--primary);
+    background: rgba(139, 111, 94, 0.05);
+  }
+
+  .upload-area input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .upload-area .icon { font-size: 2em; margin-bottom: 8px; }
+  .upload-area .hint { color: var(--text-light); font-size: 0.9em; }
+
+  /* Preview grid */
+  .preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .preview-item {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .preview-item .remove-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--danger);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 22px;
+    text-align: center;
+    opacity: 0.8;
+  }
+  .preview-item .remove-btn:hover { opacity: 1; }
+
+  /* Record image preview */
+  .record-preview {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .record-preview img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+
+  /* Existing entries */
+  .entry-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+
+  .entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .entry-date {
+    font-weight: 600;
+    color: var(--primary);
+  }
+
+  .entry-location {
+    color: var(--text-light);
+    font-style: italic;
+  }
+
+  .entry-photos {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  .entry-photos .thumb {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .entry-photos .thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .entry-photos .thumb .del-photo {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--danger);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-size: 11px;
+    line-height: 18px;
+    text-align: center;
+  }
+
+  .entry-note {
+    color: var(--text-light);
+    font-size: 0.9em;
+    margin-top: 6px;
+    font-style: italic;
+  }
+
+  /* Progress */
+  .progress-bar {
+    width: 100%;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 8px 0;
+  }
+
+  .progress-bar .fill {
+    height: 100%;
+    background: var(--primary);
+    transition: width 0.3s;
+    border-radius: 3px;
+  }
+
+  /* Log */
+  .log {
+    background: #2d2520;
+    color: #d4c5b5;
+    padding: 14px;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.82em;
+    max-height: 300px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin-top: 12px;
+    display: none;
+  }
+
+  .log .error { color: #e74c3c; }
+  .log .success { color: #27ae60; }
+  .log .warn { color: #e67e22; }
+
+  /* Status bar */
+  .status {
+    padding: 10px 14px;
+    border-radius: 6px;
+    margin: 10px 0;
+    font-size: 0.9em;
+    display: none;
+  }
+
+  .status.error { background: #fde8e8; color: var(--danger); display: block; }
+  .status.success { background: #e8f8ef; color: var(--success); display: block; }
+  .status.info { background: #eee; color: var(--text); display: block; }
+
+  /* Row layout */
+  .form-row {
+    display: flex;
+    gap: 12px;
+  }
+  .form-row > * { flex: 1; }
+
+  /* Compression settings */
+  .settings-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    font-size: 0.9em;
+    flex-wrap: wrap;
+  }
+
+  .settings-row label {
+    display: inline;
+    font-weight: normal;
+    margin: 0;
+  }
+
+  .settings-row select, .settings-row input {
+    width: auto;
+    margin: 0;
+    padding: 6px 10px;
+  }
+
+  /* Checkbox */
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .checkbox-row input { width: auto; margin: 0; }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    body { padding: 12px; }
+    h1 { font-size: 1.6em; }
+    .form-row { flex-direction: column; gap: 0; }
+    .preview-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
+    .section { padding: 14px; }
+    .entry-header { flex-direction: column; align-items: flex-start; gap: 6px; }
+  }
+
+  .hidden { display: none !important; }
+
+  /* Loading spinner */
+  .spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    vertical-align: middle;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+  }
+
+  .confirm-box {
+    background: var(--card);
+    border-radius: 10px;
+    padding: 24px;
+    max-width: 360px;
+    width: 90%;
+    text-align: center;
+  }
+
+  .confirm-box p { margin-bottom: 16px; }
+
+  .confirm-box .btn-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+  }
+</style>
 </head>
 <body>
-<div class="page">
-  <div class="header">
-    <div class="site-note">A place to leave traces.</div>
-    <h1>批量上传</h1>
-  </div>
 
-  <!-- GitHub Token (shared) -->
-  <div class="section">
-    <label>GitHub Token</label>
-    <input type="password" id="token" placeholder="ghp_xxxxxxxxxxxxxxxx" />
-    <div class="hint" id="tokenHint"></div>
-  </div>
+<h1>Batch Upload</h1>
+<p class="subtitle">A place to leave traces — manage your photos & entries.</p>
 
-  <!-- Mode tabs -->
-  <div class="mode-tabs">
-    <button class="mode-tab active" onclick="switchMode('photo')">📷 照片 / 视频（相册）</button>
-    <button class="mode-tab" onclick="switchMode('activity')">🏃 活动记录（滑雪/潜水等）</button>
+<!-- Token Section -->
+<div class="section" id="tokenSection">
+  <label for="tokenInput">GitHub Personal Access Token</label>
+  <input type="password" id="tokenInput" placeholder="ghp_xxxxxxxxxxxx">
+  <div class="checkbox-row">
+    <input type="checkbox" id="rememberToken" checked>
+    <label for="rememberToken">Remember token on this device</label>
   </div>
-
-  <!-- ═══ MODE 1: Photo/Video for masonry albums ═══ -->
-  <div class="mode-panel active" id="panel-photo">
-    <div class="section">
-      <div class="row">
-        <div>
-          <label>页面链接（相册文件名）</label>
-          <input type="text" id="p-pageUrl" placeholder="guangzhou.html" />
-        </div>
-        <div>
-          <label>页面名称</label>
-          <input type="text" id="p-pageLabel" placeholder="Guangzhou" />
-        </div>
-      </div>
+  <div class="form-row">
+    <div>
+      <label for="repoOwner">Repo Owner</label>
+      <input type="text" id="repoOwner" value="forwebsite123">
     </div>
-    <div class="section">
-      <label>共同标签</label>
-      <div class="tags-box" id="p-commonTags" onclick="this.querySelector('input').focus()">
-        <input type="text" placeholder="输入 tag 后按 Enter" onkeydown="handleTagKey(event,'p-commonTags')" />
-      </div>
+    <div>
+      <label for="repoName">Repo Name</label>
+      <input type="text" id="repoName" value="forwebsite123.github.io">
     </div>
-    <hr>
-    <div id="p-cards"></div>
-    <button class="btn-add" onclick="addPhotoCard()">＋ 添加照片或视频</button>
-    <button class="btn-submit" id="p-submitBtn" onclick="submitPhotos()">发布所有内容</button>
-    <div class="progress" id="p-progress"><div class="progress-fill" id="p-fill"></div></div>
-    <div class="status" id="p-status"></div>
+  </div>
+  <button class="btn btn-primary" onclick="connectGitHub()">Connect</button>
+  <div id="connectStatus" class="status"></div>
+</div>
+
+<!-- Main Content (hidden until connected) -->
+<div id="mainContent" class="hidden">
+
+  <!-- Mode Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchMode('album')">Photo Albums</button>
+    <button class="tab" onclick="switchMode('activity')">Activity Entries</button>
   </div>
 
-  <!-- ═══ MODE 2: Activity Entry ═══ -->
-  <div class="mode-panel" id="panel-activity">
+  <!-- ==================== ALBUM MODE ==================== -->
+  <div id="albumMode">
     <div class="section">
-      <label>活动页面</label>
-      <select id="a-page">
-        <option value="snowboarding">Snowboarding（snowboarding.json）</option>
-        <option value="diving">Diving（diving.json）</option>
-        <option value="horse-riding">Horse Riding（horse-riding.json）</option>
-        <option value="kitesurfing">Kitesurfing（kitesurfing.json）</option>
-        <option value="found-fragments">Found Fragments（found-fragments.json）</option>
+      <label for="albumSelect">Select Album</label>
+      <select id="albumSelect" onchange="loadAlbumPhotos()">
+        <option value="">-- Choose album --</option>
+        <option value="guangzhou.html" data-label="广州">guangzhou</option>
+        <option value="korea.html" data-label="韩国">korea</option>
+        <option value="japan.html" data-label="日本">japan</option>
+        <option value="thailand.html" data-label="泰国">thailand</option>
+        <option value="singapore.html" data-label="新加坡">singapore</option>
+        <option value="egypt.html" data-label="埃及">egypt</option>
+        <option value="tanzania.html" data-label="坦桑尼亚">tanzania</option>
+        <option value="australia.html" data-label="澳大利亚">australia</option>
+        <option value="brazil.html" data-label="巴西">brazil</option>
+        <option value="canada.html" data-label="加拿大">canada</option>
+        <option value="country.html" data-label="Country">country</option>
+        <option value="UK.html" data-label="英国">UK</option>
       </select>
     </div>
 
+    <!-- Existing Photos in Album -->
+    <div class="section" id="albumExisting" style="display:none">
+      <h2>Existing Photos</h2>
+      <div id="albumPhotoList"></div>
+    </div>
+
+    <!-- Add New Photos -->
     <div class="section">
-      <div class="row">
-        <div>
-          <label>日期</label>
-          <input type="text" id="a-date" placeholder="2026.04.01" />
-        </div>
-        <div id="a-locationWrap">
-          <label>地点</label>
-          <input type="text" id="a-location" placeholder="Niseko" />
-        </div>
+      <h2>Add New Photos</h2>
+      <div class="settings-row">
+        <label>Compress to max width:</label>
+        <select id="albumMaxWidth">
+          <option value="0">No compression</option>
+          <option value="2400" selected>2400px</option>
+          <option value="1600">1600px</option>
+          <option value="1200">1200px</option>
+          <option value="800">800px</option>
+        </select>
+        <label>Quality:</label>
+        <select id="albumQuality">
+          <option value="0.95">95%</option>
+          <option value="0.85" selected>85%</option>
+          <option value="0.7">70%</option>
+        </select>
       </div>
-    </div>
 
-    <div id="a-recordWrap" class="section">
-      <label>记录图（可选，GPS轨迹截图等）</label>
-      <div class="preview-area" id="a-recordPreview" onclick="document.getElementById('a-recordFile').click()">点击选择记录图</div>
-      <input type="file" id="a-recordFile" accept="image/*" onchange="previewRecord()">
-      <label for="a-recordFile" class="btn-file-label">选择图片</label>
-      <input type="text" id="a-recordCaption" placeholder="记录说明，例如：uploaded record / track snapshot">
-    </div>
-
-    <div class="section">
-      <label>照片（可多选）</label>
-      <div class="photo-upload-grid" id="a-photoGrid">
-        <div class="photo-slot add-photo-slot" onclick="document.getElementById('a-photos').click()">
-          <div class="slot-label">＋ 添加照片</div>
-        </div>
+      <div class="upload-area" id="albumUploadArea">
+        <input type="file" accept="image/*" multiple onchange="handleAlbumFiles(this.files)">
+        <div class="icon">📷</div>
+        <div>Click or drag photos here</div>
+        <div class="hint">Supports multiple files · Mobile camera supported</div>
       </div>
-      <input type="file" id="a-photos" accept="image/*" multiple onchange="addPhotoSlots()">
-    </div>
+      <div class="preview-grid" id="albumPreview"></div>
 
-    <div class="section">
-      <label>视频 BV 号（每行一个，可留空）</label>
-      <textarea id="a-videos" placeholder="BV1xxxxxxxxxx&#10;BV1yyyyyyyyyy" style="min-height:60px;"></textarea>
-    </div>
+      <label for="albumTags">Tags (comma separated)</label>
+      <input type="text" id="albumTags" placeholder="e.g. street, food, sunset">
 
-    <div class="section">
-      <label id="a-textLabel">文字 / 备注</label>
-      <textarea id="a-text" placeholder="写点什么..."></textarea>
-    </div>
+      <label for="albumVideo">Bilibili BV (optional)</label>
+      <input type="text" id="albumVideo" placeholder="e.g. BVxxxxxxxxxx">
 
-    <div class="section" id="a-tagsWrap">
-      <label>标签（仅 Found Fragments 使用）</label>
-      <div class="tags-box" id="a-tags" onclick="this.querySelector('input').focus()">
-        <input type="text" placeholder="输入 tag 后按 Enter" onkeydown="handleTagKey(event,'a-tags')" />
-      </div>
+      <button class="btn btn-primary" id="albumSubmit" onclick="submitAlbumPhotos()" disabled>
+        Upload Photos
+      </button>
     </div>
-
-    <button class="btn-submit" id="a-submitBtn" onclick="submitActivity()">发布活动记录</button>
-    <div class="progress" id="a-progress"><div class="progress-fill" id="a-fill"></div></div>
-    <div class="status" id="a-status"></div>
   </div>
+
+  <!-- ==================== ACTIVITY MODE ==================== -->
+  <div id="activityMode" class="hidden">
+    <div class="section">
+      <label for="activitySelect">Select Activity</label>
+      <select id="activitySelect" onchange="loadActivityEntries()">
+        <option value="">-- Choose activity --</option>
+        <option value="snowboarding">Snowboarding</option>
+        <option value="diving">Diving</option>
+        <option value="horse-riding">Horse Riding</option>
+        <option value="kitesurfing">Kitesurfing</option>
+        <option value="found-fragments">Found Fragments</option>
+      </select>
+    </div>
+
+    <!-- Existing Entries -->
+    <div class="section" id="activityExisting" style="display:none">
+      <h2>Existing Entries</h2>
+      <p class="subtitle" style="margin-bottom:12px">Sorted by date, newest first. Click delete to remove entries or individual photos.</p>
+      <div id="activityEntryList"></div>
+    </div>
+
+    <!-- Add New Entry -->
+    <div class="section" id="newEntrySection" style="display:none">
+      <h2>Add New Entry</h2>
+
+      <div class="form-row">
+        <div>
+          <label for="entryDate">Date</label>
+          <input type="text" id="entryDate" placeholder="2026.03.31">
+        </div>
+        <div id="locationField">
+          <label for="entryLocation">Location</label>
+          <input type="text" id="entryLocation" placeholder="e.g. Niseko">
+        </div>
+      </div>
+
+      <!-- Record Image (snowboarding/diving only) -->
+      <div id="recordImageSection">
+        <label>Record Image (achievement/record photo)</label>
+        <div class="upload-area" id="recordUploadArea">
+          <input type="file" accept="image/*" onchange="handleRecordImage(this.files)">
+          <div class="icon">🏔️</div>
+          <div>Upload record image</div>
+          <div class="hint">This appears in the left column of the timeline</div>
+        </div>
+        <div class="record-preview" id="recordPreview" style="display:none"></div>
+        <label for="recordCaption">Record Caption (optional)</label>
+        <input type="text" id="recordCaption" placeholder="e.g. First black diamond run!">
+      </div>
+
+      <!-- Photos -->
+      <label>Photos</label>
+      <div class="settings-row">
+        <label>Compress to max width:</label>
+        <select id="activityMaxWidth">
+          <option value="0">No compression</option>
+          <option value="2400" selected>2400px</option>
+          <option value="1600">1600px</option>
+          <option value="1200">1200px</option>
+          <option value="800">800px</option>
+        </select>
+        <label>Quality:</label>
+        <select id="activityQuality">
+          <option value="0.95">95%</option>
+          <option value="0.85" selected>85%</option>
+          <option value="0.7">70%</option>
+        </select>
+      </div>
+
+      <div class="upload-area" id="activityUploadArea">
+        <input type="file" accept="image/*" multiple onchange="handleActivityFiles(this.files)">
+        <div class="icon">📷</div>
+        <div>Click or drag photos here</div>
+        <div class="hint">Supports multiple files · Mobile camera supported</div>
+      </div>
+      <div class="preview-grid" id="activityPreview"></div>
+
+      <!-- Videos -->
+      <label for="entryVideos">Bilibili BV IDs (comma separated, optional)</label>
+      <input type="text" id="entryVideos" placeholder="e.g. BVxxx, BVyyy">
+
+      <!-- Note / Text -->
+      <div id="noteField">
+        <label for="entryNote">Note</label>
+        <textarea id="entryNote" placeholder="Your thoughts about this experience..."></textarea>
+      </div>
+
+      <div id="textField" class="hidden">
+        <label for="entryText">Text</label>
+        <textarea id="entryText" placeholder="Fragment text..."></textarea>
+        <label for="entryTextTags">Tags (comma separated)</label>
+        <input type="text" id="entryTextTags" placeholder="e.g. thought, poem">
+      </div>
+
+      <button class="btn btn-primary" id="activitySubmit" onclick="submitActivityEntry()">
+        Submit Entry
+      </button>
+    </div>
+  </div>
+
+  <!-- Progress & Log -->
+  <div id="progressSection" class="hidden">
+    <div class="section">
+      <h3 id="progressTitle">Uploading...</h3>
+      <div class="progress-bar"><div class="fill" id="progressFill" style="width:0%"></div></div>
+      <div id="progressText" style="font-size:0.85em;color:var(--text-light)">0%</div>
+    </div>
+  </div>
+
+  <div id="uploadStatus" class="status"></div>
+  <div class="log" id="logArea"></div>
+  <button class="btn btn-secondary btn-small" onclick="toggleLog()" style="margin-top:8px">Show/Hide Log</button>
 </div>
 
 <script>
-  const REPO = 'forwebsite123/forwebsite123.github.io';
-  const BRANCH = 'main';
-  let photoCardId = 0;
-  let activityPhotos = []; // {file, dataUrl}
+// ==================== STATE ====================
+let TOKEN = '';
+let OWNER = '';
+let REPO = '';
+const API = 'https://api.github.com';
 
-  // Token
-  window.onload = () => {
-    const t = localStorage.getItem('kiara_gh_token');
-    if (t) { document.getElementById('token').value = t; document.getElementById('tokenHint').textContent = '✓ 已从浏览器读取 Token'; }
-    addPhotoCard();
-    updateActivityUI();
-    document.getElementById('a-page').addEventListener('change', updateActivityUI);
-  };
-  document.getElementById('token').oninput = function() {
-    localStorage.setItem('kiara_gh_token', this.value);
-    document.getElementById('tokenHint').textContent = this.value ? '✓ Token 已保存' : '';
-  };
+// File queues
+let albumFiles = [];      // [{file, dataUrl, compressed}]
+let activityFiles = [];   // [{file, dataUrl, compressed}]
+let recordImageFile = null; // {file, dataUrl, compressed}
 
-  function switchMode(mode) {
-    document.querySelectorAll('.mode-tab').forEach((t,i) => t.classList.toggle('active', (i===0)===(mode==='photo')));
-    document.getElementById('panel-photo').classList.toggle('active', mode==='photo');
-    document.getElementById('panel-activity').classList.toggle('active', mode==='activity');
+// Current data
+let currentPhotosJson = null;
+let currentActivityJson = null;
+let currentActivityType = '';
+
+// ==================== INIT ====================
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('gh_token');
+  if (saved) {
+    document.getElementById('tokenInput').value = saved;
   }
+  const savedOwner = localStorage.getItem('gh_owner');
+  const savedRepo = localStorage.getItem('gh_repo');
+  if (savedOwner) document.getElementById('repoOwner').value = savedOwner;
+  if (savedRepo) document.getElementById('repoName').value = savedRepo;
 
-  function updateActivityUI() {
-    const page = document.getElementById('a-page').value;
-    const isFragments = page === 'found-fragments';
-    const hasRecord = page === 'snowboarding' || page === 'diving';
-    document.getElementById('a-recordWrap').style.display = hasRecord ? 'block' : 'none';
-    document.getElementById('a-locationWrap').style.display = isFragments ? 'none' : 'block';
-    document.getElementById('a-tagsWrap').style.display = isFragments ? 'block' : 'none';
-    document.getElementById('a-textLabel').textContent = isFragments ? '文字' : '文字 / 备注';
-  }
+  // Drag and drop
+  setupDragDrop('albumUploadArea', files => handleAlbumFiles(files));
+  setupDragDrop('activityUploadArea', files => handleActivityFiles(files));
+  setupDragDrop('recordUploadArea', files => handleRecordImage(files));
+});
 
-  // ── Tag pills ──────────────────────────────────────────────────────────────
-  function handleTagKey(e, boxId) {
-    if (e.key !== 'Enter' && e.key !== ',') return;
+function setupDragDrop(id, handler) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('dragover'); });
+  el.addEventListener('dragleave', () => el.classList.remove('dragover'));
+  el.addEventListener('drop', e => {
     e.preventDefault();
-    const val = e.target.value.trim().replace(/,/g,'');
-    if (!val) return;
-    const pill = document.createElement('span');
-    pill.className = 'tag-pill'; pill.dataset.tag = val;
-    pill.innerHTML = val + '<button onclick="this.parentElement.remove()">×</button>';
-    e.target.parentElement.insertBefore(pill, e.target);
-    e.target.value = '';
-  }
-  function getTags(boxId) {
-    return [...document.getElementById(boxId).querySelectorAll('.tag-pill')].map(p => p.dataset.tag);
+    el.classList.remove('dragover');
+    handler(e.dataTransfer.files);
+  });
+}
+
+// ==================== GITHUB CONNECTION ====================
+async function connectGitHub() {
+  TOKEN = document.getElementById('tokenInput').value.trim();
+  OWNER = document.getElementById('repoOwner').value.trim();
+  REPO = document.getElementById('repoName').value.trim();
+  
+  if (!TOKEN || !OWNER || !REPO) {
+    showStatus('connectStatus', 'Please fill in all fields', 'error');
+    return;
   }
 
-  // ── Photo/Video mode ───────────────────────────────────────────────────────
-  function addPhotoCard() {
-    photoCardId++;
-    const id = photoCardId;
-    const div = document.createElement('div');
-    div.className = 'card'; div.id = 'pc'+id; div.dataset.type='photo';
-    div.innerHTML =
-      '<div class="card-header"><span class="card-num">条目 '+id+'</span><button class="btn-remove" onclick="document.getElementById(\'pc'+id+'\').remove()">×</button></div>'+
-      '<div class="type-toggle"><button class="type-btn active" id="ptb-photo'+id+'" onclick="switchCardType('+id+',\'photo\')">📷 照片</button><button class="type-btn" id="ptb-video'+id+'" onclick="switchCardType('+id+',\'video\')">▶ 视频</button></div>'+
-      '<div id="pa'+id+'"><div class="preview-area" id="pp'+id+'" onclick="document.getElementById(\'pf'+id+'\').click()">点击选择图片</div><input type="file" id="pf'+id+'" accept="image/*" onchange="previewPhotoCard('+id+')"><label for="pf'+id+'" class="btn-file-label">选择图片</label></div>'+
-      '<div id="va'+id+'" style="display:none"><div class="video-preview" id="vp'+id+'"><div class="video-placeholder">填写 BV 号后预览</div></div><div class="field-block"><label>Bilibili BV 号</label><input type="text" id="bv'+id+'" placeholder="BV1xxxxxxxxxx" oninput="updateVP('+id+')"><div class="hint">例如 BV1Lx411u75G</div></div></div>'+
-      '<div class="field-block"><label>标题</label><input type="text" id="pt'+id+'" placeholder="标题（可留空）"></div>'+
-      '<div><label>额外标签</label><div class="tags-box" id="ptags'+id+'" onclick="this.querySelector(\'input\').focus()"><input type="text" placeholder="按 Enter 添加" onkeydown="handleTagKey(event,\'ptags'+id+'\')"></div></div>';
-    document.getElementById('p-cards').appendChild(div);
+  try {
+    const res = await ghFetch(`/repos/${OWNER}/${REPO}`);
+    if (!res.ok) throw new Error('Cannot access repo');
+    
+    if (document.getElementById('rememberToken').checked) {
+      localStorage.setItem('gh_token', TOKEN);
+      localStorage.setItem('gh_owner', OWNER);
+      localStorage.setItem('gh_repo', REPO);
+    }
+    
+    showStatus('connectStatus', 'Connected to ' + OWNER + '/' + REPO, 'success');
+    document.getElementById('mainContent').classList.remove('hidden');
+    document.getElementById('tokenSection').style.display = 'none';
+  } catch (e) {
+    showStatus('connectStatus', 'Connection failed: ' + e.message, 'error');
   }
-  function switchCardType(id, type) {
-    document.getElementById('pa'+id).style.display = type==='photo'?'block':'none';
-    document.getElementById('va'+id).style.display = type==='video'?'block':'none';
-    document.getElementById('ptb-photo'+id).classList.toggle('active',type==='photo');
-    document.getElementById('ptb-video'+id).classList.toggle('active',type==='video');
-    document.getElementById('pc'+id).dataset.type = type;
-  }
-  function previewPhotoCard(id) {
-    const file = document.getElementById('pf'+id).files[0]; if(!file) return;
-    const r = new FileReader();
-    r.onload = e => { const p=document.getElementById('pp'+id); p.innerHTML='<img src="'+e.target.result+'">'; p.onclick=()=>document.getElementById('pf'+id).click(); };
-    r.readAsDataURL(file);
-  }
-  function updateVP(id) {
-    const bvid = document.getElementById('bv'+id).value.trim();
-    const c = document.getElementById('vp'+id);
-    c.innerHTML = bvid ? '<iframe src="//player.bilibili.com/player.html?bvid='+bvid+'&autoplay=0" allowfullscreen></iframe>' : '<div class="video-placeholder">填写 BV 号后预览</div>';
+}
+
+// ==================== MODE SWITCHING ====================
+function switchMode(mode) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', (mode === 'album' && i === 0) || (mode === 'activity' && i === 1));
+  });
+  document.getElementById('albumMode').classList.toggle('hidden', mode !== 'album');
+  document.getElementById('activityMode').classList.toggle('hidden', mode !== 'activity');
+}
+
+// ==================== ALBUM MODE ====================
+async function loadAlbumPhotos() {
+  const sel = document.getElementById('albumSelect');
+  const page = sel.value;
+  if (!page) {
+    document.getElementById('albumExisting').style.display = 'none';
+    return;
   }
 
-  // ── Activity mode ──────────────────────────────────────────────────────────
-  function previewRecord() {
-    const file = document.getElementById('a-recordFile').files[0]; if(!file) return;
-    const r = new FileReader();
-    r.onload = e => { const p=document.getElementById('a-recordPreview'); p.innerHTML='<img src="'+e.target.result+'">'; p.onclick=()=>document.getElementById('a-recordFile').click(); };
-    r.readAsDataURL(file);
+  try {
+    currentPhotosJson = await fetchJsonFile('photos.json');
+    const pagePhotos = currentPhotosJson.items.filter(item => item.page === page);
+    renderAlbumPhotos(pagePhotos, page);
+    document.getElementById('albumExisting').style.display = 'block';
+  } catch (e) {
+    log('Error loading photos.json: ' + e.message, 'error');
   }
-  function addPhotoSlots() {
-    const files = [...document.getElementById('a-photos').files];
-    const grid = document.getElementById('a-photoGrid');
-    files.forEach(file => {
-      const r = new FileReader();
-      r.onload = e => {
-        activityPhotos.push({file, dataUrl: e.target.result});
-        const idx = activityPhotos.length - 1;
-        const addBtn = grid.querySelector('.add-photo-slot');
-        const slot = document.createElement('div');
-        slot.className = 'photo-slot';
-        slot.dataset.idx = idx;
-        slot.innerHTML = '<img src="'+e.target.result+'"><button class="slot-remove" onclick="removePhotoSlot(this,'+idx+')">×</button>';
-        grid.insertBefore(slot, addBtn);
+}
+
+function renderAlbumPhotos(photos, page) {
+  const list = document.getElementById('albumPhotoList');
+  if (photos.length === 0) {
+    list.innerHTML = '<p style="color:var(--text-light);font-style:italic">No photos in this album yet.</p>';
+    return;
+  }
+
+  list.innerHTML = photos.map((p, i) => `
+    <div class="entry-card" data-index="${i}">
+      <div class="entry-header">
+        <span>${p.title || '(untitled)'}</span>
+        <button class="btn btn-danger btn-small" onclick="deleteAlbumPhoto('${p.image}', '${page}')">Delete</button>
+      </div>
+      <div class="entry-photos">
+        <div class="thumb"><img src="https://${OWNER}.github.io/${p.image}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%2250%25%22 x=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22>?</text></svg>'"></div>
+      </div>
+      ${p.tags ? `<div class="entry-note">Tags: ${p.tags.join(', ')}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+async function deleteAlbumPhoto(imagePath, page) {
+  if (!await confirmAction(`Delete this photo from the album?`)) return;
+
+  try {
+    showProgress('Deleting photo...');
+    
+    // Remove from photos.json
+    const jsonData = await fetchJsonFile('photos.json');
+    jsonData.items = jsonData.items.filter(item => item.image !== imagePath);
+    await updateJsonFile('photos.json', jsonData);
+
+    // Optionally delete the image file from repo
+    try {
+      await deleteGitHubFile(imagePath.startsWith('/') ? imagePath.slice(1) : imagePath);
+      log('Image file deleted from repo', 'success');
+    } catch (e) {
+      log('Could not delete image file (may not exist): ' + e.message, 'warn');
+    }
+
+    hideProgress();
+    showStatus('uploadStatus', 'Photo deleted successfully', 'success');
+    loadAlbumPhotos();
+  } catch (e) {
+    hideProgress();
+    showStatus('uploadStatus', 'Delete failed: ' + e.message, 'error');
+  }
+}
+
+// ==================== ALBUM UPLOAD ====================
+async function handleAlbumFiles(fileList) {
+  for (const file of fileList) {
+    if (!file.type.startsWith('image/')) continue;
+    const maxW = parseInt(document.getElementById('albumMaxWidth').value);
+    const quality = parseFloat(document.getElementById('albumQuality').value);
+    const result = await processImage(file, maxW, quality);
+    albumFiles.push(result);
+  }
+  renderAlbumPreview();
+  document.getElementById('albumSubmit').disabled = albumFiles.length === 0;
+}
+
+function renderAlbumPreview() {
+  const grid = document.getElementById('albumPreview');
+  grid.innerHTML = albumFiles.map((f, i) => `
+    <div class="preview-item">
+      <img src="${f.dataUrl}">
+      <button class="remove-btn" onclick="removeAlbumFile(${i})">×</button>
+    </div>
+  `).join('');
+}
+
+function removeAlbumFile(i) {
+  albumFiles.splice(i, 1);
+  renderAlbumPreview();
+  document.getElementById('albumSubmit').disabled = albumFiles.length === 0;
+}
+
+async function submitAlbumPhotos() {
+  const sel = document.getElementById('albumSelect');
+  const page = sel.value;
+  const pageLabel = sel.selectedOptions[0]?.dataset.label || sel.selectedOptions[0]?.text || '';
+  if (!page || albumFiles.length === 0) return;
+
+  const tags = document.getElementById('albumTags').value.split(',').map(t => t.trim()).filter(Boolean);
+  const video = document.getElementById('albumVideo').value.trim();
+
+  try {
+    const total = albumFiles.length + 1; // +1 for JSON update
+    let done = 0;
+    showProgress(`Uploading ${albumFiles.length} photos...`);
+
+    // Get current photos.json
+    const jsonData = await fetchJsonFile('photos.json');
+
+    for (const f of albumFiles) {
+      const filename = generateFilename(f.file.name);
+      const path = `images/${filename}`;
+      
+      log(`Uploading ${filename}...`);
+      await uploadFileToGitHub(path, f.compressed);
+
+      jsonData.items.push({
+        title: '',
+        image: '/' + path,
+        ...(video ? { video } : {}),
+        tags: tags,
+        page: page,
+        pageLabel: pageLabel
+      });
+
+      done++;
+      updateProgress(done / total);
+    }
+
+    // Save JSON
+    log('Updating photos.json...');
+    await updateJsonFile('photos.json', jsonData);
+    done++;
+    updateProgress(1);
+
+    hideProgress();
+    showStatus('uploadStatus', `${albumFiles.length} photos uploaded successfully!`, 'success');
+    
+    // Reset
+    albumFiles = [];
+    renderAlbumPreview();
+    document.getElementById('albumSubmit').disabled = true;
+    document.getElementById('albumTags').value = '';
+    document.getElementById('albumVideo').value = '';
+    loadAlbumPhotos();
+  } catch (e) {
+    hideProgress();
+    showStatus('uploadStatus', 'Upload failed: ' + e.message, 'error');
+    log('Error: ' + e.message, 'error');
+  }
+}
+
+// ==================== ACTIVITY MODE ====================
+async function loadActivityEntries() {
+  const sel = document.getElementById('activitySelect');
+  currentActivityType = sel.value;
+  if (!currentActivityType) {
+    document.getElementById('activityExisting').style.display = 'none';
+    document.getElementById('newEntrySection').style.display = 'none';
+    return;
+  }
+
+  const isFragments = currentActivityType === 'found-fragments';
+  
+  // Toggle fields
+  document.getElementById('locationField').classList.toggle('hidden', isFragments);
+  document.getElementById('recordImageSection').classList.toggle('hidden', 
+    !['snowboarding', 'diving'].includes(currentActivityType));
+  document.getElementById('noteField').classList.toggle('hidden', isFragments);
+  document.getElementById('textField').classList.toggle('hidden', !isFragments);
+
+  document.getElementById('newEntrySection').style.display = 'block';
+
+  try {
+    const jsonFile = currentActivityType + '.json';
+    currentActivityJson = await fetchJsonFile(jsonFile);
+    
+    // Sort by date descending
+    sortEntriesByDate(currentActivityJson.entries);
+    
+    renderActivityEntries();
+    document.getElementById('activityExisting').style.display = 'block';
+  } catch (e) {
+    log('Error loading ' + currentActivityType + '.json: ' + e.message, 'error');
+    currentActivityJson = { entries: [] };
+    document.getElementById('activityExisting').style.display = 'none';
+  }
+}
+
+function sortEntriesByDate(entries) {
+  entries.sort((a, b) => {
+    const da = (a.date || '').replace(/\./g, '');
+    const db = (b.date || '').replace(/\./g, '');
+    return db.localeCompare(da); // Descending
+  });
+}
+
+function renderActivityEntries() {
+  const list = document.getElementById('activityEntryList');
+  const entries = currentActivityJson.entries;
+  const isFragments = currentActivityType === 'found-fragments';
+
+  if (entries.length === 0) {
+    list.innerHTML = '<p style="color:var(--text-light);font-style:italic">No entries yet.</p>';
+    return;
+  }
+
+  list.innerHTML = entries.map((entry, idx) => {
+    const photos = entry.photos || [];
+    const hasRecord = entry.record_image;
+    
+    return `
+    <div class="entry-card">
+      <div class="entry-header">
+        <div>
+          <span class="entry-date">${entry.date || '(no date)'}</span>
+          ${!isFragments ? `<span class="entry-location"> · ${entry.location || ''}</span>` : ''}
+        </div>
+        <button class="btn btn-danger btn-small" onclick="deleteActivityEntry(${idx})">Delete Entry</button>
+      </div>
+      ${hasRecord ? `
+        <div style="margin:6px 0">
+          <span style="font-size:0.85em;color:var(--text-light)">Record: </span>
+          <img src="https://${OWNER}.github.io${entry.record_image}" 
+               style="width:60px;height:60px;object-fit:cover;border-radius:4px;vertical-align:middle;border:1px solid var(--border)"
+               onerror="this.style.display='none'">
+          ${entry.record_caption ? `<span style="font-size:0.85em;color:var(--text-light);margin-left:6px">${entry.record_caption}</span>` : ''}
+        </div>
+      ` : ''}
+      ${photos.length > 0 ? `
+        <div class="entry-photos">
+          ${photos.map((p, pi) => `
+            <div class="thumb">
+              <img src="https://${OWNER}.github.io${p}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%2250%25%22 x=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22>?</text></svg>'">
+              <button class="del-photo" onclick="deleteEntryPhoto(${idx}, ${pi})" title="Delete this photo">×</button>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+      <div class="entry-note">${isFragments ? (entry.text || '') : (entry.note || '')}</div>
+    </div>`;
+  }).join('');
+}
+
+async function deleteActivityEntry(idx) {
+  const entry = currentActivityJson.entries[idx];
+  if (!await confirmAction(`Delete entry "${entry.date} ${entry.location || ''}"? This will also delete associated images.`)) return;
+
+  try {
+    showProgress('Deleting entry...');
+
+    // Delete associated image files
+    const imagesToDelete = [...(entry.photos || [])];
+    if (entry.record_image) imagesToDelete.push(entry.record_image);
+
+    for (const img of imagesToDelete) {
+      try {
+        const path = img.startsWith('/') ? img.slice(1) : img;
+        await deleteGitHubFile(path);
+        log(`Deleted ${path}`, 'success');
+      } catch (e) {
+        log(`Could not delete ${img}: ${e.message}`, 'warn');
+      }
+    }
+
+    // Remove entry from JSON
+    currentActivityJson.entries.splice(idx, 1);
+    await updateJsonFile(currentActivityType + '.json', currentActivityJson);
+
+    hideProgress();
+    showStatus('uploadStatus', 'Entry deleted', 'success');
+    renderActivityEntries();
+  } catch (e) {
+    hideProgress();
+    showStatus('uploadStatus', 'Delete failed: ' + e.message, 'error');
+  }
+}
+
+async function deleteEntryPhoto(entryIdx, photoIdx) {
+  const photo = currentActivityJson.entries[entryIdx].photos[photoIdx];
+  if (!await confirmAction(`Delete this photo?`)) return;
+
+  try {
+    showProgress('Deleting photo...');
+
+    // Delete from GitHub
+    try {
+      const path = photo.startsWith('/') ? photo.slice(1) : photo;
+      await deleteGitHubFile(path);
+      log(`Deleted ${path}`, 'success');
+    } catch (e) {
+      log(`Could not delete file: ${e.message}`, 'warn');
+    }
+
+    // Remove from JSON
+    currentActivityJson.entries[entryIdx].photos.splice(photoIdx, 1);
+    await updateJsonFile(currentActivityType + '.json', currentActivityJson);
+
+    hideProgress();
+    showStatus('uploadStatus', 'Photo deleted', 'success');
+    renderActivityEntries();
+  } catch (e) {
+    hideProgress();
+    showStatus('uploadStatus', 'Delete failed: ' + e.message, 'error');
+  }
+}
+
+// ==================== ACTIVITY UPLOAD ====================
+async function handleRecordImage(fileList) {
+  if (fileList.length === 0) return;
+  const file = fileList[0];
+  if (!file.type.startsWith('image/')) return;
+  
+  const maxW = parseInt(document.getElementById('activityMaxWidth').value);
+  const quality = parseFloat(document.getElementById('activityQuality').value);
+  recordImageFile = await processImage(file, maxW, quality);
+  
+  const preview = document.getElementById('recordPreview');
+  preview.innerHTML = `
+    <img src="${recordImageFile.dataUrl}">
+    <div>
+      <strong>${file.name}</strong><br>
+      <span style="color:var(--text-light);font-size:0.85em">
+        ${(recordImageFile.compressed.byteLength / 1024).toFixed(0)} KB
+      </span>
+      <br>
+      <button class="btn btn-danger btn-small" onclick="removeRecordImage()" style="margin-top:6px">Remove</button>
+    </div>
+  `;
+  preview.style.display = 'flex';
+}
+
+function removeRecordImage() {
+  recordImageFile = null;
+  document.getElementById('recordPreview').style.display = 'none';
+  document.getElementById('recordPreview').innerHTML = '';
+  // Reset file input
+  const input = document.querySelector('#recordUploadArea input[type="file"]');
+  if (input) input.value = '';
+}
+
+async function handleActivityFiles(fileList) {
+  for (const file of fileList) {
+    if (!file.type.startsWith('image/')) continue;
+    const maxW = parseInt(document.getElementById('activityMaxWidth').value);
+    const quality = parseFloat(document.getElementById('activityQuality').value);
+    const result = await processImage(file, maxW, quality);
+    activityFiles.push(result);
+  }
+  renderActivityPreview();
+}
+
+function renderActivityPreview() {
+  const grid = document.getElementById('activityPreview');
+  grid.innerHTML = activityFiles.map((f, i) => `
+    <div class="preview-item">
+      <img src="${f.dataUrl}">
+      <button class="remove-btn" onclick="removeActivityFile(${i})">×</button>
+    </div>
+  `).join('');
+}
+
+function removeActivityFile(i) {
+  activityFiles.splice(i, 1);
+  renderActivityPreview();
+}
+
+async function submitActivityEntry() {
+  const date = document.getElementById('entryDate').value.trim();
+  const isFragments = currentActivityType === 'found-fragments';
+
+  if (!date) {
+    showStatus('uploadStatus', 'Please enter a date', 'error');
+    return;
+  }
+
+  if (!isFragments && !document.getElementById('entryLocation').value.trim()) {
+    showStatus('uploadStatus', 'Please enter a location', 'error');
+    return;
+  }
+
+  try {
+    const totalUploads = activityFiles.length + (recordImageFile ? 1 : 0) + 1;
+    let done = 0;
+    showProgress(`Uploading entry...`);
+
+    // Ensure we have current JSON
+    if (!currentActivityJson) {
+      currentActivityJson = { entries: [] };
+    }
+
+    // Build new entry
+    const entry = { date };
+
+    if (!isFragments) {
+      entry.location = document.getElementById('entryLocation').value.trim();
+    }
+
+    // Upload record image
+    if (recordImageFile && ['snowboarding', 'diving'].includes(currentActivityType)) {
+      const filename = generateFilename(recordImageFile.file.name, 'record');
+      const path = `images/${filename}`;
+      log(`Uploading record image: ${filename}...`);
+      await uploadFileToGitHub(path, recordImageFile.compressed);
+      entry.record_image = '/' + path;
+      entry.record_caption = document.getElementById('recordCaption').value.trim();
+      done++;
+      updateProgress(done / totalUploads);
+    }
+
+    // Upload photos
+    entry.photos = [];
+    for (const f of activityFiles) {
+      const filename = generateFilename(f.file.name);
+      const path = `images/${filename}`;
+      log(`Uploading ${filename}...`);
+      await uploadFileToGitHub(path, f.compressed);
+      entry.photos.push('/' + path);
+      done++;
+      updateProgress(done / totalUploads);
+    }
+
+    // Videos
+    const videoStr = document.getElementById('entryVideos').value.trim();
+    entry.videos = videoStr ? videoStr.split(',').map(v => v.trim()).filter(Boolean) : [];
+
+    // Note or text
+    if (isFragments) {
+      entry.text = document.getElementById('entryText').value.trim();
+      const tagsStr = document.getElementById('entryTextTags').value.trim();
+      entry.tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(Boolean) : [];
+    } else {
+      entry.note = document.getElementById('entryNote').value.trim();
+    }
+
+    // Add entry and sort
+    currentActivityJson.entries.push(entry);
+    sortEntriesByDate(currentActivityJson.entries);
+
+    // Save JSON
+    log('Updating ' + currentActivityType + '.json...');
+    await updateJsonFile(currentActivityType + '.json', currentActivityJson);
+    done++;
+    updateProgress(1);
+
+    hideProgress();
+    showStatus('uploadStatus', 'Entry submitted successfully!', 'success');
+
+    // Reset form
+    document.getElementById('entryDate').value = '';
+    document.getElementById('entryLocation').value = '';
+    document.getElementById('recordCaption').value = '';
+    document.getElementById('entryNote').value = '';
+    document.getElementById('entryText').value = '';
+    document.getElementById('entryTextTags').value = '';
+    document.getElementById('entryVideos').value = '';
+    recordImageFile = null;
+    activityFiles = [];
+    document.getElementById('recordPreview').style.display = 'none';
+    document.getElementById('recordPreview').innerHTML = '';
+    renderActivityPreview();
+
+    // Refresh list
+    renderActivityEntries();
+  } catch (e) {
+    hideProgress();
+    showStatus('uploadStatus', 'Upload failed: ' + e.message, 'error');
+    log('Error: ' + e.stack || e.message, 'error');
+  }
+}
+
+// ==================== IMAGE PROCESSING ====================
+async function processImage(file, maxWidth, quality) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const dataUrl = e.target.result;
+
+      if (maxWidth === 0) {
+        // No compression
+        const arr = new Uint8Array(await file.arrayBuffer());
+        resolve({ file, dataUrl, compressed: arr });
+        return;
+      }
+
+      // Compress via canvas
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width;
+        let h = img.height;
+
+        if (w > maxWidth) {
+          h = Math.round(h * (maxWidth / w));
+          w = maxWidth;
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+
+        canvas.toBlob(blob => {
+          blob.arrayBuffer().then(buf => {
+            const compressed = new Uint8Array(buf);
+            const compressedUrl = URL.createObjectURL(blob);
+            log(`Compressed ${file.name}: ${(file.size/1024).toFixed(0)}KB → ${(compressed.byteLength/1024).toFixed(0)}KB (${w}×${h})`);
+            resolve({ file, dataUrl: compressedUrl, compressed });
+          });
+        }, 'image/jpeg', quality);
       };
-      r.readAsDataURL(file);
-    });
-    document.getElementById('a-photos').value = '';
-  }
-  function removePhotoSlot(btn, idx) {
-    activityPhotos[idx] = null;
-    btn.parentElement.remove();
-  }
+      img.src = dataUrl;
+    };
+    reader.readAsDataURL(file);
+  });
+}
 
-  // ── GitHub helpers ─────────────────────────────────────────────────────────
-  function setStatus(id, msg, type) {
-    const el = document.getElementById(id);
-    el.textContent = msg; el.className = 'status '+type;
-  }
-  function setProgress(fillId, barId, pct) {
-    document.getElementById(barId).style.display = 'block';
-    document.getElementById(fillId).style.width = pct+'%';
-  }
+// ==================== GITHUB API HELPERS ====================
+async function ghFetch(path, options = {}) {
+  const url = path.startsWith('http') ? path : API + path;
+  return fetch(url, {
+    ...options,
+    headers: {
+      'Authorization': `token ${TOKEN}`,
+      'Accept': 'application/vnd.github.v3+json',
+      ...(options.headers || {})
+    }
+  });
+}
 
-  async function uploadFile(token, file) {
-    const base64 = await new Promise((res,rej) => {
-      const r = new FileReader();
-      r.onload = () => res(r.result.split(',')[1]);
-      r.onerror = rej;
-      r.readAsDataURL(file);
-    });
-    const ext = file.name.split('.').pop().toLowerCase();
-    const fname = Date.now()+'_'+Math.random().toString(36).slice(2,5)+'.'+ext;
-    const res = await fetch('https://api.github.com/repos/'+REPO+'/contents/images/'+fname, {
-      method:'PUT',
-      headers:{'Authorization':'token '+token,'Content-Type':'application/json'},
-      body: JSON.stringify({message:'Upload '+fname, content:base64, branch:BRANCH})
-    });
-    if(!res.ok) { const e=await res.json(); throw new Error('图片上传失败: '+e.message); }
-    return '/images/'+fname;
+async function fetchJsonFile(filename) {
+  const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${filename}`);
+  if (!res.ok) {
+    if (res.status === 404) return { items: [], entries: [] };
+    throw new Error(`Failed to fetch ${filename}: ${res.status}`);
   }
+  const data = await res.json();
+  const content = atob(data.content.replace(/\n/g, ''));
+  // Decode UTF-8
+  const bytes = new Uint8Array([...content].map(c => c.charCodeAt(0)));
+  const decoded = new TextDecoder('utf-8').decode(bytes);
+  const json = JSON.parse(decoded);
+  json._sha = data.sha; // Store SHA for updates
+  return json;
+}
 
-  async function getJson(token, path) {
-    const r = await fetch('https://api.github.com/repos/'+REPO+'/contents/'+path, {
-      headers:{'Authorization':'token '+token}
-    });
-    if(!r.ok) throw new Error('无法读取 '+path+'，请检查 Token 权限');
-    const d = await r.json();
-    return { data: JSON.parse(atob(d.content.replace(/\n/g,''))), sha: d.sha };
-  }
+async function updateJsonFile(filename, data) {
+  const sha = data._sha;
+  const cleanData = { ...data };
+  delete cleanData._sha;
 
-  async function putJson(token, path, data, sha, message) {
-    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
-    const r = await fetch('https://api.github.com/repos/'+REPO+'/contents/'+path, {
-      method:'PUT',
-      headers:{'Authorization':'token '+token,'Content-Type':'application/json'},
-      body: JSON.stringify({message, content:encoded, sha, branch:BRANCH})
-    });
-    if(!r.ok) { const e=await r.json(); throw new Error('更新失败: '+e.message); }
-  }
+  const jsonStr = JSON.stringify(cleanData, null, 2);
+  // Encode UTF-8 to base64
+  const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
 
-  // ── Submit: Photo mode ─────────────────────────────────────────────────────
-  async function submitPhotos() {
-    const token = document.getElementById('token').value.trim();
-    if(!token) return setStatus('p-status','请先填写 GitHub Token','error');
-    const pageUrl = document.getElementById('p-pageUrl').value.trim();
-    const pageLabel = document.getElementById('p-pageLabel').value.trim();
-    if(!pageUrl||!pageLabel) return setStatus('p-status','请填写页面链接和页面名称','error');
-    const cards = [...document.querySelectorAll('#p-cards .card')];
-    if(!cards.length) return setStatus('p-status','请至少添加一条内容','error');
-    const commonTags = getTags('p-commonTags');
-    const btn = document.getElementById('p-submitBtn');
-    btn.disabled = true;
-    setProgress('p-fill','p-progress',0);
-    setStatus('p-status','读取数据...','loading');
-    try {
-      const {data:current, sha} = await getJson(token,'photos.json');
-      const newItems = [];
-      let i = 0;
-      for(const card of cards) {
-        i++;
-        const id = card.id.replace('pc','');
-        const type = card.dataset.type||'photo';
-        const title = (document.getElementById('pt'+id)||{value:''}).value.trim();
-        const extra = getTags('ptags'+id);
-        const allTags = [...new Set([...commonTags,...extra])];
-        if(type==='video') {
-          const bvid = (document.getElementById('bv'+id)||{value:''}).value.trim();
-          if(!bvid) { btn.disabled=false; return setStatus('p-status','条目 '+i+'：请填写 BV 号','error'); }
-          newItems.push({title, video:bvid, tags:allTags, page:pageUrl, pageLabel});
-        } else {
-          const fe = document.getElementById('pf'+id);
-          if(!fe||!fe.files[0]) { btn.disabled=false; return setStatus('p-status','条目 '+i+'：请选择图片','error'); }
-          setStatus('p-status','上传图片 '+i+'/'+cards.length+'...','loading');
-          setProgress('p-fill','p-progress',(i-0.5)/cards.length*80);
-          const imgPath = await uploadFile(token, fe.files[0]);
-          newItems.push({title, image:imgPath, tags:allTags, page:pageUrl, pageLabel});
-        }
-      }
-      setProgress('p-fill','p-progress',88);
-      setStatus('p-status','更新数据...','loading');
-      current.items = [...current.items, ...newItems];
-      await putJson(token,'photos.json',current,sha,'Add '+newItems.length+' item(s) to '+pageUrl);
-      setProgress('p-fill','p-progress',100);
-      setStatus('p-status','✓ 成功发布 '+newItems.length+' 条内容！','success');
-      document.getElementById('p-cards').innerHTML=''; photoCardId=0; addPhotoCard();
-    } catch(err) { setStatus('p-status','错误：'+err.message,'error'); }
-    finally { btn.disabled=false; }
+  const body = {
+    message: `Update ${filename}`,
+    content: encoded,
+  };
+  if (sha) body.sha = sha;
+
+  const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${filename}`, {
+    method: 'PUT',
+    body: JSON.stringify(body)
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(`Failed to update ${filename}: ${res.status} ${err.message || ''}`);
   }
 
-  // ── Submit: Activity mode ──────────────────────────────────────────────────
-  async function submitActivity() {
-    const token = document.getElementById('token').value.trim();
-    if(!token) return setStatus('a-status','请先填写 GitHub Token','error');
-    const page = document.getElementById('a-page').value;
-    const date = document.getElementById('a-date').value.trim();
-    if(!date) return setStatus('a-status','请填写日期','error');
-    const isFragments = page === 'found-fragments';
-    const hasRecord = page === 'snowboarding' || page === 'diving';
-    const jsonFile = page+'.json';
-    const btn = document.getElementById('a-submitBtn');
-    btn.disabled = true;
-    setProgress('a-fill','a-progress',0);
-    setStatus('a-status','读取数据...','loading');
-    try {
-      const {data:current, sha} = await getJson(token, jsonFile);
-      const newEntry = { date };
-      if(!isFragments) newEntry.location = document.getElementById('a-location').value.trim();
+  const result = await res.json();
+  data._sha = result.content.sha; // Update SHA
+  log(`Updated ${filename}`, 'success');
+}
 
-      // Record image
-      if(hasRecord) {
-        const recFile = document.getElementById('a-recordFile').files[0];
-        if(recFile) {
-          setStatus('a-status','上传记录图...','loading'); setProgress('a-fill','a-progress',10);
-          newEntry.record_image = await uploadFile(token, recFile);
-          newEntry.record_caption = document.getElementById('a-recordCaption').value.trim();
-        }
-      }
+async function uploadFileToGitHub(path, uint8Array) {
+  // Check if file exists first
+  let sha = null;
+  try {
+    const check = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${path}`);
+    if (check.ok) {
+      const existing = await check.json();
+      sha = existing.sha;
+    }
+  } catch (e) {}
 
-      // Photos
-      const validPhotos = activityPhotos.filter(p => p !== null);
-      newEntry.photos = [];
-      let i = 0;
-      for(const p of validPhotos) {
-        i++;
-        setStatus('a-status','上传照片 '+i+'/'+validPhotos.length+'...','loading');
-        setProgress('a-fill','a-progress',10+i/validPhotos.length*70);
-        newEntry.photos.push(await uploadFile(token, p.file));
-      }
-
-      // Videos
-      const videoRaw = document.getElementById('a-videos').value.trim();
-      newEntry.videos = videoRaw ? videoRaw.split('\n').map(v=>v.trim()).filter(Boolean) : [];
-
-      // Text / note
-      const textVal = document.getElementById('a-text').value.trim();
-      if(isFragments) { newEntry.text = textVal; newEntry.tags = getTags('a-tags'); }
-      else { newEntry.note = textVal; }
-
-      setProgress('a-fill','a-progress',88);
-      setStatus('a-status','更新 JSON...','loading');
-      current.entries = [newEntry, ...current.entries]; // newest first
-      await putJson(token, jsonFile, current, sha, 'Add entry '+date+' to '+page);
-
-      setProgress('a-fill','a-progress',100);
-      setStatus('a-status','✓ 活动记录已发布！','success');
-
-      // Reset
-      activityPhotos = [];
-      document.getElementById('a-date').value='';
-      document.getElementById('a-location').value='';
-      document.getElementById('a-text').value='';
-      document.getElementById('a-videos').value='';
-      document.getElementById('a-recordFile').value='';
-      document.getElementById('a-recordPreview').innerHTML='点击选择记录图';
-      document.getElementById('a-recordCaption').value='';
-      const grid = document.getElementById('a-photoGrid');
-      grid.innerHTML='<div class="photo-slot add-photo-slot" onclick="document.getElementById(\'a-photos\').click()"><div class="slot-label">＋ 添加照片</div></div>';
-      document.getElementById('a-tags').querySelectorAll('.tag-pill').forEach(p=>p.remove());
-
-    } catch(err) { setStatus('a-status','错误：'+err.message,'error'); }
-    finally { btn.disabled=false; }
+  // Convert Uint8Array to base64
+  let binary = '';
+  const chunkSize = 8192;
+  for (let i = 0; i < uint8Array.length; i += chunkSize) {
+    const chunk = uint8Array.subarray(i, i + chunkSize);
+    binary += String.fromCharCode.apply(null, chunk);
   }
+  const base64 = btoa(binary);
+
+  const body = {
+    message: `Upload ${path}`,
+    content: base64,
+  };
+  if (sha) body.sha = sha;
+
+  const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${path}`, {
+    method: 'PUT',
+    body: JSON.stringify(body)
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(`Upload failed for ${path}: ${res.status} ${err.message || ''}`);
+  }
+
+  log(`Uploaded ${path}`, 'success');
+}
+
+async function deleteGitHubFile(path) {
+  // Get current SHA
+  const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${path}`);
+  if (!res.ok) throw new Error(`File not found: ${path}`);
+  const data = await res.json();
+
+  const delRes = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${path}`, {
+    method: 'DELETE',
+    body: JSON.stringify({
+      message: `Delete ${path}`,
+      sha: data.sha
+    })
+  });
+
+  if (!delRes.ok) {
+    const err = await delRes.json().catch(() => ({}));
+    throw new Error(`Delete failed: ${delRes.status} ${err.message || ''}`);
+  }
+}
+
+// ==================== FILENAME GENERATION ====================
+function generateFilename(originalName, prefix = '') {
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).substring(2, 6);
+  const ext = originalName.split('.').pop()?.toLowerCase() || 'jpg';
+  const safeName = originalName.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '').substring(0, 20);
+  return `${prefix ? prefix + '_' : ''}${safeName}_${timestamp}_${random}.${ext === 'jpeg' ? 'jpg' : ext}`;
+}
+
+// ==================== UI HELPERS ====================
+function showStatus(id, msg, type) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = 'status ' + type;
+  if (type === 'success') {
+    setTimeout(() => { el.className = 'status'; }, 5000);
+  }
+}
+
+function showProgress(title) {
+  document.getElementById('progressSection').classList.remove('hidden');
+  document.getElementById('progressTitle').textContent = title;
+  updateProgress(0);
+}
+
+function updateProgress(ratio) {
+  const pct = Math.round(ratio * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = pct + '%';
+}
+
+function hideProgress() {
+  document.getElementById('progressSection').classList.add('hidden');
+}
+
+function log(msg, type = '') {
+  const logArea = document.getElementById('logArea');
+  logArea.style.display = 'block';
+  const time = new Date().toLocaleTimeString();
+  logArea.innerHTML += `<span class="${type}">[${time}] ${msg}</span>\n`;
+  logArea.scrollTop = logArea.scrollHeight;
+}
+
+function toggleLog() {
+  const logArea = document.getElementById('logArea');
+  logArea.style.display = logArea.style.display === 'none' ? 'block' : 'none';
+}
+
+// ==================== CONFIRM DIALOG ====================
+function confirmAction(message) {
+  return new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.className = 'confirm-overlay';
+    overlay.innerHTML = `
+      <div class="confirm-box">
+        <p>${message}</p>
+        <div class="btn-row">
+          <button class="btn btn-secondary" id="confirmCancel">Cancel</button>
+          <button class="btn btn-danger" id="confirmOk">Delete</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    
+    overlay.querySelector('#confirmOk').onclick = () => {
+      document.body.removeChild(overlay);
+      resolve(true);
+    };
+    overlay.querySelector('#confirmCancel').onclick = () => {
+      document.body.removeChild(overlay);
+      resolve(false);
+    };
+  });
+}
 </script>
 </body>
 </html>
