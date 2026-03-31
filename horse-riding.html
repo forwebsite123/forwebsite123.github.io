@@ -150,6 +150,18 @@
       transform: translateY(-3px);
       box-shadow: 0 12px 28px rgba(122, 87, 87, 0.12);
     }
+    .video-cell {
+      width: 170px;
+      height: 170px;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .video-cell iframe {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      border: none;
+    }
 
     .entry-note {
       font-size: 15px;
@@ -223,22 +235,8 @@
         </div>
       </div>
 
-      <div class="entries">
-        <div class="entry">
-          <div class="entry-meta"><span class="dot">•</span>2026.03.25 + Prairie</div>
-          <div class="middle-col">
-            <div class="photo-grid">
-              <img src="horse1.jpeg" class="zoomable">
-              <img src="horse2.jpeg" class="zoomable">
-              <img src="horse3.jpeg" class="zoomable">
-            </div>
-          </div>
-          <div class="right-col">
-            <div class="entry-note">
-              The connection with the horse is more honest than most human conversations.
-            </div>
-          </div>
-        </div>
+      <div class="entries" id="entries"></div>
+
       </div>
     </div>
 
@@ -251,25 +249,26 @@
     <div class="close-tip">tap anywhere to close</div>
     <img id="lightbox-img" src="">
   </div>
-
-  <script>
-    const zoomables = document.querySelectorAll('.zoomable');
-    const lightbox = document.getElementById('lightbox');
-    const lightboxImg = document.getElementById('lightbox-img');
-
-    zoomables.forEach((img) => {
-      img.addEventListener('click', function (event) {
-        event.stopPropagation();
-        lightbox.style.display = 'flex';
-        lightboxImg.src = this.src;
-      });
+    <script>
+  async function loadEntries() {
+    const res = await fetch('/horse-riding.json');
+    const data = await res.json();
+    const container = document.getElementById('entries');
+    data.entries.forEach(e => {
+      const photosHtml = (e.photos || []).map(p => `<img src="${p}" class="zoomable">`).join('');
+      const videosHtml = (e.videos || []).map(bvid => `<div class="video-cell"><iframe src="//player.bilibili.com/player.html?bvid=${bvid}&autoplay=0" allowfullscreen></iframe></div>`).join('');
+      
+      container.innerHTML += `<div class="entry"><div class="entry-meta"><span class="dot">•</span>${e.date}${e.location?" + "+e.location:""}</div><div class="middle-col"><div class="photo-grid">${photosHtml}${videosHtml}</div></div><div class="right-col"><div class="entry-note">${e.note||""}</div></div></div>`;
     });
-
-    function closeLightbox() {
-      lightbox.style.display = 'none';
-    }
-
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLightbox(); });
+    const lb = document.getElementById('lightbox');
+    const lbImg = document.getElementById('lightbox-img');
+    document.querySelectorAll('.zoomable').forEach(img => {
+      img.addEventListener('click', function(ev) { ev.stopPropagation(); lb.style.display='flex'; lbImg.src=this.src; });
+    });
+  }
+  loadEntries();
+  function closeLightbox() { document.getElementById('lightbox').style.display='none'; }
+  document.addEventListener('keydown', e => { if(e.key==='Escape') closeLightbox(); });
   </script>
   <script data-goatcounter="https://kiara-mytrace.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </body>
