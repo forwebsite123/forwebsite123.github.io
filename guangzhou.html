@@ -64,7 +64,6 @@
       gap: 26px;
     }
 
-    /* 画廊 */
     .masonry {
       column-count: 5;
       column-gap: 6px;
@@ -81,7 +80,24 @@
       cursor: pointer;
     }
 
-    /* 右侧 */
+    .video-item {
+      break-inside: avoid;
+      margin-bottom: 6px;
+      background: #ece9e4;
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%;
+    }
+
+    .video-item iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
     .sidebar-title {
       font-size: 13px;
       font-weight: 700;
@@ -105,7 +121,6 @@
       color: #8c847d;
     }
 
-    /* ✅ cameras 完全复用 tag 样式 */
     .camera-item {
       text-decoration: none;
       font-size: 15px;
@@ -146,7 +161,7 @@
     <div class="content">
 
       <!-- 左侧 -->
-     <div class="masonry" id="masonry"></div>
+      <div class="masonry" id="masonry"></div>
 
       <!-- 右侧 -->
       <aside>
@@ -160,7 +175,6 @@
 
         <div class="sidebar-title">📷 CAMERAS</div>
         <div class="camera-list">
-          <!-- ✅ 已改成可点击 -->
           <a href="tag.html?tag=iphone" class="camera-item">Iphone🍎</a>
           <a href="tag.html?tag=fujifilm-xs10" class="camera-item">FUJIFILM XS10</a>
           <a href="tag.html?tag=fujifilm-XH2" class="camera-item">FUJIFILM XH2</a>
@@ -178,20 +192,39 @@
   async function loadPhotos() {
     const res = await fetch('/photos.json');
     const data = await res.json();
-    const photos = data.items.filter(p => p.page === 'guangzhou.html');
+    const items = data.items.filter(p => p.page === 'guangzhou.html');
     const masonry = document.getElementById('masonry');
-    photos.forEach(p => {
-      masonry.innerHTML += `<div class="photo-item"><img src="${p.image}" class="zoomable"></div>`;
-    });
-    document.querySelectorAll('.zoomable').forEach(img=>{
-      img.onclick=()=>{
-        document.getElementById('lightbox').style.display='flex'
-        document.getElementById('lightbox-img').src=img.src
+
+    items.forEach(p => {
+      if (p.video) {
+        // 视频：嵌入 Bilibili 播放器
+        masonry.innerHTML += `
+          <div class="video-item">
+            <iframe
+              src="//player.bilibili.com/player.html?bvid=${p.video}&autoplay=0&high_quality=1"
+              scrolling="no"
+              frameborder="no"
+              allowfullscreen="true">
+            </iframe>
+          </div>`;
+      } else {
+        // 普通照片
+        masonry.innerHTML += `
+          <div class="photo-item">
+            <img src="${p.image}" alt="${p.title || ''}" class="zoomable">
+          </div>`;
       }
+    });
+
+    document.querySelectorAll('.zoomable').forEach(img => {
+      img.onclick = () => {
+        document.getElementById('lightbox').style.display = 'flex';
+        document.getElementById('lightbox-img').src = img.src;
+      };
     });
   }
   loadPhotos();
-</script>
+  </script>
   <script data-goatcounter="https://kiara-mytrace.goatcounter.com/count"
         async src="https://gc.zgo.at/count.js"></script>
 </body>
