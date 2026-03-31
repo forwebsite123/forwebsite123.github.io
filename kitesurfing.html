@@ -253,6 +253,7 @@
   async function loadEntries() {
     const res = await fetch('/kitesurfing.json');
     const data = await res.json();
+    data.entries.sort((a, b) => { const da = (a.date||'').replace(/\./g,''); const db = (b.date||'').replace(/\./g,''); return db.localeCompare(da); });
     const container = document.getElementById('entries');
     data.entries.forEach(e => {
       const photosHtml = (e.photos || []).map(p => `<img src="${p}" class="zoomable">`).join('');
