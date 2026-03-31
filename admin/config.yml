@@ -20,7 +20,8 @@ collections:
             widget: list
             fields:
               - { label: "标题", name: "title", widget: "string" }
-              - { label: "图片", name: "image", widget: "image" }
+              - { label: "图片", name: "image", widget: "image", required: false }
+              - { label: "视频BV号", name: "video", widget: "string", required: false }
               - label: "标签 Tags"
                 name: "tags"
                 widget: "list"
@@ -30,3 +31,163 @@ collections:
                   widget: string
               - { label: "页面链接", name: "page", widget: "string" }
               - { label: "页面名称", name: "pageLabel", widget: "string" }
+
+  - name: "snowboarding"
+    label: "Snowboarding"
+    files:
+      - name: "snowboarding_entries"
+        label: "滑雪记录"
+        file: "snowboarding.json"
+        format: json
+        fields:
+          - name: entries
+            label: 记录
+            widget: list
+            fields:
+              - { label: "日期", name: "date", widget: "string" }
+              - { label: "地点", name: "location", widget: "string" }
+              - { label: "记录图", name: "record_image", widget: "image", required: false }
+              - { label: "记录说明", name: "record_caption", widget: "string", required: false }
+              - name: photos
+                label: 照片
+                widget: list
+                field:
+                  label: 图片
+                  name: photo
+                  widget: image
+              - name: videos
+                label: 视频BV号
+                widget: list
+                field:
+                  label: BV号
+                  name: bvid
+                  widget: string
+              - { label: "文字", name: "note", widget: "text", required: false }
+
+  - name: "diving"
+    label: "Diving"
+    files:
+      - name: "diving_entries"
+        label: "潜水记录"
+        file: "diving.json"
+        format: json
+        fields:
+          - name: entries
+            label: 记录
+            widget: list
+            fields:
+              - { label: "日期", name: "date", widget: "string" }
+              - { label: "地点", name: "location", widget: "string" }
+              - { label: "记录图", name: "record_image", widget: "image", required: false }
+              - { label: "记录说明", name: "record_caption", widget: "string", required: false }
+              - name: photos
+                label: 照片
+                widget: list
+                field:
+                  label: 图片
+                  name: photo
+                  widget: image
+              - name: videos
+                label: 视频BV号
+                widget: list
+                field:
+                  label: BV号
+                  name: bvid
+                  widget: string
+              - { label: "文字", name: "note", widget: "text", required: false }
+
+  - name: "horse_riding"
+    label: "Horse Riding"
+    files:
+      - name: "horse_entries"
+        label: "骑马记录"
+        file: "horse-riding.json"
+        format: json
+        fields:
+          - name: entries
+            label: 记录
+            widget: list
+            fields:
+              - { label: "日期", name: "date", widget: "string" }
+              - { label: "地点", name: "location", widget: "string" }
+              - name: photos
+                label: 照片
+                widget: list
+                field:
+                  label: 图片
+                  name: photo
+                  widget: image
+              - name: videos
+                label: 视频BV号
+                widget: list
+                field:
+                  label: BV号
+                  name: bvid
+                  widget: string
+              - { label: "文字", name: "note", widget: "text", required: false }
+
+  - name: "kitesurfing"
+    label: "Kitesurfing"
+    files:
+      - name: "kite_entries"
+        label: "风筝冲浪记录"
+        file: "kitesurfing.json"
+        format: json
+        fields:
+          - name: entries
+            label: 记录
+            widget: list
+            fields:
+              - { label: "日期", name: "date", widget: "string" }
+              - { label: "地点", name: "location", widget: "string" }
+              - name: photos
+                label: 照片
+                widget: list
+                field:
+                  label: 图片
+                  name: photo
+                  widget: image
+              - name: videos
+                label: 视频BV号
+                widget: list
+                field:
+                  label: BV号
+                  name: bvid
+                  widget: string
+              - { label: "文字", name: "note", widget: "text", required: false }
+
+  - name: "found_fragments"
+    label: "Found Fragments"
+    files:
+      - name: "fragments_entries"
+        label: "碎片记录"
+        file: "found-fragments.json"
+        format: json
+        fields:
+          - name: entries
+            label: 记录
+            widget: list
+            fields:
+              - { label: "日期", name: "date", widget: "string" }
+              - name: photos
+                label: 照片
+                widget: list
+                field:
+                  label: 图片
+                  name: photo
+                  widget: image
+              - name: videos
+                label: 视频BV号
+                widget: list
+                field:
+                  label: BV号
+                  name: bvid
+                  widget: string
+              - { label: "文字", name: "text", widget: "text", required: false }
+              - name: tags
+                label: 标签
+                widget: list
+                field:
+                  label: Tag
+                  name: tag
+                  widget: string
