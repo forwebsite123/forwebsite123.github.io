@@ -1,0 +1,15 @@
+{
+  "markers": [
+    { "lat": 23.1291, "lng": 113.2644, "title": "广州", "page": "guangzhou.html" },
+    { "lat": 37.5665, "lng": 126.9780, "title": "Korea", "page": "korea.html" },
+    { "lat": 35.6762, "lng": 139.6503, "title": "Japan", "page": "japan.html" },
+    { "lat": 13.7563, "lng": 100.5018, "title": "Thailand", "page": "thailand.html" },
+    { "lat": 1.3521, "lng": 103.8198, "title": "Singapore", "page": "singapore.html" },
+    { "lat": 30.0444, "lng": 31.2357, "title": "Egypt", "page": "egypt.html" },
+    { "lat": -6.3690, "lng": 34.8888, "title": "Tanzania", "page": "tanzania.html" },
+    { "lat": -25.2744, "lng": 133.7751, "title": "Australia", "page": "australia.html" },
+    { "lat": -14.2350, "lng": -51.9253, "title": "Brazil", "page": "brazil.html" },
+    { "lat": 56.1304, "lng": -106.3468, "title": "Canada", "page": "canada.html" },
+    { "lat": 55.3781, "lng": -3.4360, "title": "UK", "page": "UK.html" }
+  ]
+}
