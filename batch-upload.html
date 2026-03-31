@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>批量上传工具</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #fcfbf8; color: #6e4a4a; font-family: "Times New Roman", Georgia, serif; min-height: 100vh; padding: 40px 28px 80px; }
+    .page { max-width: 900px; margin: 0 auto; }
+    .header { margin-bottom: 36px; border-bottom: 1px solid rgba(168,122,122,0.2); padding-bottom: 20px; }
+    .site-note { font-size: 13px; font-style: italic; color: rgba(122,87,87,0.6); margin-bottom: 6px; }
+    h1 { font-size: 42px; font-style: italic; font-weight: 500; color: #8b5e5e; line-height: 1; }
+
+    /* Mode tabs */
+    .mode-tabs { display: flex; border: 1px solid rgba(168,122,122,0.25); margin-bottom: 32px; }
+    .mode-tab { flex: 1; padding: 12px; text-align: center; border: none; background: transparent; color: rgba(122,87,87,0.6); font-family: inherit; font-size: 14px; cursor: pointer; letter-spacing: 0.5px; transition: all 0.15s; }
+    .mode-tab.active { background: rgba(168,122,122,0.1); color: #8b5e5e; font-weight: 600; }
+
+    .mode-panel { display: none; }
+    .mode-panel.active { display: block; }
+
+    .section { margin-bottom: 28px; }
+    label { display: block; font-size: 12px; font-weight: 700; letter-spacing: 0.8px; color: rgba(122,87,87,0.65); margin-bottom: 8px; text-transform: uppercase; }
+    input[type="text"], input[type="password"], textarea, select {
+      width: 100%; padding: 12px 14px; border: 1px solid rgba(168,122,122,0.25);
+      background: rgba(255,255,255,0.6); color: #6e4a4a; font-family: inherit; font-size: 15px; outline: none; transition: border-color 0.2s;
+    }
+    textarea { resize: vertical; min-height: 80px; }
+    input:focus, textarea:focus, select:focus { border-color: rgba(168,122,122,0.6); }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+    /* Cards */
+    .card { border: 1px solid rgba(168,122,122,0.18); background: rgba(255,255,255,0.4); padding: 20px; margin-bottom: 14px; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .card-num { font-size: 13px; font-style: italic; color: rgba(122,87,87,0.5); }
+    .btn-remove { background: none; border: none; color: rgba(168,122,122,0.5); cursor: pointer; font-size: 20px; line-height: 1; }
+    .btn-remove:hover { color: #c47a7a; }
+
+    /* Type toggle */
+    .type-toggle { display: flex; border: 1px solid rgba(168,122,122,0.25); margin-bottom: 16px; }
+    .type-btn { flex: 1; padding: 8px; border: none; background: transparent; color: rgba(122,87,87,0.5); font-family: inherit; font-size: 13px; cursor: pointer; transition: all 0.15s; }
+    .type-btn.active { background: rgba(168,122,122,0.12); color: #8b5e5e; font-weight: 600; }
+
+    /* Preview */
+    .preview-area { width: 100%; height: 140px; display: flex; align-items: center; justify-content: center; background: rgba(168,122,122,0.05); border: 1px dashed rgba(168,122,122,0.25); color: rgba(122,87,87,0.4); font-size: 13px; font-style: italic; margin-bottom: 10px; cursor: pointer; overflow: hidden; }
+    .preview-area img { width: 100%; height: 100%; object-fit: cover; }
+    .video-preview { width: 100%; position: relative; padding-top: 56.25%; margin-bottom: 10px; background: rgba(168,122,122,0.05); border: 1px dashed rgba(168,122,122,0.25); }
+    .video-preview iframe { position: absolute; top:0;left:0;width:100%;height:100%;border:none; }
+    .video-placeholder { position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(122,87,87,0.4);font-size:13px;font-style:italic; }
+    .btn-file-label { display:block;width:100%;padding:9px;text-align:center;border:1px solid rgba(168,122,122,0.3);background:transparent;color:rgba(122,87,87,0.7);font-family:inherit;font-size:13px;cursor:pointer;margin-bottom:10px;transition:all 0.2s; }
+    .btn-file-label:hover { background:rgba(168,122,122,0.05); }
+    input[type="file"] { display: none; }
+
+    /* Tags */
+    .tags-box { display:flex;flex-wrap:wrap;gap:6px;padding:8px 10px;border:1px solid rgba(168,122,122,0.25);background:rgba(255,255,255,0.6);min-height:44px;cursor:text; }
+    .tag-pill { display:inline-flex;align-items:center;gap:4px;background:rgba(168,122,122,0.12);padding:3px 8px 3px 10px;font-size:13px;font-style:italic;color:#9a6d6d; }
+    .tag-pill button { background:none;border:none;color:rgba(154,109,109,0.6);cursor:pointer;font-size:15px;line-height:1;padding:0; }
+    .tags-box input { border:none;background:transparent;outline:none;font-family:inherit;font-size:14px;color:#6e4a4a;min-width:80px;flex:1;padding:2px 4px; }
+
+    .btn-add { width:100%;padding:13px;border:1px dashed rgba(168,122,122,0.35);background:transparent;color:rgba(122,87,87,0.6);font-family:inherit;font-size:14px;font-style:italic;cursor:pointer;transition:all 0.2s;margin-bottom:28px; }
+    .btn-add:hover { border-color:rgba(168,122,122,0.6);color:#8b5e5e;background:rgba(168,122,122,0.04); }
+    .btn-submit { width:100%;padding:16px;background:#8b5e5e;color:#fcfbf8;border:none;font-family:inherit;font-size:16px;font-style:italic;cursor:pointer;transition:background 0.2s; }
+    .btn-submit:hover { background:#7a5252; }
+    .btn-submit:disabled { background:rgba(139,94,94,0.4);cursor:not-allowed; }
+    .progress { height:2px;background:rgba(168,122,122,0.15);margin-top:12px;display:none; }
+    .progress-fill { height:100%;background:#8b5e5e;width:0%;transition:width 0.4s; }
+    .status { margin-top:16px;padding:14px;font-size:14px;font-style:italic;display:none; }
+    .status.success { display:block;background:rgba(100,140,100,0.08);border:1px solid rgba(100,140,100,0.3);color:#3a6a3a; }
+    .status.error { display:block;background:rgba(180,80,80,0.07);border:1px solid rgba(180,80,80,0.25);color:#8b3333; }
+    .status.loading { display:block;background:rgba(168,122,122,0.07);border:1px solid rgba(168,122,122,0.2);color:rgba(122,87,87,0.8); }
+    .hint { font-size:12px;color:rgba(122,87,87,0.5);margin-top:6px;font-style:italic; }
+    hr { border:none;border-top:1px solid rgba(168,122,122,0.15);margin:28px 0; }
+    .field-block { margin-bottom:12px; }
+
+    /* Activity entry multi-photo grid */
+    .photo-upload-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-bottom:10px; }
+    .photo-slot { position:relative;aspect-ratio:1;background:rgba(168,122,122,0.05);border:1px dashed rgba(168,122,122,0.25);cursor:pointer;overflow:hidden; }
+    .photo-slot img { width:100%;height:100%;object-fit:cover; }
+    .photo-slot .slot-label { position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:rgba(122,87,87,0.4);font-style:italic; }
+    .photo-slot .slot-remove { position:absolute;top:3px;right:3px;background:rgba(0,0,0,0.5);color:white;border:none;cursor:pointer;width:20px;height:20px;font-size:14px;display:none;align-items:center;justify-content:center; }
+    .photo-slot:hover .slot-remove { display:flex; }
+    .add-photo-slot { background:rgba(168,122,122,0.04);border:1px dashed rgba(168,122,122,0.3); }
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div class="site-note">A place to leave traces.</div>
+    <h1>批量上传</h1>
+  </div>
+
+  <!-- GitHub Token (shared) -->
+  <div class="section">
+    <label>GitHub Token</label>
+    <input type="password" id="token" placeholder="ghp_xxxxxxxxxxxxxxxx" />
+    <div class="hint" id="tokenHint"></div>
+  </div>
+
+  <!-- Mode tabs -->
+  <div class="mode-tabs">
+    <button class="mode-tab active" onclick="switchMode('photo')">📷 照片 / 视频（相册）</button>
+    <button class="mode-tab" onclick="switchMode('activity')">🏃 活动记录（滑雪/潜水等）</button>
+  </div>
+
+  <!-- ═══ MODE 1: Photo/Video for masonry albums ═══ -->
+  <div class="mode-panel active" id="panel-photo">
+    <div class="section">
+      <div class="row">
+        <div>
+          <label>页面链接（相册文件名）</label>
+          <input type="text" id="p-pageUrl" placeholder="guangzhou.html" />
+        </div>
+        <div>
+          <label>页面名称</label>
+          <input type="text" id="p-pageLabel" placeholder="Guangzhou" />
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <label>共同标签</label>
+      <div class="tags-box" id="p-commonTags" onclick="this.querySelector('input').focus()">
+        <input type="text" placeholder="输入 tag 后按 Enter" onkeydown="handleTagKey(event,'p-commonTags')" />
+      </div>
+    </div>
+    <hr>
+    <div id="p-cards"></div>
+    <button class="btn-add" onclick="addPhotoCard()">＋ 添加照片或视频</button>
+    <button class="btn-submit" id="p-submitBtn" onclick="submitPhotos()">发布所有内容</button>
+    <div class="progress" id="p-progress"><div class="progress-fill" id="p-fill"></div></div>
+    <div class="status" id="p-status"></div>
+  </div>
+
+  <!-- ═══ MODE 2: Activity Entry ═══ -->
+  <div class="mode-panel" id="panel-activity">
+    <div class="section">
+      <label>活动页面</label>
+      <select id="a-page">
+        <option value="snowboarding">Snowboarding（snowboarding.json）</option>
+        <option value="diving">Diving（diving.json）</option>
+        <option value="horse-riding">Horse Riding（horse-riding.json）</option>
+        <option value="kitesurfing">Kitesurfing（kitesurfing.json）</option>
+        <option value="found-fragments">Found Fragments（found-fragments.json）</option>
+      </select>
+    </div>
+
+    <div class="section">
+      <div class="row">
+        <div>
+          <label>日期</label>
+          <input type="text" id="a-date" placeholder="2026.04.01" />
+        </div>
+        <div id="a-locationWrap">
+          <label>地点</label>
+          <input type="text" id="a-location" placeholder="Niseko" />
+        </div>
+      </div>
+    </div>
+
+    <div id="a-recordWrap" class="section">
+      <label>记录图（可选，GPS轨迹截图等）</label>
+      <div class="preview-area" id="a-recordPreview" onclick="document.getElementById('a-recordFile').click()">点击选择记录图</div>
+      <input type="file" id="a-recordFile" accept="image/*" onchange="previewRecord()">
+      <label for="a-recordFile" class="btn-file-label">选择图片</label>
+      <input type="text" id="a-recordCaption" placeholder="记录说明，例如：uploaded record / track snapshot">
+    </div>
+
+    <div class="section">
+      <label>照片（可多选）</label>
+      <div class="photo-upload-grid" id="a-photoGrid">
+        <div class="photo-slot add-photo-slot" onclick="document.getElementById('a-photos').click()">
+          <div class="slot-label">＋ 添加照片</div>
+        </div>
+      </div>
+      <input type="file" id="a-photos" accept="image/*" multiple onchange="addPhotoSlots()">
+    </div>
+
+    <div class="section">
+      <label>视频 BV 号（每行一个，可留空）</label>
+      <textarea id="a-videos" placeholder="BV1xxxxxxxxxx&#10;BV1yyyyyyyyyy" style="min-height:60px;"></textarea>
+    </div>
+
+    <div class="section">
+      <label id="a-textLabel">文字 / 备注</label>
+      <textarea id="a-text" placeholder="写点什么..."></textarea>
+    </div>
+
+    <div class="section" id="a-tagsWrap">
+      <label>标签（仅 Found Fragments 使用）</label>
+      <div class="tags-box" id="a-tags" onclick="this.querySelector('input').focus()">
+        <input type="text" placeholder="输入 tag 后按 Enter" onkeydown="handleTagKey(event,'a-tags')" />
+      </div>
+    </div>
+
+    <button class="btn-submit" id="a-submitBtn" onclick="submitActivity()">发布活动记录</button>
+    <div class="progress" id="a-progress"><div class="progress-fill" id="a-fill"></div></div>
+    <div class="status" id="a-status"></div>
+  </div>
+</div>
+
+<script>
+  const REPO = 'forwebsite123/forwebsite123.github.io';
+  const BRANCH = 'main';
+  let photoCardId = 0;
+  let activityPhotos = []; // {file, dataUrl}
+
+  // Token
+  window.onload = () => {
+    const t = localStorage.getItem('kiara_gh_token');
+    if (t) { document.getElementById('token').value = t; document.getElementById('tokenHint').textContent = '✓ 已从浏览器读取 Token'; }
+    addPhotoCard();
+    updateActivityUI();
+    document.getElementById('a-page').addEventListener('change', updateActivityUI);
+  };
+  document.getElementById('token').oninput = function() {
+    localStorage.setItem('kiara_gh_token', this.value);
+    document.getElementById('tokenHint').textContent = this.value ? '✓ Token 已保存' : '';
+  };
+
+  function switchMode(mode) {
+    document.querySelectorAll('.mode-tab').forEach((t,i) => t.classList.toggle('active', (i===0)===(mode==='photo')));
+    document.getElementById('panel-photo').classList.toggle('active', mode==='photo');
+    document.getElementById('panel-activity').classList.toggle('active', mode==='activity');
+  }
+
+  function updateActivityUI() {
+    const page = document.getElementById('a-page').value;
+    const isFragments = page === 'found-fragments';
+    const hasRecord = page === 'snowboarding' || page === 'diving';
+    document.getElementById('a-recordWrap').style.display = hasRecord ? 'block' : 'none';
+    document.getElementById('a-locationWrap').style.display = isFragments ? 'none' : 'block';
+    document.getElementById('a-tagsWrap').style.display = isFragments ? 'block' : 'none';
+    document.getElementById('a-textLabel').textContent = isFragments ? '文字' : '文字 / 备注';
+  }
+
+  // ── Tag pills ──────────────────────────────────────────────────────────────
+  function handleTagKey(e, boxId) {
+    if (e.key !== 'Enter' && e.key !== ',') return;
+    e.preventDefault();
+    const val = e.target.value.trim().replace(/,/g,'');
+    if (!val) return;
+    const pill = document.createElement('span');
+    pill.className = 'tag-pill'; pill.dataset.tag = val;
+    pill.innerHTML = val + '<button onclick="this.parentElement.remove()">×</button>';
+    e.target.parentElement.insertBefore(pill, e.target);
+    e.target.value = '';
+  }
+  function getTags(boxId) {
+    return [...document.getElementById(boxId).querySelectorAll('.tag-pill')].map(p => p.dataset.tag);
+  }
+
+  // ── Photo/Video mode ───────────────────────────────────────────────────────
+  function addPhotoCard() {
+    photoCardId++;
+    const id = photoCardId;
+    const div = document.createElement('div');
+    div.className = 'card'; div.id = 'pc'+id; div.dataset.type='photo';
+    div.innerHTML =
+      '<div class="card-header"><span class="card-num">条目 '+id+'</span><button class="btn-remove" onclick="document.getElementById(\'pc'+id+'\').remove()">×</button></div>'+
+      '<div class="type-toggle"><button class="type-btn active" id="ptb-photo'+id+'" onclick="switchCardType('+id+',\'photo\')">📷 照片</button><button class="type-btn" id="ptb-video'+id+'" onclick="switchCardType('+id+',\'video\')">▶ 视频</button></div>'+
+      '<div id="pa'+id+'"><div class="preview-area" id="pp'+id+'" onclick="document.getElementById(\'pf'+id+'\').click()">点击选择图片</div><input type="file" id="pf'+id+'" accept="image/*" onchange="previewPhotoCard('+id+')"><label for="pf'+id+'" class="btn-file-label">选择图片</label></div>'+
+      '<div id="va'+id+'" style="display:none"><div class="video-preview" id="vp'+id+'"><div class="video-placeholder">填写 BV 号后预览</div></div><div class="field-block"><label>Bilibili BV 号</label><input type="text" id="bv'+id+'" placeholder="BV1xxxxxxxxxx" oninput="updateVP('+id+')"><div class="hint">例如 BV1Lx411u75G</div></div></div>'+
+      '<div class="field-block"><label>标题</label><input type="text" id="pt'+id+'" placeholder="标题（可留空）"></div>'+
+      '<div><label>额外标签</label><div class="tags-box" id="ptags'+id+'" onclick="this.querySelector(\'input\').focus()"><input type="text" placeholder="按 Enter 添加" onkeydown="handleTagKey(event,\'ptags'+id+'\')"></div></div>';
+    document.getElementById('p-cards').appendChild(div);
+  }
+  function switchCardType(id, type) {
+    document.getElementById('pa'+id).style.display = type==='photo'?'block':'none';
+    document.getElementById('va'+id).style.display = type==='video'?'block':'none';
+    document.getElementById('ptb-photo'+id).classList.toggle('active',type==='photo');
+    document.getElementById('ptb-video'+id).classList.toggle('active',type==='video');
+    document.getElementById('pc'+id).dataset.type = type;
+  }
+  function previewPhotoCard(id) {
+    const file = document.getElementById('pf'+id).files[0]; if(!file) return;
+    const r = new FileReader();
+    r.onload = e => { const p=document.getElementById('pp'+id); p.innerHTML='<img src="'+e.target.result+'">'; p.onclick=()=>document.getElementById('pf'+id).click(); };
+    r.readAsDataURL(file);
+  }
+  function updateVP(id) {
+    const bvid = document.getElementById('bv'+id).value.trim();
+    const c = document.getElementById('vp'+id);
+    c.innerHTML = bvid ? '<iframe src="//player.bilibili.com/player.html?bvid='+bvid+'&autoplay=0" allowfullscreen></iframe>' : '<div class="video-placeholder">填写 BV 号后预览</div>';
+  }
+
+  // ── Activity mode ──────────────────────────────────────────────────────────
+  function previewRecord() {
+    const file = document.getElementById('a-recordFile').files[0]; if(!file) return;
+    const r = new FileReader();
+    r.onload = e => { const p=document.getElementById('a-recordPreview'); p.innerHTML='<img src="'+e.target.result+'">'; p.onclick=()=>document.getElementById('a-recordFile').click(); };
+    r.readAsDataURL(file);
+  }
+  function addPhotoSlots() {
+    const files = [...document.getElementById('a-photos').files];
+    const grid = document.getElementById('a-photoGrid');
+    files.forEach(file => {
+      const r = new FileReader();
+      r.onload = e => {
+        activityPhotos.push({file, dataUrl: e.target.result});
+        const idx = activityPhotos.length - 1;
+        const addBtn = grid.querySelector('.add-photo-slot');
+        const slot = document.createElement('div');
+        slot.className = 'photo-slot';
+        slot.dataset.idx = idx;
+        slot.innerHTML = '<img src="'+e.target.result+'"><button class="slot-remove" onclick="removePhotoSlot(this,'+idx+')">×</button>';
+        grid.insertBefore(slot, addBtn);
+      };
+      r.readAsDataURL(file);
+    });
+    document.getElementById('a-photos').value = '';
+  }
+  function removePhotoSlot(btn, idx) {
+    activityPhotos[idx] = null;
+    btn.parentElement.remove();
+  }
+
+  // ── GitHub helpers ─────────────────────────────────────────────────────────
+  function setStatus(id, msg, type) {
+    const el = document.getElementById(id);
+    el.textContent = msg; el.className = 'status '+type;
+  }
+  function setProgress(fillId, barId, pct) {
+    document.getElementById(barId).style.display = 'block';
+    document.getElementById(fillId).style.width = pct+'%';
+  }
+
+  async function uploadFile(token, file) {
+    const base64 = await new Promise((res,rej) => {
+      const r = new FileReader();
+      r.onload = () => res(r.result.split(',')[1]);
+      r.onerror = rej;
+      r.readAsDataURL(file);
+    });
+    const ext = file.name.split('.').pop().toLowerCase();
+    const fname = Date.now()+'_'+Math.random().toString(36).slice(2,5)+'.'+ext;
+    const res = await fetch('https://api.github.com/repos/'+REPO+'/contents/images/'+fname, {
+      method:'PUT',
+      headers:{'Authorization':'token '+token,'Content-Type':'application/json'},
+      body: JSON.stringify({message:'Upload '+fname, content:base64, branch:BRANCH})
+    });
+    if(!res.ok) { const e=await res.json(); throw new Error('图片上传失败: '+e.message); }
+    return '/images/'+fname;
+  }
+
+  async function getJson(token, path) {
+    const r = await fetch('https://api.github.com/repos/'+REPO+'/contents/'+path, {
+      headers:{'Authorization':'token '+token}
+    });
+    if(!r.ok) throw new Error('无法读取 '+path+'，请检查 Token 权限');
+    const d = await r.json();
+    return { data: JSON.parse(atob(d.content.replace(/\n/g,''))), sha: d.sha };
+  }
+
+  async function putJson(token, path, data, sha, message) {
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+    const r = await fetch('https://api.github.com/repos/'+REPO+'/contents/'+path, {
+      method:'PUT',
+      headers:{'Authorization':'token '+token,'Content-Type':'application/json'},
+      body: JSON.stringify({message, content:encoded, sha, branch:BRANCH})
+    });
+    if(!r.ok) { const e=await r.json(); throw new Error('更新失败: '+e.message); }
+  }
+
+  // ── Submit: Photo mode ─────────────────────────────────────────────────────
+  async function submitPhotos() {
+    const token = document.getElementById('token').value.trim();
+    if(!token) return setStatus('p-status','请先填写 GitHub Token','error');
+    const pageUrl = document.getElementById('p-pageUrl').value.trim();
+    const pageLabel = document.getElementById('p-pageLabel').value.trim();
+    if(!pageUrl||!pageLabel) return setStatus('p-status','请填写页面链接和页面名称','error');
+    const cards = [...document.querySelectorAll('#p-cards .card')];
+    if(!cards.length) return setStatus('p-status','请至少添加一条内容','error');
+    const commonTags = getTags('p-commonTags');
+    const btn = document.getElementById('p-submitBtn');
+    btn.disabled = true;
+    setProgress('p-fill','p-progress',0);
+    setStatus('p-status','读取数据...','loading');
+    try {
+      const {data:current, sha} = await getJson(token,'photos.json');
+      const newItems = [];
+      let i = 0;
+      for(const card of cards) {
+        i++;
+        const id = card.id.replace('pc','');
+        const type = card.dataset.type||'photo';
+        const title = (document.getElementById('pt'+id)||{value:''}).value.trim();
+        const extra = getTags('ptags'+id);
+        const allTags = [...new Set([...commonTags,...extra])];
+        if(type==='video') {
+          const bvid = (document.getElementById('bv'+id)||{value:''}).value.trim();
+          if(!bvid) { btn.disabled=false; return setStatus('p-status','条目 '+i+'：请填写 BV 号','error'); }
+          newItems.push({title, video:bvid, tags:allTags, page:pageUrl, pageLabel});
+        } else {
+          const fe = document.getElementById('pf'+id);
+          if(!fe||!fe.files[0]) { btn.disabled=false; return setStatus('p-status','条目 '+i+'：请选择图片','error'); }
+          setStatus('p-status','上传图片 '+i+'/'+cards.length+'...','loading');
+          setProgress('p-fill','p-progress',(i-0.5)/cards.length*80);
+          const imgPath = await uploadFile(token, fe.files[0]);
+          newItems.push({title, image:imgPath, tags:allTags, page:pageUrl, pageLabel});
+        }
+      }
+      setProgress('p-fill','p-progress',88);
+      setStatus('p-status','更新数据...','loading');
+      current.items = [...current.items, ...newItems];
+      await putJson(token,'photos.json',current,sha,'Add '+newItems.length+' item(s) to '+pageUrl);
+      setProgress('p-fill','p-progress',100);
+      setStatus('p-status','✓ 成功发布 '+newItems.length+' 条内容！','success');
+      document.getElementById('p-cards').innerHTML=''; photoCardId=0; addPhotoCard();
+    } catch(err) { setStatus('p-status','错误：'+err.message,'error'); }
+    finally { btn.disabled=false; }
+  }
+
+  // ── Submit: Activity mode ──────────────────────────────────────────────────
+  async function submitActivity() {
+    const token = document.getElementById('token').value.trim();
+    if(!token) return setStatus('a-status','请先填写 GitHub Token','error');
+    const page = document.getElementById('a-page').value;
+    const date = document.getElementById('a-date').value.trim();
+    if(!date) return setStatus('a-status','请填写日期','error');
+    const isFragments = page === 'found-fragments';
+    const hasRecord = page === 'snowboarding' || page === 'diving';
+    const jsonFile = page+'.json';
+    const btn = document.getElementById('a-submitBtn');
+    btn.disabled = true;
+    setProgress('a-fill','a-progress',0);
+    setStatus('a-status','读取数据...','loading');
+    try {
+      const {data:current, sha} = await getJson(token, jsonFile);
+      const newEntry = { date };
+      if(!isFragments) newEntry.location = document.getElementById('a-location').value.trim();
+
+      // Record image
+      if(hasRecord) {
+        const recFile = document.getElementById('a-recordFile').files[0];
+        if(recFile) {
+          setStatus('a-status','上传记录图...','loading'); setProgress('a-fill','a-progress',10);
+          newEntry.record_image = await uploadFile(token, recFile);
+          newEntry.record_caption = document.getElementById('a-recordCaption').value.trim();
+        }
+      }
+
+      // Photos
+      const validPhotos = activityPhotos.filter(p => p !== null);
+      newEntry.photos = [];
+      let i = 0;
+      for(const p of validPhotos) {
+        i++;
+        setStatus('a-status','上传照片 '+i+'/'+validPhotos.length+'...','loading');
+        setProgress('a-fill','a-progress',10+i/validPhotos.length*70);
+        newEntry.photos.push(await uploadFile(token, p.file));
+      }
+
+      // Videos
+      const videoRaw = document.getElementById('a-videos').value.trim();
+      newEntry.videos = videoRaw ? videoRaw.split('\n').map(v=>v.trim()).filter(Boolean) : [];
+
+      // Text / note
+      const textVal = document.getElementById('a-text').value.trim();
+      if(isFragments) { newEntry.text = textVal; newEntry.tags = getTags('a-tags'); }
+      else { newEntry.note = textVal; }
+
+      setProgress('a-fill','a-progress',88);
+      setStatus('a-status','更新 JSON...','loading');
+      current.entries = [newEntry, ...current.entries]; // newest first
+      await putJson(token, jsonFile, current, sha, 'Add entry '+date+' to '+page);
+
+      setProgress('a-fill','a-progress',100);
+      setStatus('a-status','✓ 活动记录已发布！','success');
+
+      // Reset
+      activityPhotos = [];
+      document.getElementById('a-date').value='';
+      document.getElementById('a-location').value='';
+      document.getElementById('a-text').value='';
+      document.getElementById('a-videos').value='';
+      document.getElementById('a-recordFile').value='';
+      document.getElementById('a-recordPreview').innerHTML='点击选择记录图';
+      document.getElementById('a-recordCaption').value='';
+      const grid = document.getElementById('a-photoGrid');
+      grid.innerHTML='<div class="photo-slot add-photo-slot" onclick="document.getElementById(\'a-photos\').click()"><div class="slot-label">＋ 添加照片</div></div>';
+      document.getElementById('a-tags').querySelectorAll('.tag-pill').forEach(p=>p.remove());
+
+    } catch(err) { setStatus('a-status','错误：'+err.message,'error'); }
+    finally { btn.disabled=false; }
+  }
+</script>
+</body>
+</html>
