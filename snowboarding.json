@@ -1,28 +1,6 @@
 {
   "entries": [
     {
-      "date": "2025.11.26",
-      "location": "Koktokay Ski Resort",
-      "photos": [
-        "/images/1774955748885_2mz.jpg"
-      ],
-      "videos": [],
-      "note": "保持视线，目光会带你走到想去的方向。"
-    },
-    {
-      "date": "2026.02.18",
-      "location": "Niseko",
-      "record_image": "111.jpeg",
-      "record_caption": "uploaded record / track snapshot",
-      "photos": [
-        "111.jpeg",
-        "111.jpeg",
-        "111.jpeg"
-      ],
-      "videos": [],
-      "note": "Light snow, soft landing, and a day that felt longer than it really was. I wanted to keep this one here, quietly."
-    },
-    {
       "date": "2026.01.30",
       "location": "Hakuba",
       "record_image": "111.jpeg",
@@ -34,6 +12,15 @@
       ],
       "videos": [],
       "note": "The air was colder, the sky cleaner, and everything looked almost unreal against the white."
+    },
+    {
+      "date": "2025.11.26",
+      "location": "Koktokay Ski Resort",
+      "photos": [
+        "/images/1774955748885_2mz.jpg"
+      ],
+      "videos": [],
+      "note": "保持视线，目光会带你走到想去的方向。"
     }
   ]
 }
