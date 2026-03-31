@@ -80,6 +80,22 @@
       width: 100%;
       cursor: pointer;
     }
+    .video-item {
+      break-inside: avoid;
+      margin-bottom: 6px;
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%;
+    }
+
+    .video-item iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
 
     /* 右侧 */
     .sidebar-title {
@@ -177,10 +193,18 @@
   async function loadPhotos() {
     const res = await fetch('/photos.json');
     const data = await res.json();
-    const photos = data.items.filter(p => p.page === 'country.html');
+    const items = data.items.filter(p => p.page === 'country.html');
     const masonry = document.getElementById('masonry');
-    photos.forEach(p => {
-      masonry.innerHTML += `<div class="photo-item"><img src="${p.image}" class="zoomable"></div>`;
+    items.forEach(p => {
+      if (p.video) {
+        masonry.innerHTML += `
+          <div class="video-item">
+            <iframe src="//player.bilibili.com/player.html?bvid=${p.video}&autoplay=0&high_quality=1"
+              scrolling="no" frameborder="no" allowfullscreen="true"></iframe>
+          </div>`;
+      } else {
+        masonry.innerHTML += `<div class="photo-item"><img src="${p.image}" alt="${p.title || ''}" class="zoomable"></div>`;
+      }
     });
     document.querySelectorAll('.zoomable').forEach(img=>{
       img.onclick=()=>{
