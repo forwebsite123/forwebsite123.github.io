@@ -435,6 +435,14 @@
 
   .hidden { display: none !important; }
 
+  .edit-form {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border);
+  }
+  .edit-form label { font-size: 0.85em; margin-bottom: 2px; }
+  .edit-form input { margin-bottom: 6px; }
+
   /* Loading spinner */
   .spinner {
     display: inline-block;
@@ -931,18 +939,83 @@ function renderAlbumPhotos(photos, page) {
     return;
   }
 
-  list.innerHTML = photos.map((p, i) => `
+  list.innerHTML = photos.map((p, i) => {
+    const safeImage = p.image.replace(/'/g, "\\'");
+    const safeTags = (p.tags || []).join(', ').replace(/'/g, "\\'");
+    const safeTitle = (p.title || '').replace(/'/g, "\\'");
+    return `
     <div class="entry-card" data-index="${i}">
       <div class="entry-header">
         <span>${p.title || '(untitled)'}</span>
-        <button class="btn btn-danger btn-small" onclick="deleteAlbumPhoto('${p.image}', '${page}')">Delete</button>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-secondary btn-small" onclick="toggleEditPhoto('${safeImage}', '${page}')">Edit</button>
+          <button class="btn btn-danger btn-small" onclick="deleteAlbumPhoto('${safeImage}', '${page}')">Delete</button>
+        </div>
       </div>
       <div class="entry-photos">
         <div class="thumb"><img src="https://${OWNER}.github.io/${p.image}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%2250%25%22 x=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22>?</text></svg>'"></div>
       </div>
-      ${p.tags ? `<div class="entry-note">Tags: ${p.tags.join(', ')}</div>` : ''}
-    </div>
-  `).join('');
+      ${p.tags && p.tags.length ? `<div class="entry-note">Tags: ${p.tags.join(', ')}</div>` : ''}
+      <div class="edit-form hidden" id="edit-${i}">
+        <label>Title</label>
+        <input type="text" id="editTitle-${i}" value="${safeTitle}" placeholder="(optional)">
+        <label>Tags (comma separated)</label>
+        <input type="text" id="editTags-${i}" value="${safeTags}">
+        <label>Bilibili BV (optional)</label>
+        <input type="text" id="editVideo-${i}" value="${p.video || ''}" placeholder="BVxxxxxxxxxx">
+        <div style="margin-top:8px;display:flex;gap:8px;">
+          <button class="btn btn-primary btn-small" onclick="saveEditPhoto('${safeImage}', ${i})">Save</button>
+          <button class="btn btn-secondary btn-small" onclick="toggleEditPhoto('${safeImage}', '${page}')">Cancel</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleEditPhoto(imagePath, page) {
+  // Find the index of this photo in the rendered list
+  const photos = currentPhotosJson.items.filter(item => item.page === page);
+  const idx = photos.findIndex(p => p.image === imagePath);
+  if (idx === -1) return;
+  const form = document.getElementById('edit-' + idx);
+  if (form) form.classList.toggle('hidden');
+}
+
+async function saveEditPhoto(imagePath, displayIdx) {
+  const newTitle = document.getElementById('editTitle-' + displayIdx).value.trim();
+  const newTags = document.getElementById('editTags-' + displayIdx).value.split(',').map(t => t.trim()).filter(Boolean);
+  const newVideo = document.getElementById('editVideo-' + displayIdx).value.trim();
+
+  try {
+    showProgress('Saving changes...');
+
+    // Find and update the item in photos.json
+    const jsonData = await fetchJsonFile('photos.json');
+    const item = jsonData.items.find(p => p.image === imagePath);
+    if (!item) {
+      hideProgress();
+      showStatus('uploadStatus', 'Photo not found in photos.json', 'error');
+      return;
+    }
+
+    item.title = newTitle;
+    item.tags = newTags;
+    if (newVideo) {
+      item.video = newVideo;
+    } else {
+      delete item.video;
+    }
+
+    await updateJsonFile('photos.json', jsonData);
+    currentPhotosJson = jsonData;
+
+    hideProgress();
+    showStatus('uploadStatus', 'Photo updated!', 'success');
+    loadAlbumPhotos();
+  } catch (e) {
+    hideProgress();
+    showStatus('uploadStatus', 'Save failed: ' + e.message, 'error');
+  }
 }
 
 async function deleteAlbumPhoto(imagePath, page) {
