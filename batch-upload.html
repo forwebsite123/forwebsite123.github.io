@@ -829,28 +829,46 @@ async function populateAlbumSelect() {
   const sel = document.getElementById('albumSelect');
   sel.innerHTML = '<option value="">-- Choose album --</option>';
 
+  // All known album pages (add new ones here when you create a new album HTML)
+  const knownAlbums = [
+    { page: 'guangzhou.html', label: '广州' },
+    { page: 'korea.html', label: '韩国' },
+    { page: 'japan.html', label: '日本' },
+    { page: 'thailand.html', label: '泰国' },
+    { page: 'singapore.html', label: '新加坡' },
+    { page: 'egypt.html', label: '埃及' },
+    { page: 'tanzania.html', label: '坦桑尼亚' },
+    { page: 'australia.html', label: '澳大利亚' },
+    { page: 'brazil.html', label: '巴西' },
+    { page: 'canada.html', label: '加拿大' },
+    { page: 'country.html', label: 'Country' },
+    { page: 'UK.html', label: '英国' },
+  ];
+
+  // Merge with any additional albums found in photos.json
+  const pages = new Map();
+  knownAlbums.forEach(a => pages.set(a.page, a.label));
+
   try {
     currentPhotosJson = await fetchJsonFile('photos.json');
-    // Extract unique pages
-    const pages = new Map();
     (currentPhotosJson.items || []).forEach(item => {
       if (item.page && !pages.has(item.page)) {
         pages.set(item.page, item.pageLabel || item.page.replace('.html', ''));
       }
     });
-
-    // Sort by label
-    const sorted = [...pages.entries()].sort((a, b) => a[1].localeCompare(b[1]));
-    sorted.forEach(([page, label]) => {
-      const opt = document.createElement('option');
-      opt.value = page;
-      opt.dataset.label = label;
-      opt.textContent = label;
-      sel.appendChild(opt);
-    });
   } catch (e) {
-    log('Could not load photos.json for album list: ' + e.message, 'warn');
+    log('Could not load photos.json: ' + e.message, 'warn');
   }
+
+  // Sort by label and populate
+  const sorted = [...pages.entries()].sort((a, b) => a[1].localeCompare(b[1]));
+  sorted.forEach(([page, label]) => {
+    const opt = document.createElement('option');
+    opt.value = page;
+    opt.dataset.label = label;
+    opt.textContent = label;
+    sel.appendChild(opt);
+  });
 
   // Add "+ New Album" option at the end
   const newOpt = document.createElement('option');
