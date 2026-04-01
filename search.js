@@ -31,12 +31,8 @@
     if (p.includes('into-the-wild'))  return 'activities';
     if (p.includes('drift-coordinates')) return 'photos';
 
-    // Individual album pages — search photos filtered to current page
-    const albumPages = ['guangzhou','korea','japan','thailand','singapore','egypt',
-                        'tanzania','australia','brazil','canada','country','uk'];
-    for (const album of albumPages) {
-      if (p.includes(album)) return 'album:' + window.location.pathname.split('/').pop();
-    }
+    // Any other .html page — automatically treat as album page filtered to current page
+    if (p.endsWith('.html')) return 'album:' + window.location.pathname.split('/').pop();
 
     return 'all';
   }
