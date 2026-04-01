@@ -31,6 +31,13 @@
     if (p.includes('into-the-wild'))  return 'activities';
     if (p.includes('drift-coordinates')) return 'photos';
 
+    // Tag page and continent index pages — search all photos
+    const photosIndexPages = ['tag', 'europe', 'asia', 'africa', 'oceania',
+                              'north-america', 'south-america', 'antarctica', 'china'];
+    for (const idx of photosIndexPages) {
+      if (p.includes(idx)) return 'photos';
+    }
+
     // Any other .html page — automatically treat as album page filtered to current page
     if (p.endsWith('.html')) return 'album:' + window.location.pathname.split('/').pop();
 
