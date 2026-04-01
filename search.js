@@ -1,0 +1,441 @@
+/**
+ * search.js — jiqi-kiara.com 全站搜索
+ * 
+ * 使用方式：每个页面 </body> 前加一行：
+ *   <script src="/search.js"></script>
+ *
+ * 可选：在 <script src="/search.js"> 之前设置搜索范围（不设则自动检测）：
+ *   <script>window.SEARCH_SCOPE = 'photos'</script>        // 仅照片
+ *   <script>window.SEARCH_SCOPE = 'fragments'</script>     // 仅人间拾遗
+ *   <script>window.SEARCH_SCOPE = 'activity:snowboarding'</script>
+ *   <script>window.SEARCH_SCOPE = 'all'</script>           // 全部（home 默认）
+ */
+(function () {
+  'use strict';
+
+  /* ═══════════════════════════════════════════════
+     1. SCOPE DETECTION
+  ═══════════════════════════════════════════════ */
+  function detectScope() {
+    if (window.SEARCH_SCOPE) return window.SEARCH_SCOPE;
+
+    const p = window.location.pathname.toLowerCase().replace(/\/$/, '');
+
+    if (p === '' || p === '/home' || p === '/index' || p === '/index.html') return 'all';
+
+    const activityPages = ['snowboarding', 'diving', 'horse-riding', 'kitesurfing'];
+    for (const a of activityPages) {
+      if (p.includes(a)) return 'activity:' + a;
+    }
+    if (p.includes('found-fragments')) return 'fragments';
+    if (p.includes('into-the-wild'))  return 'activities';
+    if (p.includes('drift-coordinates')) return 'photos';
+
+    // Individual album pages — search photos filtered to current page
+    const albumPages = ['guangzhou','korea','japan','thailand','singapore','egypt',
+                        'tanzania','australia','brazil','canada','country','uk'];
+    for (const album of albumPages) {
+      if (p.includes(album)) return 'album:' + window.location.pathname.split('/').pop();
+    }
+
+    return 'all';
+  }
+
+  /* ═══════════════════════════════════════════════
+     2. DATA LOADING
+  ═══════════════════════════════════════════════ */
+  const ACTIVITY_LABELS = {
+    'snowboarding': '🏂 滑雪',
+    'diving':       '🤿 潜水',
+    'horse-riding': '🐴 骑马',
+    'kitesurfing':  '🪁 风筝冲浪'
+  };
+
+  async function safeJson(url) {
+    try {
+      const r = await fetch(url);
+      if (!r.ok) return null;
+      return await r.json();
+    } catch { return null; }
+  }
+
+  async function loadItems(scope) {
+    const items = [];
+
+    /* ── Photos ─────────────────────────────────── */
+    if (scope === 'all' || scope === 'photos' || scope.startsWith('album:')) {
+      const data = await safeJson('/photos.json');
+      if (data && data.items) {
+        // group by page so search shows one card per destination
+        const byPage = {};
+        for (const item of data.items) {
+          if (scope.startsWith('album:') && item.page !== scope.slice(6)) continue;
+          const key = item.page;
+          if (!byPage[key]) {
+            byPage[key] = {
+              type:     'photo',
+              icon:     '📷',
+              title:    item.pageLabel || item.page || '',
+              section:  '漂流坐标',
+              tags:     [],
+              url:      '/' + item.page,
+              text:     ''
+            };
+          }
+          byPage[key].text += ' ' + (item.title || '') + ' ' + (item.tags || []).join(' ');
+          byPage[key].tags = [...new Set([...byPage[key].tags, ...(item.tags || [])])].slice(0, 6);
+        }
+        items.push(...Object.values(byPage));
+      }
+    }
+
+    /* ── Found Fragments ────────────────────────── */
+    if (scope === 'all' || scope === 'fragments') {
+      const data = await safeJson('/found-fragments.json');
+      if (data && data.entries) {
+        for (const entry of data.entries) {
+          const preview = (entry.text || '').slice(0, 50) + ((entry.text || '').length > 50 ? '…' : '');
+          items.push({
+            type:    'fragment',
+            icon:    '✦',
+            title:   preview || '(fragment)',
+            section: '人间拾遗',
+            tags:    entry.tags || [],
+            url:     '/found-fragments.html',
+            text:    (entry.text || '') + ' ' + (entry.tags || []).join(' ')
+          });
+        }
+      }
+    }
+
+    /* ── Activity entries ───────────────────────── */
+    const activityTypes = ['snowboarding', 'diving', 'horse-riding', 'kitesurfing'];
+    const toLoad = scope === 'all' || scope === 'activities'
+      ? activityTypes
+      : scope.startsWith('activity:') ? [scope.slice(9)] : [];
+
+    for (const type of toLoad) {
+      const data = await safeJson('/' + type + '.json');
+      if (!data || !data.entries) continue;
+      for (const entry of data.entries) {
+        items.push({
+          type:    'activity',
+          icon:    ACTIVITY_LABELS[type]?.split(' ')[0] || '◈',
+          title:   [entry.location, entry.date].filter(Boolean).join(' · ') || type,
+          section: ACTIVITY_LABELS[type] || type,
+          tags:    [],
+          url:     '/' + type + '.html',
+          text:    [entry.location, entry.date, entry.note, entry.record_caption]
+                     .filter(Boolean).join(' ')
+        });
+      }
+    }
+
+    return items;
+  }
+
+  /* ═══════════════════════════════════════════════
+     3. SEARCH LOGIC
+  ═══════════════════════════════════════════════ */
+  function doSearch(items, query) {
+    const q = query.trim().toLowerCase();
+    if (!q) return [];
+    const words = q.split(/\s+/);
+
+    return items
+      .map(item => {
+        const hay = item.text.toLowerCase() + ' ' + item.title.toLowerCase()
+                  + ' ' + item.section.toLowerCase()
+                  + ' ' + (item.tags || []).join(' ').toLowerCase();
+        let score = 0;
+        for (const w of words) if (hay.includes(w)) score++;
+        return { item, score };
+      })
+      .filter(x => x.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .map(x => x.item);
+  }
+
+  /* ═══════════════════════════════════════════════
+     4. STYLES
+  ═══════════════════════════════════════════════ */
+  const CSS = `
+    #sk-overlay {
+      position: fixed; inset: 0; z-index: 99999;
+      background: rgba(246, 241, 239, 0.93);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: flex; flex-direction: column; align-items: center;
+      padding-top: 90px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.22s cubic-bezier(.4,0,.2,1);
+    }
+    #sk-overlay.sk-open {
+      opacity: 1; pointer-events: all;
+    }
+
+    #sk-input-wrap {
+      position: relative;
+      width: min(560px, 88vw);
+    }
+    #sk-input {
+      width: 100%; box-sizing: border-box;
+      border: none; border-bottom: 1.5px solid #9b7070;
+      background: transparent; outline: none;
+      font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+      font-family: inherit;
+      color: #5c3d42;
+      padding: 6px 36px 6px 4px;
+      letter-spacing: 0.03em;
+      caret-color: #9b7070;
+    }
+    #sk-input::placeholder { color: #c9a8aa; }
+
+    #sk-close {
+      position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      color: #9b7070; font-size: 1rem; line-height: 1;
+      padding: 4px; opacity: .7;
+      transition: opacity .15s;
+    }
+    #sk-close:hover { opacity: 1; }
+
+    #sk-hint {
+      margin-top: 10px;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      color: #c9a8aa;
+      text-transform: uppercase;
+    }
+    #sk-hint .sk-scope-label {
+      background: #f0e6e8;
+      color: #9b7070;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 0.68rem;
+      margin-left: 6px;
+    }
+
+    #sk-results {
+      width: min(560px, 88vw);
+      margin-top: 28px;
+      display: flex; flex-direction: column; gap: 6px;
+      max-height: 55vh; overflow-y: auto;
+      padding-bottom: 40px;
+      scrollbar-width: thin;
+      scrollbar-color: #e0cece transparent;
+    }
+    #sk-results::-webkit-scrollbar { width: 4px; }
+    #sk-results::-webkit-scrollbar-thumb { background: #e0cece; border-radius: 4px; }
+
+    .sk-result {
+      display: block; text-decoration: none; color: inherit;
+      padding: 14px 18px;
+      border: 1px solid #e8d8db;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.6);
+      transition: background .15s, border-color .15s, transform .12s;
+    }
+    .sk-result:hover {
+      background: rgba(255,255,255,0.95);
+      border-color: #c4a0a6;
+      transform: translateX(3px);
+    }
+    .sk-result-head {
+      display: flex; align-items: baseline; gap: 8px;
+    }
+    .sk-icon { font-size: 0.85rem; flex-shrink: 0; }
+    .sk-title {
+      font-size: 0.95rem; color: #5c3d42;
+      flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .sk-section {
+      font-size: 0.72rem; color: #a08080; flex-shrink: 0;
+    }
+    .sk-tags {
+      margin-top: 5px; display: flex; gap: 5px; flex-wrap: wrap;
+    }
+    .sk-tag {
+      background: #f5edee; color: #a07880;
+      padding: 2px 8px; border-radius: 20px;
+      font-size: 0.68rem; letter-spacing: 0.02em;
+    }
+    .sk-empty {
+      text-align: center; color: #b09090;
+      font-size: 0.88rem; margin-top: 24px;
+      letter-spacing: 0.04em;
+    }
+    .sk-loading {
+      text-align: center; color: #c4a0a6;
+      font-size: 0.82rem; margin-top: 24px;
+      letter-spacing: 0.08em;
+    }
+    @media (prefers-color-scheme: dark) {
+      #sk-overlay { background: rgba(30, 22, 22, 0.93); }
+      #sk-input { color: #e8d0d0; border-bottom-color: #7a5555; }
+      .sk-result { background: rgba(40,28,28,0.6); border-color: #5a3838; }
+      .sk-result:hover { background: rgba(50,35,35,0.95); }
+      .sk-title { color: #e8d0d0; }
+      .sk-tag { background: #3a2424; color: #b08080; }
+    }
+  `;
+
+  /* ═══════════════════════════════════════════════
+     5. SCOPE LABEL
+  ═══════════════════════════════════════════════ */
+  function scopeLabel(scope) {
+    if (scope === 'all')         return '全站';
+    if (scope === 'photos')      return '漂流坐标';
+    if (scope === 'fragments')   return '人间拾遗';
+    if (scope === 'activities')  return '沉浸体验';
+    if (scope.startsWith('activity:')) return ACTIVITY_LABELS[scope.slice(9)] || scope.slice(9);
+    if (scope.startsWith('album:'))    return '当前相册';
+    return scope;
+  }
+
+  /* ═══════════════════════════════════════════════
+     6. DOM / OVERLAY
+  ═══════════════════════════════════════════════ */
+  let overlay, input, results, cachedItems = null, isLoaded = false;
+
+  function buildOverlay() {
+    const style = document.createElement('style');
+    style.textContent = CSS;
+    document.head.appendChild(style);
+
+    overlay = document.createElement('div');
+    overlay.id = 'sk-overlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-label', '搜索');
+    overlay.innerHTML = `
+      <div id="sk-input-wrap">
+        <input id="sk-input" type="search" placeholder="输入关键词…"
+               autocomplete="off" spellcheck="false" />
+        <button id="sk-close" aria-label="关闭">✕</button>
+      </div>
+      <div id="sk-hint"></div>
+      <div id="sk-results" role="listbox"></div>
+    `;
+    document.body.appendChild(overlay);
+
+    input   = document.getElementById('sk-input');
+    results = document.getElementById('sk-results');
+
+    // Close button
+    document.getElementById('sk-close').addEventListener('click', close);
+
+    // Click backdrop to close
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+
+    // ESC
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && overlay.classList.contains('sk-open')) close();
+    });
+
+    // Live search
+    input.addEventListener('input', () => {
+      if (!isLoaded) return;
+      render(doSearch(cachedItems, input.value));
+    });
+  }
+
+  function render(items) {
+    const q = input.value.trim();
+    if (!q) { results.innerHTML = ''; return; }
+    if (items.length === 0) {
+      results.innerHTML = `<div class="sk-empty">没有找到"${escHtml(q)}"的相关内容</div>`;
+      return;
+    }
+    results.innerHTML = items.slice(0, 25).map(item => `
+      <a class="sk-result" href="${escHtml(item.url)}" role="option">
+        <div class="sk-result-head">
+          <span class="sk-icon">${item.icon}</span>
+          <span class="sk-title">${escHtml(item.title)}</span>
+          <span class="sk-section">${escHtml(item.section)}</span>
+        </div>
+        ${item.tags.length ? `<div class="sk-tags">${item.tags.map(t =>
+          `<span class="sk-tag">${escHtml(t)}</span>`).join('')}</div>` : ''}
+      </a>
+    `).join('');
+  }
+
+  function escHtml(s) {
+    return String(s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  /* ═══════════════════════════════════════════════
+     7. OPEN / CLOSE
+  ═══════════════════════════════════════════════ */
+  async function open() {
+    if (!overlay) buildOverlay();
+
+    const scope = detectScope();
+    const hint = document.getElementById('sk-hint');
+    hint.innerHTML = `按 ESC 关闭 <span class="sk-scope-label">${scopeLabel(scope)}</span>`;
+
+    overlay.classList.add('sk-open');
+    input.focus();
+
+    if (!isLoaded) {
+      results.innerHTML = '<div class="sk-loading">正在加载…</div>';
+      cachedItems = await loadItems(scope);
+      isLoaded = true;
+      results.innerHTML = '';
+      // Re-trigger search if user already typed while loading
+      if (input.value.trim()) render(doSearch(cachedItems, input.value));
+    }
+  }
+
+  function close() {
+    if (!overlay) return;
+    overlay.classList.remove('sk-open');
+    input.value = '';
+    results.innerHTML = '';
+  }
+
+  /* ═══════════════════════════════════════════════
+     8. HOOK INTO EXISTING SEARCH ICON
+  ═══════════════════════════════════════════════ */
+  function hookSearchIcon() {
+    // 1. By id (if you added id="search-icon" to the element)
+    const byId = document.getElementById('search-icon');
+    if (byId) { byId.addEventListener('click', e => { e.preventDefault(); open(); }); return; }
+
+    // 2. By ⌕ or 🔍 text content
+    const all = document.querySelectorAll('a, button, span, div, i, label');
+    for (const el of all) {
+      const t = el.childNodes.length === 1
+        ? el.textContent.trim()
+        : el.firstChild?.textContent?.trim() || '';
+      if (t === '⌕' || t === '🔍' || t === '&#9906;') {
+        el.style.cursor = 'pointer';
+        el.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); open(); });
+        return;
+      }
+    }
+
+    // 3. By class containing "search"
+    const byClass = document.querySelector('[class*="search"]');
+    if (byClass) { byClass.addEventListener('click', e => { e.preventDefault(); open(); }); return; }
+
+    // 4. Fallback: keyboard shortcut ⌘K / Ctrl+K
+    document.addEventListener('keydown', e => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); open(); }
+    });
+  }
+
+  /* ═══════════════════════════════════════════════
+     9. INIT
+  ═══════════════════════════════════════════════ */
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', hookSearchIcon);
+  } else {
+    hookSearchIcon();
+  }
+
+  // Public API (optional manual trigger)
+  window.siteSearch = { open, close };
+
+})();
