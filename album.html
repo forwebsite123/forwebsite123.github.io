@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Album</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #f7f6f3;
+      color: #6d6662;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .page {
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 26px 28px 40px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+
+    .top-left {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .site-note {
+      font-size: 14px;
+      font-style: italic;
+      color: rgba(109, 102, 98, 0.72);
+    }
+
+    .back {
+      text-decoration: none;
+      font-size: 14px;
+      color: rgba(109, 102, 98, 0.78);
+    }
+
+    .search-btn {
+      text-decoration: none;
+      color: rgba(109, 102, 98, 0.7);
+      font-size: 26px;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 250px;
+      gap: 26px;
+    }
+
+    .masonry {
+      column-count: 5;
+      column-gap: 6px;
+    }
+
+    .photo-item {
+      break-inside: avoid;
+      margin-bottom: 6px;
+      background: #ece9e4;
+    }
+
+    .photo-item img {
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .video-item {
+      break-inside: avoid;
+      margin-bottom: 6px;
+      background: #ece9e4;
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%;
+    }
+
+    .video-item iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .sidebar-title {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      margin-top: 24px;
+    }
+
+    .sidebar-title:first-child {
+      margin-top: 0;
+    }
+
+    .tag-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .tag-link {
+      text-decoration: none;
+      font-size: 15px;
+      color: #c2bbb3;
+    }
+
+    .tag-link:hover {
+      color: #8c847d;
+    }
+
+    .empty-note {
+      font-size: 15px;
+      font-style: italic;
+      color: rgba(109, 102, 98, 0.5);
+      margin-top: 60px;
+      text-align: center;
+    }
+
+    #lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.9);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    #lightbox img {
+      max-width: 90vw;
+      max-height: 90vh;
+    }
+
+    @media (max-width: 760px) {
+      .content {
+        grid-template-columns: 1fr;
+      }
+      .masonry {
+        column-count: 3;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+
+    <div class="topbar">
+      <div class="top-left">
+        <div class="site-note">A place to leave traces.</div>
+        <a id="backLink" href="Drift-coordinates.html" class="back">← Back</a>
+      </div>
+      <a href="search.html" class="search-btn">⌕</a>
+    </div>
+
+    <div class="content">
+      <div class="masonry" id="masonry"></div>
+
+      <aside id="sidebar"></aside>
+    </div>
+  </div>
+
+  <div id="lightbox" onclick="this.style.display='none'">
+    <img id="lightbox-img">
+  </div>
+
+  <script>
+  (async function() {
+    // Read URL parameters
+    const params = new URLSearchParams(window.location.search);
+    const pageName = params.get('page');  // e.g. "france.html"
+    const backUrl  = params.get('back');  // e.g. "europe.html" (optional)
+
+    if (!pageName) {
+      document.getElementById('masonry').innerHTML =
+        '<div class="empty-note">No album specified.<br>Use: album.html?page=xxx.html</div>';
+      return;
+    }
+
+    // Set page title
+    const displayName = pageName.replace('.html', '').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    document.title = displayName;
+
+    // Set back link
+    if (backUrl) {
+      document.getElementById('backLink').href = backUrl;
+    }
+
+    // Fetch photos
+    let data = { items: [] };
+    try {
+      const res = await fetch('/photos.json');
+      data = await res.json();
+    } catch (e) {
+      document.getElementById('masonry').innerHTML =
+        '<div class="empty-note">Could not load photos.json</div>';
+      return;
+    }
+
+    const items = data.items.filter(p => p.page === pageName);
+
+    if (items.length === 0) {
+      document.getElementById('masonry').innerHTML =
+        `<div class="empty-note">No photos in "${displayName}" yet.<br>Upload some via batch-upload!</div>`;
+    }
+
+    // Render masonry
+    const masonry = document.getElementById('masonry');
+    items.forEach(p => {
+      if (p.video) {
+        masonry.innerHTML += `
+          <div class="video-item">
+            <iframe
+              src="//player.bilibili.com/player.html?bvid=${p.video}&autoplay=0&high_quality=1"
+              scrolling="no"
+              frameborder="no"
+              allowfullscreen="true">
+            </iframe>
+          </div>`;
+      } else {
+        masonry.innerHTML += `
+          <div class="photo-item">
+            <img src="${p.image}" alt="${p.title || ''}" class="zoomable">
+          </div>`;
+      }
+    });
+
+    // Lightbox
+    document.querySelectorAll('.zoomable').forEach(img => {
+      img.onclick = () => {
+        document.getElementById('lightbox').style.display = 'flex';
+        document.getElementById('lightbox-img').src = img.src;
+      };
+    });
+
+    // Auto-generate tags sidebar
+    const allTags = new Set();
+    items.forEach(p => {
+      if (p.tags) p.tags.forEach(t => allTags.add(t));
+    });
+
+    const sidebar = document.getElementById('sidebar');
+    if (allTags.size > 0) {
+      const sortedTags = [...allTags].sort();
+      sidebar.innerHTML = `
+        <div class="sidebar-title">🏷 TAGS</div>
+        <div class="tag-list">
+          ${sortedTags.map(t =>
+            `<a href="tag.html?tag=${encodeURIComponent(t)}" class="tag-link">${t}</a>`
+          ).join('')}
+        </div>
+      `;
+    }
+  })();
+  </script>
+  <script data-goatcounter="https://kiara-mytrace.goatcounter.com/count"
+        async src="https://gc.zgo.at/count.js"></script>
+</body>
+</html>
