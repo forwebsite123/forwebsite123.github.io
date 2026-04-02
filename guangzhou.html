@@ -223,6 +223,12 @@
         document.getElementById('lightbox-img').src = img.src;
       };
     });
+    const openParam = new URLSearchParams(location.search).get('open');
+    if (openParam) {
+      const target = [...document.querySelectorAll('.zoomable')]
+        .find(img => img.getAttribute('src') === openParam);
+      if (target) target.click();
+    }
   }
   loadPhotos();
   </script>
