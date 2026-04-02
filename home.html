@@ -22,19 +22,21 @@
       margin: 0 auto;
       padding: 40px 24px 80px;
     }
+
     .footer-text {
-  text-align: center;
-  margin-top: 20px;
-  margin-bottom: 20px;
-  font-size: 16px;
-  font-style: italic;
-  color: rgba(122, 87, 87, 0.7); /* 70%透明度 */
-}
+      text-align: center;
+      margin-top: 20px;
+      margin-bottom: 20px;
+      font-size: 16px;
+      font-style: italic;
+      color: rgba(122, 87, 87, 0.7);
+    }
+
     .topbar {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      margin-bottom: 60px;
+      margin-bottom: 32px;
     }
 
     .small-title {
@@ -52,6 +54,30 @@
       padding: 4px 8px;
     }
 
+    /* ── Behind the pixels ── */
+    .about-link-wrap {
+      text-align: center;
+      margin-bottom: 44px;
+    }
+
+    .about-link {
+      font-size: 15px;
+      letter-spacing: 0.13em;
+      font-style: italic;
+      font-family: "Times New Roman", Georgia, serif;
+      color: transparent;
+      -webkit-text-stroke: 0.75px rgba(156, 115, 115, 0.38);
+      text-decoration: none;
+      transition: -webkit-text-stroke-color 0.4s ease, letter-spacing 0.4s ease;
+      cursor: pointer;
+    }
+
+    .about-link:hover {
+      -webkit-text-stroke-color: rgba(156, 115, 115, 0.82);
+      letter-spacing: 0.18em;
+    }
+
+    /* ── Grid ── */
     .grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(260px, 1fr));
@@ -103,7 +129,7 @@
       }
 
       .topbar {
-        margin-bottom: 36px;
+        margin-bottom: 24px;
       }
 
       .cn {
@@ -117,6 +143,10 @@
       .card {
         min-height: 180px;
       }
+
+      .about-link {
+        font-size: 14px;
+      }
     }
   </style>
 </head>
@@ -126,7 +156,11 @@
   <div class="page">
     <div class="topbar">
       <div class="small-title">A place to leave traces.</div>
-     <button class="search-btn" aria-label="Search" id="search-icon">⌕</button>
+      <button class="search-btn" aria-label="Search" id="search-icon">⌕</button>
+    </div>
+
+    <div class="about-link-wrap">
+      <a href="about.html" class="about-link">Behind the pixels</a>
     </div>
 
     <div class="grid">
@@ -159,27 +193,29 @@
       </a>
     </div>
   </div>
+
   <div class="footer-text">
-  “做一颗独立的树 而不是攀附在树上的藤 然后长出新的枝桠和漂亮的花💐”
-</div>
-<script data-goatcounter="https://kiara-mytrace.goatcounter.com/count"
-        async src="https://gc.zgo.at/count.js"></script>
+    "做一颗独立的树 而不是攀附在树上的藤 然后长出新的枝桠和漂亮的花💐"
+  </div>
+
+  <script data-goatcounter="https://kiara-mytrace.goatcounter.com/count"
+          async src="https://gc.zgo.at/count.js"></script>
   <script>
-      (function() {
-        fetch('https://ipapi.co/json/')
-          .then(r => r.json())
-          .then(d => {
-            console.log("Session Log:", {
-              timestamp: new Date().toISOString(),
-              location: `${d.city}, ${d.region}, ${d.country_name}`,
-              network: d.org,
-              resolution: `${window.innerWidth}px`,
-              referrer: document.referrer || "direct"
-            });
-          })
-          .catch(() => {});
-      })();
-    </script>
+    (function() {
+      fetch('https://ipapi.co/json/')
+        .then(r => r.json())
+        .then(d => {
+          console.log("Session Log:", {
+            timestamp: new Date().toISOString(),
+            location: `${d.city}, ${d.region}, ${d.country_name}`,
+            network: d.org,
+            resolution: `${window.innerWidth}px`,
+            referrer: document.referrer || "direct"
+          });
+        })
+        .catch(() => {});
+    })();
+  </script>
   <script src="/search.js"></script>
 </body>
 </html>
