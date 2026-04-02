@@ -17,7 +17,8 @@
     const photosIndexPages = ['europe', 'asia', 'africa', 'oceania',
                               'north-america', 'south-america', 'antarctica', 'china'];
     for (const idx of photosIndexPages) { if (p.includes(idx)) return 'photos'; }
-    if (p.endsWith('.html')) return 'album:' + window.location.pathname.split('/').pop();
+    const pageName = window.location.pathname.split('/').pop();
+    if (pageName) return 'album:' + (pageName.endsWith('.html') ? pageName : pageName + '.html');
     return 'all';
   }
 
