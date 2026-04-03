@@ -1108,7 +1108,7 @@ function openModal(idx) {
         return;
       }
 
-      setStatus('Fetching JSON data from GitHub…');
+      setStatus('Loading, please wait...');
 
       try {
         const response = await fetch(sourceUrl, { cache: 'no-store' });
