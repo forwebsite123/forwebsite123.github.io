@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dopamine Ledger</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f6f4ef;
+    --surface: #ffffff;
+    --surface2: #f0ede6;
+    --border: #e2dfd7;
+    --text: #1c1c1a;
+    --muted: #9a9790;
+    --accent: #1c1c1a;
+    --tag-bg: #ebe8e1;
+  }
+  body { font-family: 'Jost', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* ── Header ── */
+  header {
+    padding: 52px 48px 40px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .header-inner { max-width: 1080px; margin: 0 auto; display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .site-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 44px; font-weight: 300; font-style: italic;
+    letter-spacing: -0.01em; line-height: 1;
+  }
+  .site-sub {
+    font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--muted); padding-bottom: 6px;
+  }
+
+  main { max-width: 1080px; margin: 0 auto; padding: 44px 48px 100px; }
+
+  /* ── Upload ── */
+  .upload-zone {
+    border: 1px dashed var(--border); border-radius: 12px;
+    padding: 72px 32px; text-align: center; cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    margin-bottom: 52px; background: var(--surface);
+  }
+  .upload-zone:hover, .upload-zone.drag-over { border-color: var(--accent); background: var(--surface2); }
+  .upload-zone.hidden { display: none; }
+  .upload-icon { font-size: 24px; margin-bottom: 16px; opacity: 0.3; }
+  .upload-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px; font-weight: 300; margin-bottom: 12px;
+  }
+  .upload-hint { font-size: 13px; color: var(--muted); line-height: 2; }
+  #file-input { display: none; }
+
+  /* ── Stats bar ── */
+  .stats-bar {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden; margin-bottom: 36px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .stat-cell {
+    background: var(--surface); padding: 22px 28px;
+    border-right: 1px solid var(--border);
+  }
+  .stat-cell:last-child { border-right: none; }
+  .stat-label { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .stat-value { font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 300; }
+
+  /* ── Filters ── */
+  .filter-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 28px; align-items: center; }
+  .filter-label { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-right: 6px; }
+  .filter-btn {
+    font-family: 'Jost', sans-serif; font-size: 11px; letter-spacing: 0.06em;
+    padding: 5px 14px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--muted); cursor: pointer;
+    border-radius: 20px; transition: all 0.15s;
+  }
+  .filter-btn:hover { border-color: var(--accent); color: var(--text); }
+  .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* ── Card grid ── */
+  .grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    background: var(--surface); padding: 28px 28px 22px;
+    cursor: pointer; border-radius: 12px; border: 1px solid var(--border);
+    transition: box-shadow 0.2s, transform 0.15s;
+    position: relative; overflow: hidden;
+  }
+  .card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.07); transform: translateY(-2px); }
+  .card.has-route::after {
+    content: '↗'; position: absolute; bottom: 16px; right: 18px;
+    font-size: 16px; color: var(--border);
+  }
+  .card-type {
+    font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 14px;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .type-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .card-duration {
+    font-family: 'Cormorant Garamond', serif; font-size: 48px;
+    font-weight: 300; line-height: 1; margin-bottom: 2px;
+  }
+  .card-duration-unit { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 300; color: var(--muted); }
+  .card-meta {
+    margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border);
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .meta-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 3px; }
+  .meta-value { font-size: 14px; font-weight: 400; }
+  .card-date {
+    font-size: 11px; color: var(--muted); margin-top: 16px;
+    letter-spacing: 0.04em; padding-bottom: 4px;
+  }
+
+  /* ── Modal ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(20,18,14,0.6); backdrop-filter: blur(4px);
+    z-index: 1000; align-items: center; justify-content: center; padding: 24px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface); border-radius: 16px; width: 100%;
+    max-width: 700px; max-height: 90vh; overflow-y: auto;
+    display: flex; flex-direction: column;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.18);
+  }
+  .modal-header {
+    padding: 22px 28px; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    flex-shrink: 0; position: sticky; top: 0;
+    background: var(--surface); z-index: 10; border-radius: 16px 16px 0 0;
+  }
+  .modal-title { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 300; font-style: italic; }
+  .modal-close {
+    background: var(--surface2); border: none; width: 28px; height: 28px;
+    border-radius: 50%; font-size: 16px; cursor: pointer; color: var(--muted);
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .modal-close:hover { background: var(--border); color: var(--text); }
+  #route-map { height: 300px; flex-shrink: 0; background: var(--surface2); }
+  .modal-body { padding: 24px 28px 28px; }
+  .modal-stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1px; background: var(--border); border: 1px solid var(--border);
+    border-radius: 10px; margin-bottom: 20px; overflow: hidden;
+  }
+  .modal-stat { background: var(--surface); padding: 14px 18px; }
+  .no-route-msg { text-align: center; padding: 48px 24px; color: var(--muted); font-size: 13px; background: var(--surface2); }
+
+  .progress-wrap { text-align: center; padding: 56px; color: var(--muted); font-size: 13px; letter-spacing: 0.08em; }
+  .data-section { display: none; }
+  .data-section.visible { display: block; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <h1 class="site-title">Dopamine Ledger</h1>
+    <div style="text-align:right">
+      <div class="site-sub">多巴胺账本</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px;opacity:0.6;letter-spacing:0.04em">运动记录档案</div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="upload-zone" id="upload-zone">
+    <div class="upload-icon" style="font-size:32px;opacity:0.25;margin-bottom:18px">⬆</div>
+    <div class="upload-title">上传苹果健康导出的 zip 文件</div>
+    <div class="upload-hint">
+      健康 app → 右上角头像 → 最底部「导出所有健康数据」<br>
+      把导出的 <strong>zip 整包</strong>拖进来即可，无需解压<br>
+      <span style="opacity:0.6">数据仅在本地处理，不会上传到任何服务器</span>
+    </div>
+    <input type="file" id="file-input" accept=".zip">
+  </div>
+
+  <div id="progress" style="display:none" class="progress-wrap"><span style="opacity:0.5;font-size:12px;letter-spacing:0.15em">正在解析数据，稍候…</span></div>
+
+  <div class="data-section" id="data-section">
+    <div class="stats-bar" id="stats-bar"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;flex-wrap:wrap;gap:12px">
+      <div class="filter-row" id="filter-row" style="margin-bottom:0"><span class="filter-label">筛选</span></div>
+      <button id="export-btn" onclick="exportJSON()" style="font-family:Jost,sans-serif;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;padding:7px 18px;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;border-radius:20px;transition:all 0.15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">↓ 导出 JSON</button>
+    </div>
+    <div class="grid" id="grid"></div>
+  </div>
+</main>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title"></span>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div id="route-map"></div>
+    <div class="modal-body">
+      <div class="modal-stats" id="modal-stats"></div>
+      <div id="modal-runs"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const LABELS = {
+  Running:'跑步',Cycling:'骑行',Swimming:'游泳',Walking:'步行',
+  Hiking:'登山',Yoga:'瑜伽',FunctionalStrengthTraining:'力量训练',
+  CoreTraining:'核心训练',HighIntensityIntervalTraining:'HIIT',
+  Dance:'舞蹈',Pilates:'普拉提',Rowing:'划船',Elliptical:'椭圆机',
+  StairClimbing:'爬楼',MindAndBody:'身心练习',Other:'其他',
+  CrossTraining:'综合训练',MixedCardio:'有氧混合',WaterFitness:'水中健身',
+  Snowboarding:'单板滑雪',Skiing:'滑雪',Surfing:'冲浪',
+  Golf:'高尔夫',Tennis:'网球',Soccer:'足球',Basketball:'篮球',
+};
+const COLORS = {
+  Running:'#c8503a',Cycling:'#4a7fa5',Swimming:'#3a8a7a',
+  Walking:'#7a7a5a',Hiking:'#6a8a4a',Yoga:'#9a6aaa',
+  FunctionalStrengthTraining:'#4a5a8a',CoreTraining:'#5a6a9a',
+  HighIntensityIntervalTraining:'#c84a3a',Dance:'#b06a9a',
+  Skiing:'#4a8aaa',Snowboarding:'#3a7aaa',
+};
+
+function typeKey(raw) { return raw.replace('HKWorkoutActivityType',''); }
+function getLabel(raw) { const k=typeKey(raw); return LABELS[k]||k; }
+function getColor(raw) { const k=typeKey(raw); return COLORS[k]||'#888882'; }
+function fmtDur(secs) { const m=Math.round(secs/60); if(m<60) return {val:m,unit:'min'}; const h=Math.floor(m/60),r=m%60; return {val:h,unit:r>0?`h ${r}m`:'h'}; }
+function safeDate(str) {
+  if (!str) return null;
+  // Extract date components — treat as local time (consistent with parseRouteTime)
+  const m = str.trim().match(/^(\d{4})-(\d{2})-(\d{2})[\sT](\d{2}):(\d{2}):(\d{2})/);
+  if (m) {
+    return new Date(parseInt(m[1]), parseInt(m[2])-1, parseInt(m[3]),
+                    parseInt(m[4]), parseInt(m[5]), parseInt(m[6]));
+  }
+  // Fallback: try native parsing (handles ISO 8601 etc.)
+  const d = new Date(str);
+  return isNaN(d.getTime()) ? null : d;
+}
+function fmtDate(str) { const d = safeDate(str); return d ? d.toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric'}) : '—'; }
+function fmtCal(v) { if(!v) return '—'; return Math.round(parseFloat(v))+' kcal'; }
+function fmtDist(v,u) { if(!v) return '—'; const n=parseFloat(v); if(!u) return n.toFixed(1)+' km'; if(u==='m'||u==='meter'||u==='meters') return n>=1000?(n/1000).toFixed(1)+' km':Math.round(n)+' m'; if(u.includes('m')&&!u.includes('km')) return (n/1000).toFixed(1)+' km'; return n.toFixed(2)+' km'; }
+
+let allWorkouts=[], routeMap={}, leafletMap=null, currentPolyline=null;
+
+function parseGPX(str) {
+  const doc = new DOMParser().parseFromString(str, 'text/xml');
+  const pts = doc.querySelectorAll('trkpt');
+  const coords = [], elevations = [], elevByTime = [], ptsByTime = [];
+  pts.forEach(p => {
+    const lat = parseFloat(p.getAttribute('lat')), lon = parseFloat(p.getAttribute('lon'));
+    if (isNaN(lat) || isNaN(lon)) return;
+    coords.push([lat, lon]);
+    const eleEl = p.querySelector('ele');
+    const timeEl = p.querySelector('time');
+    const ele = eleEl ? parseFloat(eleEl.textContent) : null;
+    elevations.push(ele);
+    if (timeEl) {
+      const t = new Date(timeEl.textContent).getTime();
+      if (ele !== null) elevByTime.push({ t, e: ele });
+      ptsByTime.push({ t, lat, lon });
+    }
+  });
+  let vertDrop = 0, elevGain = 0;
+  for (let i = 1; i < elevations.length; i++) {
+    if (elevations[i] == null || elevations[i-1] == null) continue;
+    const diff = elevations[i] - elevations[i-1];
+    if (diff < 0) vertDrop += Math.abs(diff);
+    else elevGain += diff;
+  }
+  return { coords, vertDrop: Math.round(vertDrop), elevGain: Math.round(elevGain), elevByTime, ptsByTime };
+}
+
+function haversineDist(lat1, lon1, lat2, lon2) {
+  const R = 6371, dLat = (lat2-lat1)*Math.PI/180, dLon = (lon2-lon1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function parseRouteTime(name) {
+  // Handles: route_2026-03-12_7.01pm  OR  route_2026-03-12_190100
+  const m = name.match(/route_(\d{4}-\d{2}-\d{2})_(.+)/);
+  if (!m) return null;
+  const dp = m[1].split('-');
+  const Y = parseInt(dp[0]), M = parseInt(dp[1]) - 1, D = parseInt(dp[2]);
+  const timePart = m[2];
+  // Try am/pm format: 7.01pm, 11.30am, 5.51pm
+  const ampm = timePart.match(/^(\d{1,2})\.(\d{2})(am|pm)$/i);
+  if (ampm) {
+    let h = parseInt(ampm[1]), min = parseInt(ampm[2]);
+    const isPm = ampm[3].toLowerCase() === 'pm';
+    if (isPm && h !== 12) h += 12;
+    if (!isPm && h === 12) h = 0;
+    return new Date(Y, M, D, h, min, 0).getTime();
+  }
+  // Try 24h compact: 190100 -> 19:01:00
+  const compact = timePart.match(/^(\d{2})(\d{2})(\d{2})$/);
+  if (compact) {
+    return new Date(Y, M, D, parseInt(compact[1]), parseInt(compact[2]), parseInt(compact[3])).getTime();
+  }
+  return null;
+}
+
+const INDOOR_TYPES = new Set([
+  'Tennis','Basketball','Soccer','Volleyball','Badminton','TableTennis',
+  'Yoga','Pilates','Barre','Dance','CoreTraining','FunctionalStrengthTraining',
+  'HighIntensityIntervalTraining','MindAndBody','Wrestling','Boxing','MartialArts',
+  'Gymnastics','Elliptical','StairClimbing','Rowing','JumpRope','SocialDance',
+  'CrossTraining','MixedCardio','WaterFitness','Swimming',
+]);
+
+function matchRoute(workout, routeFiles) {
+  const indoorNoRoute = INDOOR_TYPES.has(workout.typeKey);
+  const wStart = (safeDate(workout.start) || new Date(workout.start)).getTime();
+  const wEnd = wStart + workout.duration * 1000;
+  let best = null, bestDiff = Infinity;
+  for (const [name, gpxObj] of Object.entries(routeFiles)) {
+    const coords = gpxObj && gpxObj.coords; if (!coords || coords.length < 1) continue;
+    const rTime = parseRouteTime(name);
+    if (rTime === null) continue;
+    // For indoor sports: skip time filter, just find closest GPS point by date
+    if (!indoorNoRoute) {
+      const buffer = workout.duration > 3600 ? 7200000 : 1800000;
+      if (rTime < wStart - 600000 || rTime > wEnd + buffer) continue;
+    }
+    const diff = Math.abs(wStart - rTime);
+    if (diff < bestDiff) { bestDiff = diff; best = gpxObj; }
+    if (indoorNoRoute && diff < 86400000) break; // indoor: first same-day match
+  }
+  return best ? { gpxObj: best, indoorOnly: indoorNoRoute } : null;
+}
+
+function getAttr(str, name) {
+  const m = new RegExp(`${name}="([^"]*)"`, 'i').exec(str);
+  return m ? m[1] : '';
+}
+
+async function processZip(file) {
+  const zip = await JSZip.loadAsync(file);
+  const routeFiles = {};
+  const gpxJobs = [];
+  let gpxCount = 0;
+
+  zip.forEach((path, entry) => {
+    if ((path.includes('workout-routes/') || path.includes('workout_routes/')) && path.endsWith('.gpx')) {
+      gpxCount++;
+      const name = path.split('/').pop().replace('.gpx', '');
+      gpxJobs.push(entry.async('string').then(str => { routeFiles[name] = parseGPX(str); }));
+    }
+  });
+  await Promise.all(gpxJobs);
+  console.log(`[Dopamine Ledger] Found ${gpxCount} GPX route files`);
+
+  const xmlEntry = Object.values(zip.files).find(f =>
+    (f.name.toLowerCase().endsWith('export.xml') || f.name.endsWith('导出.xml')) && !f.dir
+  );
+  if (!xmlEntry) {
+    alert('找不到 export.xml，请确认上传的是苹果健康导出的 zip 文件');
+    return [];
+  }
+
+  const xmlStr = await xmlEntry.async('string');
+
+  // Two-pass: grab full <Workout>...</Workout> block, parse opening tag + child WorkoutStatistics
+  const workouts = [];
+  const workoutBlockRe = /<Workout\b([^>]*(?:>[\s\S]*?<\/Workout>|\/>))/g;
+  // Simpler: match opening tag attrs only, then separately grab the block for child stats
+  const openTagRe = /<Workout\b([^>]*)>/g;
+  const selfCloseRe = /<Workout\b([^>]*)\/>/g;
+  let m;
+
+  function parseWorkoutTag(tagAttrs, blockStr) {
+    const raw = getAttr(tagAttrs, 'workoutActivityType');
+    const start = getAttr(tagAttrs, 'startDate');
+    const durStr = getAttr(tagAttrs, 'duration');
+    const durUnit = getAttr(tagAttrs, 'durationUnit');
+    let cal = getAttr(tagAttrs, 'totalEnergyBurned');
+    let dist = getAttr(tagAttrs, 'totalDistance');
+    let distUnit = getAttr(tagAttrs, 'totalDistanceUnit');
+    if (!start || !raw) return null;
+    // Also check WorkoutStatistics children for energy/distance
+    let hr = null, speed = null, pace = null, runs = null;
+    if (blockStr) {
+      if (!cal) {
+        const em = /WorkoutStatistics[^>]*type="HKQuantityTypeIdentifierActiveEnergyBurned"[^>]*sum="([^"]+)"/.exec(blockStr);
+        if (em) cal = em[1];
+      }
+      if (!dist) {
+        const distTypes = [
+          'DistanceWalkingRunning','DistanceCycling','DistanceSwimming',
+          'DistanceDownhillSnowSports','DistanceCrossCountrySkiing',
+          'DistanceWheelchair','DistancePaddleSports','DistanceRowing',
+          'DistanceSnowboarding'
+        ];
+        for (const t of distTypes) {
+          const dm = new RegExp('WorkoutStatistics[^>]*type="HKQuantityTypeIdentifier' + t + '"[^>]*sum="([^"]+)"').exec(blockStr);
+          if (dm) {
+            dist = dm[1];
+            // Extract the actual unit from the matched block
+            const unitM = new RegExp('WorkoutStatistics[^>]*type="HKQuantityTypeIdentifier' + t + '"[^>]*unit="([^"]+)"').exec(blockStr);
+            distUnit = unitM ? unitM[1] : 'km';
+            break;
+          }
+        }
+        // fallback: any distance type
+        if (!dist) {
+          const dm = /WorkoutStatistics[^>]*type="HKQuantityTypeIdentifierDistance[^"]*"[^>]*sum="([^"]+)"/.exec(blockStr);
+          if (dm) {
+            dist = dm[1];
+            const unitM = /WorkoutStatistics[^>]*type="HKQuantityTypeIdentifierDistance[^"]*"[^>]*unit="([^"]+)"/.exec(blockStr);
+            distUnit = unitM ? unitM[1] : 'km';
+          }
+        }
+      }
+      const hrm = /WorkoutStatistics[^>]*type="HKQuantityTypeIdentifierHeartRate"[^>]*average="([^"]+)"/.exec(blockStr);
+      if (hrm) hr = parseFloat(hrm[1]);
+      const speedTypes = ['RunningSpeed','CyclingSpeed','DownhillSnowSportsSpeed','CrossCountrySkiingSpeed','PaddleSportsSpeed','RowingSpeed'];
+      for (const t of speedTypes) {
+        const spm = new RegExp('WorkoutStatistics[^>]*type="HKQuantityTypeIdentifier' + t + '"[^>]*average="([^"]+)"').exec(blockStr);
+        if (spm) { speed = parseFloat(spm[1]); break; }
+      }
+      // Fallback: compute speed from distance + duration if not recorded
+      if (!speed && dist && parseFloat(durStr) > 0) {
+        const distKm = (distUnit === 'm' || distUnit === 'meter' || distUnit === 'meters')
+          ? parseFloat(dist) / 1000
+          : parseFloat(dist);
+        const durH = (durUnit === 'sec' ? parseFloat(durStr) : parseFloat(durStr) * 60) / 3600;
+        if (durH > 0) speed = distKm / durH;
+      }
+      if (speed && speed > 0) {
+        const typeK = typeKey(raw);
+        if (['Running','Walking','Hiking'].includes(typeK)) {
+          pace = 60 / speed;
+        }
+      }
+
+      // ── Snowboarding/skiing: extract per-run data from WorkoutLap or WorkoutEvent ──
+      const isSnow = ['Snowboarding','Skiing','DownhillSkiing','CrossCountrySkiing'].includes(typeKey(raw));
+      const isSwim = typeKey(raw) === 'Swimming';
+      // Parse pool length early so it's available for per-lap distance
+      let lapLengthEarly = null;
+      if (isSwim && blockStr) {
+        const llm = /MetadataEntry[^>]*key="HKLapLength"[^>]*value="([^"]+)"/.exec(blockStr)
+                 || /MetadataEntry[^>]*value="([^"]+)"[^>]*key="HKLapLength"/.exec(blockStr);
+        if (llm) lapLengthEarly = parseFloat(llm[1]); // e.g. 50 from "50 m"
+      }
+      if (blockStr && (isSnow || isSwim || typeKey(raw)==='DownhillSkiing')) {
+        // Try WorkoutLap first (newer format with per-lap stats)
+        const lapRe = /<WorkoutLap([^>]*)>([\s\S]*?)<\/WorkoutLap>/g;
+        const segs = [];
+        let lm;
+        while ((lm = lapRe.exec(blockStr)) !== null) {
+          const lapAttrs = lm[1], lapBody = lm[2];
+          // Duration: attribute
+          const lapDur = parseFloat(getAttr(lapAttrs,'duration')||'0');
+          const lapDurU = getAttr(lapAttrs,'durationUnit')||'min';
+          const lapDurSec = lapDurU==='sec' ? lapDur : lapDur*60;
+          // Distance: from attribute first, then nested stats
+          let lapDist = parseFloat(getAttr(lapAttrs,'totalDistance')||'0') || null;
+          const lapDistU = getAttr(lapAttrs,'totalDistanceUnit')||'km';
+          if (lapDist && (lapDistU==='m'||lapDistU==='meter'||lapDistU==='meters')) lapDist = lapDist/1000;
+          // HR and speed from nested WorkoutStatistics
+          function lapStat(body, type, field) {
+            const r = new RegExp('WorkoutStatistics[^>]*type="HKQuantityTypeIdentifier'+type+'"[^>]*'+field+'="([^"]+)"');
+            const r2 = new RegExp('WorkoutStatistics[^>]*'+field+'="([^"]+)"[^>]*type="HKQuantityTypeIdentifier'+type+'"');
+            const m = r.exec(body)||r2.exec(body); return m ? parseFloat(m[1]) : null;
+          }
+          if (!lapDist) lapDist = lapStat(lapBody,'DistanceDownhillSnowSports','sum')
+                               || lapStat(lapBody,'DistanceCycling','sum')
+                               || lapStat(lapBody,'DistanceWalkingRunning','sum');
+          const lapHR      = lapStat(lapBody,'HeartRate','average');
+          const lapSpd     = lapStat(lapBody,'DownhillSnowSportsSpeed','average')
+                          || lapStat(lapBody,'CyclingSpeed','average')
+                          || lapStat(lapBody,'RunningSpeed','average');
+          const lapSpdMax  = lapStat(lapBody,'DownhillSnowSportsSpeed','maximum')
+                          || lapStat(lapBody,'CyclingSpeed','maximum')
+                          || lapStat(lapBody,'RunningSpeed','maximum');
+          if (lapDurSec > 0) segs.push({ durSec: lapDurSec, dist: lapDist, hr: lapHR, speed: lapSpd, maxSpeed: lapSpdMax });
+        }
+
+        // Swimming: parse WorkoutEvent laps (type HKWorkoutEventTypeLap)
+        if (isSwim && segs.length === 0) {
+          const swimLapRe = /WorkoutEvent([^/]*\/)/g;
+          let slm;
+          while ((slm = swimLapRe.exec(blockStr)) !== null) {
+            const a = slm[1];
+            if (!a.includes('HKWorkoutEventTypeLap')) continue;
+            const d = parseFloat(getAttr(a,'duration')||'0');
+            const u = getAttr(a,'durationUnit')||'min';
+            const durSec = u==='sec' ? d : d*60;
+            if (durSec > 0) segs.push({ durSec, dist: null, hr: null, speed: null, maxSpeed: null });
+          }
+          // Also try WorkoutLap for swimming (newer Watch OS)
+        }
+        // Fallback: WorkoutEvent segments — also try to get startDate for GPX slicing
+        if (segs.length === 0) {
+          const evRe = /WorkoutEvent([^/]*)\//g;
+          let em;
+          while ((em = evRe.exec(blockStr)) !== null) {
+            const attrs = em[1];
+            if (!attrs.includes('HKWorkoutEventTypeSegment')) continue;
+            const d = parseFloat(getAttr(attrs,'duration')||'0');
+            const u = getAttr(attrs,'durationUnit')||'min';
+            const segDate = getAttr(attrs,'date') || getAttr(attrs,'startDate');
+            segs.push({ durSec: u==='sec'?d:d*60, dist:null, hr:null, speed:null, maxSpeed:null, date: segDate });
+          }
+        }
+        if (segs.length > 0) runs = segs;
+      }
+    }
+    const durSecs = durUnit === 'sec'
+      ? parseFloat(durStr || '0')
+      : parseFloat(durStr || '0') * 60;
+    // Weather metadata — attribute order-independent
+    let tempC = null, humidity = null, airQuality = null;
+    if (blockStr) {
+      function metaVal(block, key) {
+        // Matches both: key="X" value="Y"  and  value="Y" key="X"
+        const re1 = new RegExp('MetadataEntry[^>]*key="' + key + '"[^>]*value="([^"]+)"');
+        const re2 = new RegExp('MetadataEntry[^>]*value="([^"]+)"[^>]*key="' + key + '"');
+        const m = re1.exec(block) || re2.exec(block);
+        return m ? m[1] : null;
+      }
+      const tv = metaVal(blockStr, 'HKWeatherTemperature');
+      if (tv) {
+        const tnum = parseFloat(tv);
+        tempC = tv.includes('degF') ? Math.round((tnum-32)*5/9) : Math.round(tnum);
+      }
+      const hv = metaVal(blockStr, 'HKWeatherHumidity');
+      if (hv !== null) {
+        const hn = parseFloat(hv);
+        let h;
+        if (typeof hv === 'string' && hv.includes('%')) h = hn / 100;
+        else if (hn <= 1) h = hn * 100;
+        else h = hn;
+        humidity = Math.min(100, Math.max(0, Math.round(h)));
+      }
+      const av = metaVal(blockStr, 'HKEnvironmentalAudioExposureEvent') || metaVal(blockStr, 'HKAirQualityIndex');
+      if (av) airQuality = Math.round(parseFloat(av));
+    }
+
+    // Swimming pool metadata
+    let lapLength = null, strokeCount = null;
+    if (blockStr && typeKey(raw) === 'Swimming') {
+      const llv = metaVal(blockStr, 'HKLapLength');
+      if (llv) lapLength = parseFloat(llv); // pool length in meters
+      // Total stroke count
+      const scm = /WorkoutStatistics[^>]*type="HKQuantityTypeIdentifierSwimmingStrokeCount"[^>]*sum="([^"]+)"/.exec(blockStr);
+      if (scm) strokeCount = Math.round(parseFloat(scm[1]));
+      // Per-lap stroke counts from WorkoutEvent
+      if (runs && runs.length > 0) {
+        const lapEvents = [];
+        const swEvRe = /WorkoutEvent([^/]*\/)/g;
+        let sle;
+        while ((sle = swEvRe.exec(blockStr)) !== null) {
+          const a = sle[1];
+          if (!a.includes('HKWorkoutEventTypeLap')) continue;
+          const strokesAttr = getAttr(a, 'strokeCount') || getAttr(a, 'totalStrokes');
+          const distAttr = getAttr(a, 'totalDistance');
+          lapEvents.push({
+            strokes: strokesAttr ? parseInt(strokesAttr) : null,
+            dist: distAttr ? parseFloat(distAttr) : (lapLength || null)
+          });
+        }
+        if (lapEvents.length === runs.length) {
+          runs = runs.map((seg, i) => ({
+            ...seg,
+            dist: lapEvents[i].dist,
+            strokes: lapEvents[i].strokes
+          }));
+        } else if (lapLength) {
+          runs = runs.map(seg => ({ ...seg, dist: lapLength / 1000 }));
+        }
+      }
+    }
+
+    return {
+      typeRaw: raw, typeKey: typeKey(raw), typeLabel: getLabel(raw),
+      start, duration: durSecs,
+      cal: cal ? parseFloat(cal) : null,
+      dist: dist || null, distUnit: distUnit || null,
+      hr: hr || null, speed: speed || null, pace: pace || null, runs: runs || null,
+      tempC, humidity, airQuality, lapLength, strokeCount
+    };
+  }
+
+  // ── Global pre-pass: index all WorkoutEvent by workout startDate ──
+  const SM = {'1':'自由泳','2':'仰泳','3':'蛙泳','4':'蝶泳','5':'浮板','0':'混合','6':'其他'};
+  const globalLaps = {};
+  const globalSegs = {};
+  {
+    // Build workout position index using indexOf to avoid matching WorkoutEvent
+    const wPos2 = [];
+    {
+      let wp = 0;
+      while (true) {
+        const wi = xmlStr.indexOf('<Workout ', wp);
+        const wi2 = xmlStr.indexOf('<Workout\n', wp);
+        const wi3 = xmlStr.indexOf('<Workout\r', wp);
+        const wIdx = [wi,wi2,wi3].filter(x=>x>=0).reduce((a,b)=>a<b?a:b, Infinity);
+        if (wIdx === Infinity) break;
+        const chunk = xmlStr.slice(wIdx, wIdx + 1000);
+        const sdm = chunk.match(/startDate="([^"]+)"/);
+        if (sdm) wPos2.push({ pos: wIdx, date: sdm[1] });
+        wp = wIdx + 10;
+      }
+    }
+    // indexOf-based scanner — safe on huge XML files
+    let evPos = 0;
+    while (true) {
+      const evStart = xmlStr.indexOf('<WorkoutEvent', evPos);
+      if (evStart === -1) break;
+      const gtIdx = xmlStr.indexOf('>', evStart);
+      if (gtIdx === -1) break;
+      const openTag = xmlStr.slice(evStart, gtIdx + 1);
+      const selfClose = openTag.endsWith('/>');
+      let body2 = '', nextPos = gtIdx + 1;
+      if (!selfClose) {
+        const closeIdx = xmlStr.indexOf('</WorkoutEvent>', gtIdx);
+        if (closeIdx !== -1) { body2 = xmlStr.slice(gtIdx + 1, closeIdx); nextPos = closeIdx + 15; }
+        else { nextPos = gtIdx + 1; }
+      }
+      evPos = nextPos;
+      let owner = null;
+      for (let i = wPos2.length-1; i >= 0; i--) { if (wPos2[i].pos < evStart) { owner = wPos2[i].date; break; } }
+      if (!owner) continue;
+      const evTypeM = openTag.match(/type="([^"]+)"/);
+      if (!evTypeM) continue;
+      const evType2 = evTypeM[1];
+      const durM = openTag.match(/duration="([^"]+)"/);
+      if (!durM) continue;
+      const uM = openTag.match(/durationUnit="([^"]+)"/);
+      const dur2 = (uM && uM[1]==='sec') ? parseFloat(durM[1]) : parseFloat(durM[1])*60;
+      if (dur2 < 1) continue;
+      if (evType2 === 'HKWorkoutEventTypeLap') {
+        const sM2 = body2.match(/key="HKSwimmingStrokeStyle"[^>]*value="([^"]+)"/) || body2.match(/value="([^"]+)"[^>]*key="HKSwimmingStrokeStyle"/);
+        const ss2 = sM2 ? (SM[String(sM2[1])]||sM2[1]) : null;
+        if (!globalLaps[owner]) globalLaps[owner]=[];
+        globalLaps[owner].push({ durSec: dur2, strokeStyle: ss2 });
+      } else if (evType2 === 'HKWorkoutEventTypeSegment') {
+        if (!globalSegs[owner]) globalSegs[owner]=[];
+        const segDateM = openTag.match(/(?:^|\s)date="([^"]+)"/) || openTag.match(/startDate="([^"]+)"/) || openTag.match(/date="([^"]+)"/);
+        const segDate = segDateM ? (safeDate(segDateM[1]) || new Date(segDateM[1])).getTime() : null;
+        globalSegs[owner].push({ durSec: dur2, t: segDate });
+      }
+    }
+  }
+  // Match full blocks including children
+  const fullBlockRe = /<Workout\b([^>]*)(\/?>)[\s\S]*?<\/Workout>|<Workout\b([^>]*)\/>/g;
+  while ((m = fullBlockRe.exec(xmlStr)) !== null) {
+    const tagAttrs = (m[1] || m[3] || '');
+    const blockStr = m[0];
+    const w = parseWorkoutTag(tagAttrs, blockStr);
+    if (!w) continue;
+
+    // Inject global laps for swimming
+    if (!w.runs && w.typeKey === 'Swimming') {
+      const swimKey = Object.keys(globalLaps).find(k => k.trim() === w.start.trim());
+      if (swimKey) {
+        const laps = globalLaps[swimKey].filter(lap => lap.durSec >= 15); // skip rest intervals
+        const ll = w.lapLength;
+        w.runs = laps.map(lap => {
+          const pace100 = ll && ll > 0 ? Math.round(lap.durSec / ll * 100) : null;
+          return { durSec: lap.durSec, dist: ll ? ll/1000 : null, hr: null, speed: null, maxSpeed: null, strokeStyle: lap.strokeStyle, strokes: null, pace100 };
+        });
+      }
+    }
+    // Inject global segs for snow sports (always override blockStr result)
+    const isSnowW = ['Snowboarding','Skiing','DownhillSkiing','CrossCountrySkiing','AlpineSkiing','SnowSports'].includes(w.typeKey);
+
+    if (isSnowW) {
+      const snowKey = Object.keys(globalSegs).find(k => k.trim() === w.start.trim());
+      if (snowKey) {
+        const filtered = globalSegs[snowKey].filter(s => s.durSec > 30);
+        if (filtered.length > 0) w.runs = filtered.map(s => ({ durSec: s.durSec, dist: null, hr: null, speed: null, maxSpeed: null }));
+      }
+    }
+
+    const matchResult = matchRoute(w, routeFiles);
+    const gpxData = matchResult ? matchResult.gpxObj : null;
+    const indoorOnly = matchResult ? matchResult.indoorOnly : false;
+    w.route = (!indoorOnly) && gpxData && gpxData.coords && gpxData.coords.length > 1 ? gpxData.coords : null;
+    w.vertDrop = gpxData && !indoorOnly ? gpxData.vertDrop : null;
+    w.elevGain = gpxData && !indoorOnly ? gpxData.elevGain : null;
+    // Indoor sports: no route, but still use nearest GPX point as location pin
+    w.locationPin = (!w.route) && gpxData && gpxData.coords && gpxData.coords.length > 0 ? gpxData.coords[0] : null;
+    // Compute per-run vertical drop + distance using segment timestamps from GPX
+if (w.runs && isSnowW && gpxData && (gpxData.elevByTime.length > 0 || gpxData.ptsByTime.length > 0)) {
+      let cumT = (safeDate(w.start) || new Date(w.start)).getTime();
+      w.runs = w.runs.map(seg => {
+        const tStart = seg.t || cumT;
+        const tEnd = tStart + seg.durSec * 1000;
+        cumT = tEnd; // advance for next seg
+        const ePts = gpxData.elevByTime.filter(p => p.t >= tStart && p.t <= tEnd);
+        let drop = 0;
+        for (let i = 1; i < ePts.length; i++) {
+          const d = ePts[i].e - ePts[i-1].e;
+          if (d < 0) drop += Math.abs(d);
+        }
+        const gPts = gpxData.ptsByTime.filter(p => p.t >= tStart && p.t <= tEnd);
+        let dist = 0;
+        for (let i = 1; i < gPts.length; i++) {
+          dist += haversineDist(gPts[i-1].lat, gPts[i-1].lon, gPts[i].lat, gPts[i].lon);
+        }
+        return { ...seg, vertDrop: drop > 5 ? Math.round(drop) : null, dist: dist > 0.01 ? dist : null };
+      });
+    }
+    workouts.push(w);
+  }
+
+  if (workouts.length === 0) {
+    alert(`解析完成但找不到运动记录。文件大小：${(xmlStr.length/1024/1024).toFixed(1)} MB。请确认是苹果「健康」app 导出的 zip。`);
+  }
+
+  workouts.sort((a, b) => (safeDate(b.start) || new Date(b.start)) - (safeDate(a.start) || new Date(a.start)));
+  return workouts;
+}
+
+function renderStats(ws) {
+  const totalMin=ws.reduce((s,w)=>s+w.duration/60,0);
+  const totalCal=ws.reduce((s,w)=>s+(w.cal||0),0);
+  const types=new Set(ws.map(w=>w.typeLabel)).size;
+  const withRoute=ws.filter(w=>w.route).length;
+  document.getElementById('stats-bar').innerHTML=`
+    <div class="stat-cell"><div class="stat-label">运动次数</div><div class="stat-value">${ws.length}</div></div>
+    <div class="stat-cell"><div class="stat-label">总时长</div><div class="stat-value">${Math.round(totalMin/60)}<span style="font-size:18px;color:var(--muted)"> h</span></div></div>
+    <div class="stat-cell"><div class="stat-label">消耗热量</div><div class="stat-value">${Math.round(totalCal/1000)}<span style="font-size:18px;color:var(--muted)"> k</span></div></div>
+    <div class="stat-cell"><div class="stat-label">有路线记录</div><div class="stat-value">${withRoute}</div></div>
+  `;
+}
+
+function renderFilters(ws) {
+  const counts={};
+  ws.forEach(w=>{ counts[w.typeKey]=(counts[w.typeKey]||0)+1; });
+  const row=document.getElementById('filter-row');
+  row.innerHTML='<span class="filter-label">筛选</span>';
+  const allBtn=document.createElement('button');
+  allBtn.className='filter-btn active'; allBtn.dataset.key='all';
+  allBtn.textContent=`全部 (${ws.length})`; allBtn.onclick=()=>setFilter('all');
+  row.appendChild(allBtn);
+  Object.entries(counts).sort((a,b)=>b[1]-a[1]).forEach(([key,cnt])=>{
+    const btn=document.createElement('button');
+    btn.className='filter-btn'; btn.dataset.key=key;
+    btn.textContent=`${LABELS[key]||key} (${cnt})`; btn.onclick=()=>setFilter(key);
+    row.appendChild(btn);
+  });
+}
+
+function setFilter(key) {
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('active',b.dataset.key===key));
+  const filtered=key==='all'?allWorkouts:allWorkouts.filter(w=>w.typeKey===key);
+  renderGrid(filtered); renderStats(filtered);
+}
+
+function renderGrid(ws) {
+  const grid=document.getElementById('grid');
+  // Filter out garbage records: 0 duration AND no cal AND no dist
+  ws = ws.filter(w => w.duration > 60 || w.cal || w.dist);
+  if(!ws.length){ grid.innerHTML='<div style="padding:60px;text-align:center;color:var(--muted);grid-column:1/-1;font-style:italic;font-family:Cormorant Garamond,serif;font-size:22px">No records.</div>'; return; }
+  grid.innerHTML=ws.map((w,i)=>{
+    const dur=fmtDur(w.duration); const color=getColor(w.typeRaw);
+    const idx=allWorkouts.indexOf(w);
+    return `<div class="card${w.route?' has-route':''}" onclick="openModal(${idx})">
+      <div class="card-type" style="color:${color}"><span class="type-dot" style="background:${color}"></span>${w.typeLabel}</div>
+      <div class="card-duration">${dur.val}<span class="card-duration-unit"> ${dur.unit}</span></div>
+      <div class="card-meta">
+        <div><div class="meta-label">热量</div><div class="meta-value">${fmtCal(w.cal)}</div></div>
+        <div><div class="meta-label">距离</div><div class="meta-value">${w.dist?fmtDist(w.dist,w.distUnit):'—'}</div></div>
+      </div>
+      <div class="card-date">${fmtDate(w.start)}</div>
+    </div>`;
+  }).join('');
+}
+
+function openModal(idx) {
+  const w=allWorkouts[idx];
+  document.getElementById('modal-title').textContent=`${w.typeLabel} · ${fmtDate(w.start)}`;
+  const dur=fmtDur(w.duration);
+  const extraStats = [];
+  if (w.hr) extraStats.push(`<div class="modal-stat"><div class="stat-label">平均心率</div><div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">${Math.round(w.hr)} <span style="font-size:14px;color:var(--muted)">bpm</span></div></div>`);
+  // Speed/pace — skip for racket sports, team sports etc.
+  const NO_SPEED = new Set(['Tennis','TableTennis','Badminton','Basketball','Soccer','Volleyball','Wrestling','Boxing','MartialArts','Gymnastics','Dance','Yoga','Pilates','Barre','CoreTraining','FunctionalStrengthTraining','HighIntensityIntervalTraining']);
+  // Swimming: show pace per 100m instead of km/h
+  if (w.typeKey === 'Swimming' && w.dist && w.duration > 0) {
+    const dv = parseFloat(w.dist);
+    const du = (w.distUnit || '').toLowerCase();
+    // Convert to meters
+    const distM = (du === 'm' || du === 'meter' || du === 'meters') ? dv : dv * 1000;
+    if (distM > 10) {
+      const pace100sec = Math.round(w.duration / distM * 100);
+      const pm = Math.floor(pace100sec/60), ps = pace100sec%60;
+      extraStats.push(`<div class="modal-stat"><div class="stat-label">平均配速</div><div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">${pm}'${String(ps).padStart(2,'0')}" <span style="font-size:14px;color:var(--muted)">/100m</span></div></div>`);
+    }
+  }
+  if (!NO_SPEED.has(w.typeKey) && w.typeKey !== 'Swimming') {
+    if (w.pace) {
+      const pm = Math.floor(w.pace), ps = Math.round((w.pace - pm) * 60);
+      extraStats.push(`<div class="modal-stat"><div class="stat-label">配速</div><div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">${pm}'${String(ps).padStart(2,'0')}" <span style="font-size:14px;color:var(--muted)">/km</span></div></div>`);
+    } else if (w.speed) {
+      extraStats.push(`<div class="modal-stat"><div class="stat-label">平均速度</div><div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">${w.speed.toFixed(1)} <span style="font-size:14px;color:var(--muted)">km/h</span></div></div>`);
+    }
+  }
+  // Vertical drop for snow sports
+  if (w.vertDrop && w.vertDrop > 10) extraStats.push(`<div class="modal-stat"><div class="stat-label">垂直落差</div><div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">${w.vertDrop} <span style="font-size:14px;color:var(--muted)">m</span></div></div>`);
+  if (w.elevGain && w.elevGain > 10 && !['Snowboarding','Skiing','DownhillSkiing'].includes(w.typeKey)) extraStats.push(`<div class="modal-stat"><div class="stat-label">爬升</div><div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">${w.elevGain} <span style="font-size:14px;color:var(--muted)">m</span></div></div>`);
+  // Weather
+  if (w.tempC !== null) extraStats.push(`<div class="modal-stat"><div class="stat-label">气温</div><div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">${w.tempC} <span style="font-size:14px;color:var(--muted)">°C</span></div></div>`);
+  if (w.humidity !== null) extraStats.push(`<div class="modal-stat"><div class="stat-label">湿度</div><div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">${w.humidity} <span style="font-size:14px;color:var(--muted)">%</span></div></div>`);
+  if (w.typeKey === 'Swimming') {
+    if (w.lapLength) extraStats.push(`<div class="modal-stat"><div class="stat-label">泳池长度</div><div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">${w.lapLength} <span style="font-size:14px;color:var(--muted)">m</span></div></div>`);
+    if (w.strokeCount) extraStats.push(`<div class="modal-stat"><div class="stat-label">总划水次数</div><div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">${w.strokeCount}</div></div>`);
+  }
+  if (w.airQuality !== null) extraStats.push(`<div class="modal-stat"><div class="stat-label">空气质量</div><div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">${w.airQuality}</div></div>`);
+  let runsHtml = '';
+  if (w.runs && w.runs.length > 0) {
+    const runsWord = w.typeKey === 'Swimming' ? '圈' : '趟';
+    const isSwimRuns = w.typeKey === 'Swimming';
+    const runItems = w.runs.map((seg,i) => {
+      const isObj = typeof seg === 'object';
+      const durSec = isObj ? seg.durSec : seg;
+      const mins = Math.floor(durSec/60);
+      const secs = Math.round(durSec%60);
+      const durStr = mins > 0 ? (secs > 0 ? `${mins}m${secs}s` : `${mins} min`) : `${secs}s`;
+      const label = `${runsWord.replace('圈','').replace('趟','')}${i+1}`;
+      const cells = [];
+      cells.push(`<td style="padding:5px 10px 5px 0;color:var(--muted);font-size:12px;white-space:nowrap">${runsWord === '圈' ? '第'+( i+1)+'圈' : '第'+(i+1)+'趟'}</td>`);
+      cells.push(`<td style="padding:5px 10px">${durStr}</td>`);
+      if (isObj && seg.dist) {
+        const d = seg.dist;
+        cells.push(`<td style="padding:5px 10px">${d < 1 ? Math.round(d*1000)+'m' : d.toFixed(2)+' km'}</td>`);
+      }
+      if (isObj && seg.strokeStyle) cells.push(`<td style="padding:5px 10px;color:var(--muted)">${seg.strokeStyle}</td>`);
+      if (isObj && seg.pace100) {
+        const pm = Math.floor(seg.pace100/60), ps = String(seg.pace100%60).padStart(2,'0');
+        cells.push(`<td style="padding:5px 10px">${pm}'${ps}"/100m</td>`);
+      }
+      if (isObj && seg.vertDrop) cells.push(`<td style="padding:5px 10px">↓${seg.vertDrop}m</td>`);
+      if (isObj && seg.speed)    cells.push(`<td style="padding:5px 10px">${seg.speed.toFixed(1)} km/h</td>`);
+      if (isObj && seg.maxSpeed) cells.push(`<td style="padding:5px 10px;color:var(--muted)">最高${seg.maxSpeed.toFixed(1)}</td>`);
+      if (isObj && seg.hr)       cells.push(`<td style="padding:5px 10px">${Math.round(seg.hr)} bpm</td>`);
+      if (isObj && seg.strokes)  cells.push(`<td style="padding:5px 10px;color:var(--muted)">${seg.strokes}划</td>`);
+      return `<tr style="border-bottom:1px solid var(--border)">${cells.join('')}</tr>`;
+    }).join('');
+    runsHtml = `<div style="margin-top:16px;border:1px solid var(--border);border-radius:4px;overflow:hidden">
+      <div style="padding:10px 16px 8px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">共 ${w.runs.length} ${runsWord}</div>
+      <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px"><tbody>${runItems}</tbody></table></div>
+    </div>`;
+  }
+  document.getElementById('modal-stats').innerHTML=`
+    <div class="modal-stat"><div class="stat-label">时长</div><div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">${dur.val} ${dur.unit}</div></div>
+    <div class="modal-stat"><div class="stat-label">热量</div><div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">${fmtCal(w.cal)}</div></div>
+    <div class="modal-stat"><div class="stat-label">距离</div><div class="stat-value" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:300">${w.dist?fmtDist(w.dist,w.distUnit):'—'}</div></div>
+    ${extraStats.join('')}
+  `;
+  // Append runs table AFTER the stats grid, not inside it
+  const runsContainer = document.getElementById('modal-runs');
+  if (runsContainer) runsContainer.innerHTML = runsHtml;
+
+  document.getElementById('modal-overlay').classList.add('open');
+  setTimeout(()=>initMap(w), 80);
+}
+
+function initMap(w) {
+  const mapEl=document.getElementById('route-map');
+  if(leafletMap){ leafletMap.remove(); leafletMap=null; }
+
+  mapEl.style.height='360px';
+  mapEl.innerHTML='';
+  leafletMap=L.map(mapEl,{zoomControl:true,attributionControl:false});
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:19,subdomains:'abcd'}).addTo(leafletMap);
+  const color=getColor(w.typeRaw);
+
+  if(w.route && w.route.length>1) {
+    const poly=L.polyline(w.route,{color,weight:3,opacity:0.85}).addTo(leafletMap);
+    L.circleMarker(w.route[0],{radius:6,fillColor:'#fff',color,weight:2,fillOpacity:1}).addTo(leafletMap);
+    L.circleMarker(w.route[w.route.length-1],{radius:6,fillColor:color,color,weight:2,fillOpacity:1}).addTo(leafletMap);
+    leafletMap.fitBounds(poly.getBounds(),{padding:[24,24]});
+  } else if(w.locationPin) {
+    L.circleMarker(w.locationPin,{radius:10,fillColor:color,color:'#fff',weight:2,fillOpacity:0.9}).addTo(leafletMap);
+    leafletMap.setView(w.locationPin, 15);
+  } else {
+    mapEl.style.height='80px';
+    mapEl.innerHTML='<div class="no-route-msg" style="padding:20px">没有位置记录</div>';
+    if(leafletMap){leafletMap.remove();leafletMap=null;}
+    return;
+  }
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  if(leafletMap){ leafletMap.remove(); leafletMap=null; }
+}
+
+document.getElementById('modal-overlay').addEventListener('click',e=>{ if(e.target===e.currentTarget) closeModal(); });
+
+const zone=document.getElementById('upload-zone');
+const fileInput=document.getElementById('file-input');
+zone.addEventListener('click',()=>fileInput.click());
+zone.addEventListener('dragover',e=>{ e.preventDefault(); zone.classList.add('drag-over'); });
+zone.addEventListener('dragleave',()=>zone.classList.remove('drag-over'));
+zone.addEventListener('drop',e=>{ e.preventDefault(); zone.classList.remove('drag-over'); if(e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]); });
+fileInput.addEventListener('change',e=>{ if(e.target.files[0]) processFile(e.target.files[0]); });
+
+async function processFile(file) {
+  zone.classList.add('hidden');
+  const prog = document.getElementById('progress');
+  prog.style.display='block';
+  prog.textContent = '正在解压 zip…';
+  try {
+    const zip = await JSZip.loadAsync(file);
+
+    // Debug: list all files
+    const allFiles = [];
+    zip.forEach((path) => allFiles.push(path));
+    prog.textContent = `zip 内共 ${allFiles.length} 个文件，正在查找 export.xml…`;
+
+    const xmlEntry = Object.values(zip.files).find(f =>
+      (f.name.toLowerCase().endsWith('export.xml') || f.name.endsWith('导出.xml')) && !f.dir
+    );
+
+    if (!xmlEntry) {
+      prog.innerHTML = `<b>找不到 export.xml</b><br><br>zip 内的文件列表：<br><pre style="text-align:left;font-size:11px;max-height:300px;overflow:auto;background:#f5f5f2;padding:12px;border-radius:4px">${allFiles.slice(0,60).join('\n')}</pre>`;
+      return;
+    }
+
+    prog.textContent = `找到 ${xmlEntry.name}，正在读取（可能需要几秒）…`;
+    const xmlStr = await xmlEntry.async('string');
+    prog.textContent = `XML 大小 ${(xmlStr.length/1024/1024).toFixed(1)} MB，正在解析…`;
+
+    // Show a snippet to verify content
+    const snippet = xmlStr.slice(0, 500);
+    const hasWorkout = xmlStr.includes('<Workout ');
+    prog.innerHTML = `XML ${(xmlStr.length/1024/1024).toFixed(1)} MB，含 &lt;Workout&gt;: <b>${hasWorkout}</b><br><pre style="text-align:left;font-size:10px;max-height:160px;overflow:auto;background:#f5f5f2;padding:8px;border-radius:4px;margin-top:8px">${snippet.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>`;
+
+    if (!hasWorkout) {
+      prog.innerHTML += '<br><b>XML 里没有 &lt;Workout&gt; 标签，可能导出的不是完整健康数据，或者这个 zip 只包含了部分数据。</b>';
+      return;
+    }
+
+    allWorkouts = await processZip(file);
+    const routeCount = allWorkouts.filter(w => w.route && w.route.length > 1).length;
+    const pinCount = allWorkouts.filter(w => w.locationPin).length;
+    console.log(`[Dopamine Ledger] ${allWorkouts.length} workouts, ${routeCount} with routes, ${pinCount} with location pins`);
+    if (routeCount === 0) {
+      prog.innerHTML = `<span style="color:#c84a3a">⚠ 解析完成：${allWorkouts.length} 条记录，但没有匹配到路线数据。</span><br><span style="font-size:12px;color:var(--muted)">如果运动 app 有录制路线，请检查 zip 内是否有 workout-routes 文件夹。</span>`;
+      await new Promise(r => setTimeout(r, 3000));
+    }
+    prog.style.display='none';
+    document.getElementById('data-section').classList.add('visible');
+    renderStats(allWorkouts); renderFilters(allWorkouts); renderGrid(allWorkouts);
+  } catch(e) {
+    prog.textContent = '解析出错：' + e.message;
+    console.error(e);
+  }
+}
+
+function fixDate(str) {
+  if (!str) return null;
+  // Properly parse timezone for ISO conversion
+  const m = str.trim().match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})\s*([+-])(\d{2})(\d{2})$/);
+  if (m) {
+    const utc = Date.UTC(parseInt(m[1]), parseInt(m[2])-1, parseInt(m[3]),
+                         parseInt(m[4]), parseInt(m[5]), parseInt(m[6]));
+    const sign = m[7]==='+' ? 1 : -1;
+    const offset = sign * (parseInt(m[8])*3600000 + parseInt(m[9])*60000);
+    return new Date(utc - offset).toISOString();
+  }
+  const d = safeDate(str);
+  return d ? d.toISOString() : str;
+}
+
+function exportJSON() {
+  if (!allWorkouts || allWorkouts.length === 0) return;
+  const exportData = allWorkouts.map(w => {
+    const { route, ...rest } = w;
+    return {
+      ...rest,
+      start: fixDate(w.start),
+      hasRoute: !!route,
+      routeCoords: route || null
+    };
+  });
+  const json = JSON.stringify({ exported: new Date().toISOString(), workouts: exportData }, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'dopamine-ledger.json';
+  a.click();
+}
+</script>
+</body>
+</html>
