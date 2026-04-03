@@ -132,6 +132,36 @@
       color: #8c847d;
     }
 
+@media (max-width: 760px) {
+  .content {
+    grid-template-columns: 1fr;
+  }
+
+  .masonry {
+    column-count: 2;
+  }
+
+  aside {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px 36px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(109, 102, 98, 0.15);
+  }
+
+  .sidebar-title {
+    width: 100%;
+    margin-bottom: 6px;
+  }
+
+  .tag-list,
+  .camera-list {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+  }
+}
+    
     #lightbox {
       position: fixed;
       inset: 0;
