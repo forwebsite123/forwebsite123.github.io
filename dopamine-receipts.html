@@ -635,53 +635,6 @@
       return n.toFixed(2) + ' km';
     }
 
-  // --- GCJ-02 → WGS84 coordinate conversion (fixes China GPS offset on OpenStreetMap) ---
-  const GCJ_A = 6378245.0;
-  const GCJ_EE = 0.00669342162296594323;
-
-  function outOfChina(lat, lng) {
-    return lng < 72.004 || lng > 137.8347 || lat < 0.8293 || lat > 55.8271;
-  }
-
-  function transformLat(x, y) {
-    let r = -100.0 + 2.0*x + 3.0*y + 0.2*y*y + 0.1*x*y + 0.2*Math.sqrt(Math.abs(x));
-    r += (20.0*Math.sin(6.0*x*Math.PI) + 20.0*Math.sin(2.0*x*Math.PI)) * 2.0 / 3.0;
-    r += (20.0*Math.sin(y*Math.PI) + 40.0*Math.sin(y/3.0*Math.PI)) * 2.0 / 3.0;
-    r += (160.0*Math.sin(y/12.0*Math.PI) + 320.0*Math.sin(y*Math.PI/30.0)) * 2.0 / 3.0;
-    return r;
-  }
-
-  function transformLng(x, y) {
-    let r = 300.0 + x + 2.0*y + 0.1*x*x + 0.1*x*y + 0.1*Math.sqrt(Math.abs(x));
-    r += (20.0*Math.sin(6.0*x*Math.PI) + 20.0*Math.sin(2.0*x*Math.PI)) * 2.0 / 3.0;
-    r += (20.0*Math.sin(x*Math.PI) + 40.0*Math.sin(x/3.0*Math.PI)) * 2.0 / 3.0;
-    r += (150.0*Math.sin(x/12.0*Math.PI) + 300.0*Math.sin(x/30.0*Math.PI)) * 2.0 / 3.0;
-    return r;
-  }
-
-  function gcj02ToWgs84(lat, lng) {
-    if (outOfChina(lat, lng)) return [lat, lng];
-    let dLat = transformLat(lng - 105.0, lat - 35.0);
-    let dLng = transformLng(lng - 105.0, lat - 35.0);
-    const radLat = lat / 180.0 * Math.PI;
-    let magic = Math.sin(radLat);
-    magic = 1 - GCJ_EE * magic * magic;
-    const sqrtMagic = Math.sqrt(magic);
-    dLat = (dLat * 180.0) / ((GCJ_A * (1 - GCJ_EE)) / (magic * sqrtMagic) * Math.PI);
-    dLng = (dLng * 180.0) / (GCJ_A / sqrtMagic * Math.cos(radLat) * Math.PI);
-    return [lat - dLat, lng - dLng];
-  }
-
-  function convertCoord(coord) {
-    if (!coord || coord.length < 2) return coord;
-    return gcj02ToWgs84(coord[0], coord[1]);
-  }
-
-  function convertRoute(route) {
-    if (!Array.isArray(route)) return route;
-    return route.map(convertCoord);
-  }
-
   function normalizeWorkout(w) {
   const typeK = w.typeKey || typeKey(w.typeRaw);
 
@@ -690,14 +643,12 @@
     w.route ||
     null;
 
-  const convertedRoute = convertRoute(route);
-
   return {
     ...w,
     typeKey: typeK,
     typeLabel: w.typeLabel || getLabel(w.typeRaw, typeK),
-    route: convertedRoute,
-    hasRoute: !!(convertedRoute && convertedRoute.length > 1),
+    route,
+    hasRoute: !!(route && route.length > 1),
 
     runs: Array.isArray(w.runs) ? w.runs : null,
     hr: w.hr ?? null,
@@ -710,7 +661,7 @@
     airQuality: w.airQuality ?? null,
     lapLength: w.lapLength ?? null,
     strokeCount: w.strokeCount ?? null,
-    locationPin: w.locationPin ? convertCoord(w.locationPin) : null
+    locationPin: w.locationPin ?? null
   };
 }
     function setStatus(message, isError = false) {
