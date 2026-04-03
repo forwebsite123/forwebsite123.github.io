@@ -595,12 +595,14 @@
 
     function parseDate(str) {
       if (!str) return null;
-      // Convert "2026-03-12 18:49:34 +0800" → "2026-03-12T18:49:34+08:00" for iOS Safari
-      const fixed = str.replace(
-        /^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}:\d{2})\s*\+(\d{2})(\d{2})$/,
-        '$1T$2+$3:$4'
-      );
-      const d = new Date(fixed);
+      // Extract date components — numeric constructor works on all browsers
+      const m = str.match(/^(\d{4})-(\d{2})-(\d{2})[\sT](\d{2}):(\d{2}):(\d{2})/);
+      if (m) {
+        return new Date(parseInt(m[1]), parseInt(m[2])-1, parseInt(m[3]),
+                        parseInt(m[4]), parseInt(m[5]), parseInt(m[6]));
+      }
+      // Fallback: handles ISO 8601 ("2026-03-12T10:49:34.000Z")
+      const d = new Date(str);
       return isNaN(d.getTime()) ? null : d;
     }
 
