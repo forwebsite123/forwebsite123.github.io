@@ -1057,7 +1057,7 @@ function openModal(idx) {
   }
 
   document.getElementById('modal-overlay').classList.add('open');
-  setTimeout(() => initMap(w), 80);
+  setTimeout(() => initMap(w), 150);
 }
     
     function initMap(w) {
@@ -1119,9 +1119,11 @@ function openModal(idx) {
         }
       }
 
-      // Fix mobile: recalculate map size after modal renders
+      // Fix mobile: recalculate map size after modal fully renders
       if (leafletMap) {
-        setTimeout(() => leafletMap.invalidateSize(), 200);
+        leafletMap.invalidateSize();
+        setTimeout(() => { if (leafletMap) leafletMap.invalidateSize(); }, 300);
+        setTimeout(() => { if (leafletMap) leafletMap.invalidateSize(); }, 600);
       }
     }
 
