@@ -1022,8 +1022,9 @@ function openModal(idx) {
       mapEl.style.height = '300px';
       mapEl.innerHTML = '';
       leafletMap = L.map(mapEl, { zoomControl: true, attributionControl: false });
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        subdomains: 'abcd'
       }).addTo(leafletMap);
 
       const color = getColor(w.typeRaw, w.typeKey);
@@ -1070,11 +1071,19 @@ function openModal(idx) {
         }
       }
 
-      // Fix mobile: recalculate map size after modal fully renders
+      // Fix mobile: recalculate map size and re-fit view
       if (leafletMap) {
-        leafletMap.invalidateSize();
-        setTimeout(() => { if (leafletMap) leafletMap.invalidateSize(); }, 300);
-        setTimeout(() => { if (leafletMap) leafletMap.invalidateSize(); }, 600);
+        const refitView = () => {
+          if (!leafletMap) return;
+          leafletMap.invalidateSize();
+          if (w.route && w.route.length > 1) {
+            leafletMap.fitBounds(L.polyline(w.route).getBounds(), { padding: [24, 24] });
+          } else if (w.locationPin) {
+            leafletMap.setView(w.locationPin, 15);
+          }
+        };
+        setTimeout(refitView, 300);
+        setTimeout(refitView, 800);
       }
     }
 
