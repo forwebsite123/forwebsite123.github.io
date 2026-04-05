@@ -385,7 +385,7 @@
     data.entries.forEach(e => {
       const photosHtml = (e.photos || []).map(p => `<img src="${p}" alt="" class="zoomable">`).join('');
       const videosHtml = (e.videos || []).map(bvid => `<div class="video-thumb"><iframe src="//player.bilibili.com/player.html?bvid=${bvid}&autoplay=0" allowfullscreen></iframe></div>`).join('');
-      const tagsHtml = (e.tags || []).map(t => `<a href="tag.html?tag=${t}" class="tag">${t}</a>`).join('');
+      const tagsHtml = (e.tags || []).map(t => `<a href="tag.html?tag=${t}&page=found-fragments.html" class="tag">${t}</a>`).join('');
       container.innerHTML += `
         <div class="entry">
           <div class="entry-left">
