@@ -65,6 +65,12 @@
       "lng": -3.436,
       "title": "UK",
       "page": "UK.html"
+    },
+    {
+      "lat": 48.8566,
+      "lng": 2.3522,
+      "title": "France",
+      "page": "france.html"
     }
   ]
 }
