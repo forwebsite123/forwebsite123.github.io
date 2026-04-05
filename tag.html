@@ -215,10 +215,6 @@
 
   <script>
     async function loadAndFilter() {
-      const res = await fetch('/photos.json');
-      const data = await res.json();
-      const allTaggedItems = data.items;
-
       const params = new URLSearchParams(window.location.search);
       const currentTag = (params.get("tag") || "").trim().toLowerCase();
       const currentPage = params.get("page") || "";
@@ -231,7 +227,7 @@
       if (currentTag) {
         tagTitle.textContent = "#" + currentTag;
         if (currentPage) {
-          const pageName = currentPage.replace('.html', '');
+          const pageName = currentPage.replace('.html', '').replace(/-/g, ' ');
           tagSubtitle.textContent = `Showing items tagged "${currentTag}" in ${pageName}.`;
         } else {
           tagSubtitle.textContent = `Showing all items tagged with "${currentTag}".`;
@@ -241,7 +237,43 @@
         tagSubtitle.textContent = "No tag selected.";
       }
 
-      let filtered = allTaggedItems.filter(item =>
+      // Collect all taggable items from both sources
+      let allItems = [];
+
+      // 1. Photos from albums (photos.json)
+      try {
+        const res = await fetch('/photos.json');
+        const data = await res.json();
+        (data.items || []).forEach(item => {
+          allItems.push({
+            image: item.image,
+            title: item.title || '',
+            tags: item.tags || [],
+            page: item.page,
+            pageLabel: item.pageLabel || item.page?.replace('.html', '') || ''
+          });
+        });
+      } catch (e) {}
+
+      // 2. Found fragments (found-fragments.json)
+      try {
+        const res = await fetch('/found-fragments.json');
+        const data = await res.json();
+        (data.entries || []).forEach(entry => {
+          (entry.photos || []).forEach(photo => {
+            allItems.push({
+              image: photo,
+              title: entry.text || '',
+              tags: entry.tags || [],
+              page: 'found-fragments.html',
+              pageLabel: 'Found Fragments'
+            });
+          });
+        });
+      } catch (e) {}
+
+      // Filter by tag
+      let filtered = allItems.filter(item =>
         item.tags.some(tag => tag.toLowerCase() === currentTag)
       );
 
@@ -257,8 +289,10 @@
           const card = document.createElement("div");
           card.className = "card";
 
+          // Preserve page scope in tag links if we're scoped
+          const pageParam = currentPage ? `&page=${encodeURIComponent(currentPage)}` : '';
           const tagsHtml = item.tags.map(tag =>
-            `<a class="tag" href="tag.html?tag=${encodeURIComponent(tag)}">${tag}</a>`
+            `<a class="tag" href="tag.html?tag=${encodeURIComponent(tag)}${pageParam}">${tag}</a>`
           ).join("");
 
           card.innerHTML = `
