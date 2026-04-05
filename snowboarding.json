@@ -1,3 +1,22 @@
 {
-  "entries": []
+  "entries": [
+    {
+      "date": "2023.12.19",
+      "location": "Kopaonik",
+      "record_image": "/images/record_IMG_7779_1775372780339_khjt.jpg",
+      "record_caption": "",
+      "photos": [
+        "/images/IMG_7849_1775372783936_ol6o.jpg",
+        "/images/IMG_7847_1775372786295_70sq.jpg",
+        "/images/IMG_7781_1775372788544_yva4.jpg",
+        "/images/FullSizeRender_1775372790799_ripv.jpg",
+        "/images/IMG_7576_1775372794171_yabd.jpg",
+        "/images/IMG_7581_1775372796641_tn7e.jpg",
+        "/images/IMG_7556_1775372799471_nsox.jpg",
+        "/images/IMG_7635_1775372801723_ot62.jpg"
+      ],
+      "videos": [],
+      "note": "First try."
+    }
+  ]
 }
