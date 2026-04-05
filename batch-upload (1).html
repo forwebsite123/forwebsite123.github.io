@@ -1,0 +1,1872 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Batch Upload Tool</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap');
+  
+  :root {
+    --primary: #8b6f5e;
+    --primary-light: #c4a882;
+    --bg: #faf8f5;
+    --card: #ffffff;
+    --border: #e8ddd3;
+    --text: #4a3f35;
+    --text-light: #8a7e74;
+    --danger: #c0392b;
+    --danger-light: #e74c3c;
+    --success: #27ae60;
+    --warning: #e67e22;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: 2em;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--primary);
+    margin-bottom: 8px;
+  }
+
+  h2 {
+    font-size: 1.3em;
+    font-weight: 600;
+    color: var(--primary);
+    margin: 24px 0 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  h3 {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: var(--text);
+    margin: 16px 0 8px;
+  }
+
+  .subtitle {
+    color: var(--text-light);
+    font-style: italic;
+    margin-bottom: 24px;
+  }
+
+  /* Sections */
+  .section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  /* Form elements */
+  label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 4px;
+    font-size: 0.95em;
+  }
+
+  input[type="text"], input[type="password"], input[type="date"],
+  select, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 0.95em;
+    background: var(--bg);
+    color: var(--text);
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+
+  textarea { min-height: 80px; resize: vertical; }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 0.95em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    color: #fff;
+  }
+  .btn-primary:hover { background: var(--primary-light); }
+
+  .btn-danger {
+    background: var(--danger);
+    color: #fff;
+    padding: 6px 14px;
+    font-size: 0.85em;
+  }
+  .btn-danger:hover { background: var(--danger-light); }
+
+  .btn-secondary {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 16px;
+  }
+  .btn-secondary:hover { background: var(--bg); }
+
+  .btn-small {
+    padding: 4px 10px;
+    font-size: 0.8em;
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Mode tabs */
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 12px;
+    text-align: center;
+    cursor: pointer;
+    background: var(--bg);
+    font-weight: 600;
+    font-size: 0.95em;
+    transition: all 0.2s;
+    border: none;
+    font-family: inherit;
+  }
+
+  .tab.active {
+    background: var(--primary);
+    color: #fff;
+  }
+
+  .tab:not(.active):hover {
+    background: var(--border);
+  }
+
+  /* File upload area */
+  .upload-area {
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 12px;
+    position: relative;
+  }
+
+  .upload-area:hover, .upload-area.dragover {
+    border-color: var(--primary);
+    background: rgba(139, 111, 94, 0.05);
+  }
+
+  .upload-area input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .upload-area .icon { font-size: 2em; margin-bottom: 8px; }
+  .upload-area .hint { color: var(--text-light); font-size: 0.9em; }
+
+  /* Preview grid */
+  .preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .preview-item {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .preview-item .remove-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--danger);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 22px;
+    text-align: center;
+    opacity: 0.8;
+  }
+  .preview-item .remove-btn:hover { opacity: 1; }
+
+  /* Record image preview */
+  .record-preview {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .record-preview img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+
+  /* Existing entries */
+  .entry-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+
+  .entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .entry-date {
+    font-weight: 600;
+    color: var(--primary);
+  }
+
+  .entry-location {
+    color: var(--text-light);
+    font-style: italic;
+  }
+
+  .entry-photos {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  .entry-photos .thumb {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .entry-photos .thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .entry-photos .thumb .del-photo {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--danger);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-size: 11px;
+    line-height: 18px;
+    text-align: center;
+  }
+
+  .entry-note {
+    color: var(--text-light);
+    font-size: 0.9em;
+    margin-top: 6px;
+    font-style: italic;
+  }
+
+  /* Progress */
+  .progress-bar {
+    width: 100%;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 8px 0;
+  }
+
+  .progress-bar .fill {
+    height: 100%;
+    background: var(--primary);
+    transition: width 0.3s;
+    border-radius: 3px;
+  }
+
+  /* Log */
+  .log {
+    background: #2d2520;
+    color: #d4c5b5;
+    padding: 14px;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.82em;
+    max-height: 300px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin-top: 12px;
+    display: none;
+  }
+
+  .log .error { color: #e74c3c; }
+  .log .success { color: #27ae60; }
+  .log .warn { color: #e67e22; }
+
+  /* Status bar */
+  .status {
+    padding: 10px 14px;
+    border-radius: 6px;
+    margin: 10px 0;
+    font-size: 0.9em;
+    display: none;
+  }
+
+  .status.error { background: #fde8e8; color: var(--danger); display: block; }
+  .status.success { background: #e8f8ef; color: var(--success); display: block; }
+  .status.info { background: #eee; color: var(--text); display: block; }
+
+  /* Row layout */
+  .form-row {
+    display: flex;
+    gap: 12px;
+  }
+  .form-row > * { flex: 1; }
+
+  /* Compression settings */
+  .settings-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    font-size: 0.9em;
+    flex-wrap: wrap;
+  }
+
+  .settings-row label {
+    display: inline;
+    font-weight: normal;
+    margin: 0;
+  }
+
+  .settings-row select, .settings-row input {
+    width: auto;
+    margin: 0;
+    padding: 6px 10px;
+  }
+
+  /* Checkbox */
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .checkbox-row input { width: auto; margin: 0; }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    body { padding: 12px; }
+    h1 { font-size: 1.6em; }
+    .form-row { flex-direction: column; gap: 0; }
+    .preview-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
+    .section { padding: 14px; }
+    .entry-header { flex-direction: column; align-items: flex-start; gap: 6px; }
+  }
+
+  .hidden { display: none !important; }
+
+  .edit-form {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border);
+  }
+  .edit-form label { font-size: 0.85em; margin-bottom: 2px; }
+  .edit-form input { margin-bottom: 6px; }
+
+  /* Loading spinner */
+  .spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    vertical-align: middle;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+  }
+
+  .confirm-box {
+    background: var(--card);
+    border-radius: 10px;
+    padding: 24px;
+    max-width: 360px;
+    width: 90%;
+    text-align: center;
+  }
+
+  .confirm-box p { margin-bottom: 16px; }
+
+  .confirm-box .btn-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+  }
+</style>
+</head>
+<body>
+
+<h1>Batch Upload</h1>
+<p class="subtitle">A place to leave traces — manage your photos & entries.</p>
+
+<!-- Token Section -->
+<div class="section" id="tokenSection">
+  <label for="tokenInput">GitHub Personal Access Token</label>
+  <input type="password" id="tokenInput" placeholder="ghp_xxxxxxxxxxxx">
+  <div class="checkbox-row">
+    <input type="checkbox" id="rememberToken" checked>
+    <label for="rememberToken">Remember token on this device</label>
+  </div>
+  <div class="form-row">
+    <div>
+      <label for="repoOwner">Repo Owner</label>
+      <input type="text" id="repoOwner" value="forwebsite123">
+    </div>
+    <div>
+      <label for="repoName">Repo Name</label>
+      <input type="text" id="repoName" value="forwebsite123.github.io">
+    </div>
+  </div>
+  <button class="btn btn-primary" onclick="connectGitHub()">Connect</button>
+  <div id="connectStatus" class="status"></div>
+</div>
+
+<!-- Main Content (hidden until connected) -->
+<div id="mainContent" class="hidden">
+
+  <!-- Mode Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchMode('album')">Photo Albums</button>
+    <button class="tab" onclick="switchMode('activity')">Activity Entries</button>
+    <button class="tab" onclick="switchMode('marker')">Map Markers</button>
+  </div>
+
+  <!-- ==================== ALBUM MODE ==================== -->
+  <div id="albumMode">
+    <div class="section">
+      <label for="albumSelect">Select Album</label>
+      <select id="albumSelect" onchange="onAlbumSelectChange()">
+        <option value="">-- Loading... --</option>
+      </select>
+
+      <div id="newAlbumRow" class="hidden" style="margin-top:12px">
+        <div class="form-row">
+          <div>
+            <label for="newAlbumPage">Page filename</label>
+            <input type="text" id="newAlbumPage" placeholder="e.g. france.html">
+          </div>
+          <div>
+            <label for="newAlbumLabel">Display label</label>
+            <input type="text" id="newAlbumLabel" placeholder="e.g. France">
+          </div>
+        </div>
+        <p style="font-size:0.82em;color:var(--text-light);margin:0 0 8px;">
+          Make sure you've already created the corresponding HTML file and pushed it to the repo.
+        </p>
+      </div>
+    </div>
+
+    <!-- Existing Photos in Album -->
+    <div class="section" id="albumExisting" style="display:none">
+      <h2>Existing Photos</h2>
+      <div id="albumPhotoList"></div>
+    </div>
+
+    <!-- Add New Photos -->
+    <div class="section">
+      <h2>Add New Photos</h2>
+      <div class="settings-row">
+        <label>Compress to max width:</label>
+        <select id="albumMaxWidth">
+          <option value="0">No compression</option>
+          <option value="2400" selected>2400px</option>
+          <option value="1600">1600px</option>
+          <option value="1200">1200px</option>
+          <option value="800">800px</option>
+        </select>
+        <label>Quality:</label>
+        <select id="albumQuality">
+          <option value="0.95">95%</option>
+          <option value="0.85" selected>85%</option>
+          <option value="0.7">70%</option>
+        </select>
+      </div>
+
+      <div class="upload-area" id="albumUploadArea">
+        <input type="file" accept="image/*" multiple onchange="handleAlbumFiles(this.files)">
+        <div class="icon">📷</div>
+        <div>Click or drag photos here</div>
+        <div class="hint">Supports multiple files · Mobile camera supported</div>
+      </div>
+      <div class="preview-grid" id="albumPreview"></div>
+
+      <label for="albumTags">Tags (comma separated)</label>
+      <input type="text" id="albumTags" placeholder="e.g. street, food, sunset">
+
+      <label for="albumVideo">Bilibili BV (optional)</label>
+      <input type="text" id="albumVideo" placeholder="e.g. BVxxxxxxxxxx">
+
+      <button class="btn btn-primary" id="albumSubmit" onclick="submitAlbumPhotos()" disabled>
+        Upload Photos
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== ACTIVITY MODE ==================== -->
+  <div id="activityMode" class="hidden">
+    <div class="section">
+      <label for="activitySelect">Select Activity</label>
+      <select id="activitySelect" onchange="loadActivityEntries()">
+        <option value="">-- Choose activity --</option>
+        <option value="snowboarding">Snowboarding</option>
+        <option value="diving">Diving</option>
+        <option value="horse-riding">Horse Riding</option>
+        <option value="kitesurfing">Kitesurfing</option>
+        <option value="found-fragments">Found Fragments</option>
+      </select>
+    </div>
+
+    <!-- Existing Entries -->
+    <div class="section" id="activityExisting" style="display:none">
+      <h2>Existing Entries</h2>
+      <p class="subtitle" style="margin-bottom:12px">Sorted by date, newest first. Click delete to remove entries or individual photos.</p>
+      <div id="activityEntryList"></div>
+    </div>
+
+    <!-- Add New Entry -->
+    <div class="section" id="newEntrySection" style="display:none">
+      <h2>Add New Entry</h2>
+
+      <div class="form-row">
+        <div>
+          <label for="entryDate">Date</label>
+          <input type="text" id="entryDate" placeholder="2026.03.31">
+        </div>
+        <div id="locationField">
+          <label for="entryLocation">Location</label>
+          <input type="text" id="entryLocation" placeholder="e.g. Niseko">
+        </div>
+      </div>
+
+      <!-- Record Image (snowboarding/diving only) -->
+      <div id="recordImageSection">
+        <label>Record Image (achievement/record photo)</label>
+        <div class="upload-area" id="recordUploadArea">
+          <input type="file" accept="image/*" onchange="handleRecordImage(this.files)">
+          <div class="icon">🏔️</div>
+          <div>Upload record image</div>
+          <div class="hint">This appears in the left column of the timeline</div>
+        </div>
+        <div class="record-preview" id="recordPreview" style="display:none"></div>
+        <label for="recordCaption">Record Caption (optional)</label>
+        <input type="text" id="recordCaption" placeholder="e.g. First black diamond run!">
+      </div>
+
+      <!-- Photos -->
+      <label>Photos</label>
+      <div class="settings-row">
+        <label>Compress to max width:</label>
+        <select id="activityMaxWidth">
+          <option value="0">No compression</option>
+          <option value="2400" selected>2400px</option>
+          <option value="1600">1600px</option>
+          <option value="1200">1200px</option>
+          <option value="800">800px</option>
+        </select>
+        <label>Quality:</label>
+        <select id="activityQuality">
+          <option value="0.95">95%</option>
+          <option value="0.85" selected>85%</option>
+          <option value="0.7">70%</option>
+        </select>
+      </div>
+
+      <div class="upload-area" id="activityUploadArea">
+        <input type="file" accept="image/*" multiple onchange="handleActivityFiles(this.files)">
+        <div class="icon">📷</div>
+        <div>Click or drag photos here</div>
+        <div class="hint">Supports multiple files · Mobile camera supported</div>
+      </div>
+      <div class="preview-grid" id="activityPreview"></div>
+
+      <!-- Videos -->
+      <label for="entryVideos">Bilibili BV IDs (comma separated, optional)</label>
+      <input type="text" id="entryVideos" placeholder="e.g. BVxxx, BVyyy">
+
+      <!-- Note / Text -->
+      <div id="noteField">
+        <label for="entryNote">Note</label>
+        <textarea id="entryNote" placeholder="Your thoughts about this experience..."></textarea>
+      </div>
+
+      <div id="textField" class="hidden">
+        <label for="entryText">Text</label>
+        <textarea id="entryText" placeholder="Fragment text..."></textarea>
+        <label for="entryTextTags">Tags (comma separated)</label>
+        <input type="text" id="entryTextTags" placeholder="e.g. thought, poem">
+      </div>
+
+      <button class="btn btn-primary" id="activitySubmit" onclick="submitActivityEntry()">
+        Submit Entry
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== MAP MARKERS MODE ==================== -->
+  <div id="markerMode" class="hidden">
+    <div class="section">
+      <h2>Existing Map Markers</h2>
+      <p class="subtitle" style="margin-bottom:12px">These markers appear on the Drift Coordinates map. Each links to an album page.</p>
+      <div id="markerList"></div>
+      <button class="btn btn-secondary" onclick="loadMapMarkers()" style="margin-top:10px">Refresh</button>
+    </div>
+
+    <div class="section">
+      <h2>Add New Marker</h2>
+      <div class="form-row">
+        <div>
+          <label for="markerTitle">Display Name</label>
+          <input type="text" id="markerTitle" placeholder="e.g. France">
+        </div>
+        <div>
+          <label for="markerPage">Album Page</label>
+          <input type="text" id="markerPage" placeholder="e.g. france.html">
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label for="markerLat">Latitude</label>
+          <input type="text" id="markerLat" placeholder="e.g. 48.8566">
+        </div>
+        <div>
+          <label for="markerLng">Longitude</label>
+          <input type="text" id="markerLng" placeholder="e.g. 2.3522">
+        </div>
+      </div>
+      <p style="font-size:0.85em;color:var(--text-light);margin-bottom:12px;">
+        Tip: Search the city/country name on Google Maps, right-click the location, and copy the coordinates.
+      </p>
+      <button class="btn btn-primary" onclick="addMapMarker()">Add Marker</button>
+    </div>
+  </div>
+
+  <!-- Progress & Log -->
+  <div id="progressSection" class="hidden">
+    <div class="section">
+      <h3 id="progressTitle">Uploading...</h3>
+      <div class="progress-bar"><div class="fill" id="progressFill" style="width:0%"></div></div>
+      <div id="progressText" style="font-size:0.85em;color:var(--text-light)">0%</div>
+    </div>
+  </div>
+
+  <div id="uploadStatus" class="status"></div>
+  <div class="log" id="logArea"></div>
+  <button class="btn btn-secondary btn-small" onclick="toggleLog()" style="margin-top:8px">Show/Hide Log</button>
+</div>
+
+<script>
+// ==================== STATE ====================
+let TOKEN = '';
+let OWNER = '';
+let REPO = '';
+const API = 'https://api.github.com';
+
+// File queues
+let albumFiles = [];      // [{file, dataUrl, compressed}]
+let activityFiles = [];   // [{file, dataUrl, compressed}]
+let recordImageFile = null; // {file, dataUrl, compressed}
+
+// Current data
+let currentPhotosJson = null;
+let currentActivityJson = null;
+let currentActivityType = '';
+
+// ==================== INIT ====================
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('gh_token');
+  if (saved) {
+    document.getElementById('tokenInput').value = saved;
+  }
+  const savedOwner = localStorage.getItem('gh_owner');
+  const savedRepo = localStorage.getItem('gh_repo');
+  if (savedOwner) document.getElementById('repoOwner').value = savedOwner;
+  if (savedRepo) document.getElementById('repoName').value = savedRepo;
+
+  // Drag and drop
+  setupDragDrop('albumUploadArea', files => handleAlbumFiles(files));
+  setupDragDrop('activityUploadArea', files => handleActivityFiles(files));
+  setupDragDrop('recordUploadArea', files => handleRecordImage(files));
+});
+
+function setupDragDrop(id, handler) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('dragover'); });
+  el.addEventListener('dragleave', () => el.classList.remove('dragover'));
+  el.addEventListener('drop', e => {
+    e.preventDefault();
+    el.classList.remove('dragover');
+    handler(e.dataTransfer.files);
+  });
+}
+
+// ==================== GITHUB CONNECTION ====================
+async function connectGitHub() {
+  TOKEN = document.getElementById('tokenInput').value.trim();
+  OWNER = document.getElementById('repoOwner').value.trim();
+  REPO = document.getElementById('repoName').value.trim();
+  
+  if (!TOKEN || !OWNER || !REPO) {
+    showStatus('connectStatus', 'Please fill in all fields', 'error');
+    return;
+  }
+
+  try {
+    const res = await ghFetch(`/repos/${OWNER}/${REPO}`);
+    if (!res.ok) throw new Error('Cannot access repo');
+    
+    if (document.getElementById('rememberToken').checked) {
+      localStorage.setItem('gh_token', TOKEN);
+      localStorage.setItem('gh_owner', OWNER);
+      localStorage.setItem('gh_repo', REPO);
+    }
+    
+    showStatus('connectStatus', 'Connected to ' + OWNER + '/' + REPO, 'success');
+    document.getElementById('mainContent').classList.remove('hidden');
+    document.getElementById('tokenSection').style.display = 'none';
+    populateAlbumSelect();
+  } catch (e) {
+    showStatus('connectStatus', 'Connection failed: ' + e.message, 'error');
+  }
+}
+
+// ==================== MODE SWITCHING ====================
+function switchMode(mode) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', (mode === 'album' && i === 0) || (mode === 'activity' && i === 1) || (mode === 'marker' && i === 2));
+  });
+  document.getElementById('albumMode').classList.toggle('hidden', mode !== 'album');
+  document.getElementById('activityMode').classList.toggle('hidden', mode !== 'activity');
+  document.getElementById('markerMode').classList.toggle('hidden', mode !== 'marker');
+  if (mode === 'marker') loadMapMarkers();
+}
+
+// ==================== ALBUM MODE ====================
+async function populateAlbumSelect() {
+  const sel = document.getElementById('albumSelect');
+  sel.innerHTML = '<option value="">-- Choose album --</option>';
+
+  // All known album pages (add new ones here when you create a new album HTML)
+  const knownAlbums = [
+    { page: 'guangzhou.html', label: '广州' },
+    { page: 'korea.html', label: '韩国' },
+    { page: 'japan.html', label: '日本' },
+    { page: 'thailand.html', label: '泰国' },
+    { page: 'singapore.html', label: '新加坡' },
+    { page: 'egypt.html', label: '埃及' },
+    { page: 'tanzania.html', label: '坦桑尼亚' },
+    { page: 'australia.html', label: '澳大利亚' },
+    { page: 'brazil.html', label: '巴西' },
+    { page: 'canada.html', label: '加拿大' },
+    { page: 'country.html', label: 'Country' },
+    { page: 'UK.html', label: '英国' },
+  ];
+
+  // Merge with any additional albums found in photos.json
+  const pages = new Map();
+  knownAlbums.forEach(a => pages.set(a.page, a.label));
+
+  try {
+    currentPhotosJson = await fetchJsonFile('photos.json');
+    (currentPhotosJson.items || []).forEach(item => {
+      if (item.page && !pages.has(item.page)) {
+        pages.set(item.page, item.pageLabel || item.page.replace('.html', ''));
+      }
+    });
+  } catch (e) {
+    log('Could not load photos.json: ' + e.message, 'warn');
+  }
+
+  // Sort by label and populate
+  const sorted = [...pages.entries()].sort((a, b) => a[1].localeCompare(b[1]));
+  sorted.forEach(([page, label]) => {
+    const opt = document.createElement('option');
+    opt.value = page;
+    opt.dataset.label = label;
+    opt.textContent = label;
+    sel.appendChild(opt);
+  });
+
+  // Add "+ New Album" option at the end
+  const newOpt = document.createElement('option');
+  newOpt.value = '__new__';
+  newOpt.textContent = '+ New Album...';
+  sel.appendChild(newOpt);
+}
+
+function onAlbumSelectChange() {
+  const sel = document.getElementById('albumSelect');
+  const isNew = sel.value === '__new__';
+  document.getElementById('newAlbumRow').classList.toggle('hidden', !isNew);
+
+  if (!isNew && sel.value) {
+    loadAlbumPhotos();
+  } else {
+    document.getElementById('albumExisting').style.display = 'none';
+  }
+}
+
+function getSelectedAlbum() {
+  const sel = document.getElementById('albumSelect');
+  if (sel.value === '__new__') {
+    let page = document.getElementById('newAlbumPage').value.trim();
+    const label = document.getElementById('newAlbumLabel').value.trim();
+    if (!page || !label) return null;
+    if (!page.endsWith('.html')) page += '.html';
+    return { page, label };
+  } else if (sel.value) {
+    return {
+      page: sel.value,
+      label: sel.selectedOptions[0]?.dataset.label || sel.selectedOptions[0]?.text || ''
+    };
+  }
+  return null;
+}
+
+async function loadAlbumPhotos() {
+  const sel = document.getElementById('albumSelect');
+  const page = sel.value;
+  if (!page || page === '__new__') {
+    document.getElementById('albumExisting').style.display = 'none';
+    return;
+  }
+
+  try {
+    currentPhotosJson = await fetchJsonFile('photos.json');
+    const pagePhotos = currentPhotosJson.items.filter(item => item.page === page);
+    renderAlbumPhotos(pagePhotos, page);
+    document.getElementById('albumExisting').style.display = 'block';
+  } catch (e) {
+    log('Error loading photos.json: ' + e.message, 'error');
+  }
+}
+
+function renderAlbumPhotos(photos, page) {
+  const list = document.getElementById('albumPhotoList');
+  if (photos.length === 0) {
+    list.innerHTML = '<p style="color:var(--text-light);font-style:italic">No photos in this album yet.</p>';
+    return;
+  }
+
+  list.innerHTML = photos.map((p, i) => {
+    const safeImage = p.image.replace(/'/g, "\\'");
+    const safeTags = (p.tags || []).join(', ').replace(/'/g, "\\'");
+    const safeTitle = (p.title || '').replace(/'/g, "\\'");
+    return `
+    <div class="entry-card" data-index="${i}">
+      <div class="entry-header">
+        <span>${p.title || '(untitled)'}</span>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-secondary btn-small" onclick="toggleEditPhoto('${safeImage}', '${page}')">Edit</button>
+          <button class="btn btn-danger btn-small" onclick="deleteAlbumPhoto('${safeImage}', '${page}')">Delete</button>
+        </div>
+      </div>
+      <div class="entry-photos">
+        <div class="thumb"><img src="https://${OWNER}.github.io/${p.image}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%2250%25%22 x=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22>?</text></svg>'"></div>
+      </div>
+      ${p.tags && p.tags.length ? `<div class="entry-note">Tags: ${p.tags.join(', ')}</div>` : ''}
+      <div class="edit-form hidden" id="edit-${i}">
+        <label>Title</label>
+        <input type="text" id="editTitle-${i}" value="${safeTitle}" placeholder="(optional)">
+        <label>Tags (comma separated)</label>
+        <input type="text" id="editTags-${i}" value="${safeTags}">
+        <label>Bilibili BV (optional)</label>
+        <input type="text" id="editVideo-${i}" value="${p.video || ''}" placeholder="BVxxxxxxxxxx">
+        <div style="margin-top:8px;display:flex;gap:8px;">
+          <button class="btn btn-primary btn-small" onclick="saveEditPhoto('${safeImage}', ${i})">Save</button>
+          <button class="btn btn-secondary btn-small" onclick="toggleEditPhoto('${safeImage}', '${page}')">Cancel</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleEditPhoto(imagePath, page) {
+  // Find the index of this photo in the rendered list
+  const photos = currentPhotosJson.items.filter(item => item.page === page);
+  const idx = photos.findIndex(p => p.image === imagePath);
+  if (idx === -1) return;
+  const form = document.getElementById('edit-' + idx);
+  if (form) form.classList.toggle('hidden');
+}
+
+async function saveEditPhoto(imagePath, displayIdx) {
+  const newTitle = document.getElementById('editTitle-' + displayIdx).value.trim();
+  const newTags = document.getElementById('editTags-' + displayIdx).value.split(',').map(t => t.trim()).filter(Boolean);
+  const newVideo = document.getElementById('editVideo-' + displayIdx).value.trim();
+
+  try {
+    showProgress('Saving changes...');
+
+    // Find and update the item in photos.json
+    const jsonData = await fetchJsonFile('photos.json');
+    const item = jsonData.items.find(p => p.image === imagePath);
+    if (!item) {
+      hideProgress();
+      showStatus('uploadStatus', 'Photo not found in photos.json', 'error');
+      return;
+    }
+
+    item.title = newTitle;
+    item.tags = newTags;
+    if (newVideo) {
+      item.video = newVideo;
+    } else {
+      delete item.video;
+    }
+
+    await updateJsonFile('photos.json', jsonData);
+    currentPhotosJson = jsonData;
+
+    hideProgress();
+    showStatus('uploadStatus', 'Photo updated!', 'success');
+    loadAlbumPhotos();
+  } catch (e) {
+    hideProgress();
+    showStatus('uploadStatus', 'Save failed: ' + e.message, 'error');
+  }
+}
+
+async function deleteAlbumPhoto(imagePath, page) {
+  if (!await confirmAction(`Delete this photo from the album?`)) return;
+
+  try {
+    showProgress('Deleting photo...');
+    
+    // Remove from photos.json
+    const jsonData = await fetchJsonFile('photos.json');
+    jsonData.items = jsonData.items.filter(item => item.image !== imagePath);
+    await updateJsonFile('photos.json', jsonData);
+
+    // Optionally delete the image file from repo
+    try {
+      await deleteGitHubFile(imagePath.startsWith('/') ? imagePath.slice(1) : imagePath);
+      log('Image file deleted from repo', 'success');
+    } catch (e) {
+      log('Could not delete image file (may not exist): ' + e.message, 'warn');
+    }
+
+    hideProgress();
+    showStatus('uploadStatus', 'Photo deleted successfully', 'success');
+    loadAlbumPhotos();
+  } catch (e) {
+    hideProgress();
+    showStatus('uploadStatus', 'Delete failed: ' + e.message, 'error');
+  }
+}
+
+// ==================== ALBUM UPLOAD ====================
+async function handleAlbumFiles(fileList) {
+  for (const file of fileList) {
+    if (!file.type.startsWith('image/')) continue;
+    const maxW = parseInt(document.getElementById('albumMaxWidth').value);
+    const quality = parseFloat(document.getElementById('albumQuality').value);
+    const result = await processImage(file, maxW, quality);
+    albumFiles.push(result);
+  }
+  renderAlbumPreview();
+  document.getElementById('albumSubmit').disabled = albumFiles.length === 0;
+}
+
+function renderAlbumPreview() {
+  const grid = document.getElementById('albumPreview');
+  grid.innerHTML = albumFiles.map((f, i) => `
+    <div class="preview-item">
+      <img src="${f.dataUrl}">
+      <button class="remove-btn" onclick="removeAlbumFile(${i})">×</button>
+    </div>
+  `).join('');
+}
+
+function removeAlbumFile(i) {
+  albumFiles.splice(i, 1);
+  renderAlbumPreview();
+  document.getElementById('albumSubmit').disabled = albumFiles.length === 0;
+}
+
+async function submitAlbumPhotos() {
+  const album = getSelectedAlbum();
+  if (!album || albumFiles.length === 0) {
+    if (!album) showStatus('uploadStatus', 'Please select or create an album first', 'error');
+    return;
+  }
+  const { page, label: pageLabel } = album;
+
+  const tags = document.getElementById('albumTags').value.split(',').map(t => t.trim()).filter(Boolean);
+  const video = document.getElementById('albumVideo').value.trim();
+
+  try {
+    const total = albumFiles.length + 1; // +1 for JSON update
+    let done = 0;
+    showProgress(`Uploading ${albumFiles.length} photos...`);
+
+    // Get current photos.json
+    const jsonData = await fetchJsonFile('photos.json');
+
+    for (const f of albumFiles) {
+      const filename = generateFilename(f.file.name);
+      const path = `images/${filename}`;
+      
+      log(`Uploading ${filename}...`);
+      await uploadFileToGitHub(path, f.compressed);
+
+      jsonData.items.push({
+        title: '',
+        image: '/' + path,
+        ...(video ? { video } : {}),
+        tags: tags,
+        page: page,
+        pageLabel: pageLabel
+      });
+
+      done++;
+      updateProgress(done / total);
+    }
+
+    // Save JSON
+    log('Updating photos.json...');
+    await updateJsonFile('photos.json', jsonData);
+    done++;
+    updateProgress(1);
+
+    hideProgress();
+    showStatus('uploadStatus', `${albumFiles.length} photos uploaded successfully!`, 'success');
+    
+    // Reset
+    albumFiles = [];
+    renderAlbumPreview();
+    document.getElementById('albumSubmit').disabled = true;
+    document.getElementById('albumTags').value = '';
+    document.getElementById('albumVideo').value = '';
+    document.getElementById('newAlbumPage').value = '';
+    document.getElementById('newAlbumLabel').value = '';
+    document.getElementById('newAlbumRow').classList.add('hidden');
+    await populateAlbumSelect();
+    document.getElementById('albumSelect').value = page;
+    loadAlbumPhotos();
+  } catch (e) {
+    hideProgress();
+    showStatus('uploadStatus', 'Upload failed: ' + e.message, 'error');
+    log('Error: ' + e.message, 'error');
+  }
+}
+
+// ==================== ACTIVITY MODE ====================
+async function loadActivityEntries() {
+  const sel = document.getElementById('activitySelect');
+  currentActivityType = sel.value;
+  if (!currentActivityType) {
+    document.getElementById('activityExisting').style.display = 'none';
+    document.getElementById('newEntrySection').style.display = 'none';
+    return;
+  }
+
+  const isFragments = currentActivityType === 'found-fragments';
+  
+  // Toggle fields
+  document.getElementById('locationField').classList.toggle('hidden', isFragments);
+  document.getElementById('recordImageSection').classList.toggle('hidden', 
+    !['snowboarding', 'diving'].includes(currentActivityType));
+  document.getElementById('noteField').classList.toggle('hidden', isFragments);
+  document.getElementById('textField').classList.toggle('hidden', !isFragments);
+
+  document.getElementById('newEntrySection').style.display = 'block';
+
+  try {
+    const jsonFile = currentActivityType + '.json';
+    currentActivityJson = await fetchJsonFile(jsonFile);
+    
+    // Sort by date descending
+    sortEntriesByDate(currentActivityJson.entries);
+    
+    renderActivityEntries();
+    document.getElementById('activityExisting').style.display = 'block';
+  } catch (e) {
+    log('Error loading ' + currentActivityType + '.json: ' + e.message, 'error');
+    currentActivityJson = { entries: [] };
+    document.getElementById('activityExisting').style.display = 'none';
+  }
+}
+
+function sortEntriesByDate(entries) {
+  entries.sort((a, b) => {
+    const da = (a.date || '').replace(/\./g, '');
+    const db = (b.date || '').replace(/\./g, '');
+    return db.localeCompare(da); // Descending
+  });
+}
+
+function renderActivityEntries() {
+  const list = document.getElementById('activityEntryList');
+  const entries = currentActivityJson.entries;
+  const isFragments = currentActivityType === 'found-fragments';
+  const hasRecordField = ['snowboarding', 'diving'].includes(currentActivityType);
+
+  if (entries.length === 0) {
+    list.innerHTML = '<p style="color:var(--text-light);font-style:italic">No entries yet.</p>';
+    return;
+  }
+
+  list.innerHTML = entries.map((entry, idx) => {
+    const photos = entry.photos || [];
+    const hasRecord = entry.record_image;
+    const safeNote = (isFragments ? (entry.text || '') : (entry.note || '')).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    const safeTags = isFragments ? (entry.tags || []).join(', ') : '';
+    
+    return `
+    <div class="entry-card">
+      <div class="entry-header">
+        <div>
+          <span class="entry-date">${entry.date || '(no date)'}</span>
+          ${!isFragments ? `<span class="entry-location"> · ${entry.location || ''}</span>` : ''}
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-secondary btn-small" onclick="toggleEditEntry(${idx})">Edit</button>
+          <button class="btn btn-danger btn-small" onclick="deleteActivityEntry(${idx})">Delete</button>
+        </div>
+      </div>
+      ${hasRecord ? `
+        <div style="margin:6px 0">
+          <span style="font-size:0.85em;color:var(--text-light)">Record: </span>
+          <img src="https://${OWNER}.github.io${entry.record_image}" 
+               style="width:60px;height:60px;object-fit:cover;border-radius:4px;vertical-align:middle;border:1px solid var(--border)"
+               onerror="this.style.display='none'">
+          ${entry.record_caption ? `<span style="font-size:0.85em;color:var(--text-light);margin-left:6px">${entry.record_caption}</span>` : ''}
+        </div>
+      ` : ''}
+      ${photos.length > 0 ? `
+        <div class="entry-photos">
+          ${photos.map((p, pi) => `
+            <div class="thumb">
+              <img src="https://${OWNER}.github.io${p}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%2250%25%22 x=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22>?</text></svg>'">
+              <button class="del-photo" onclick="deleteEntryPhoto(${idx}, ${pi})" title="Delete this photo">×</button>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+      <div class="entry-note">${isFragments ? (entry.text || '') : (entry.note || '')}</div>
+
+      <div class="edit-form hidden" id="editEntry-${idx}">
+        <label>Date</label>
+        <input type="text" id="editEntryDate-${idx}" value="${entry.date || ''}">
+        ${!isFragments ? `
+          <label>Location</label>
+          <input type="text" id="editEntryLocation-${idx}" value="${entry.location || ''}">
+        ` : ''}
+        ${hasRecordField ? `
+          <label>Record Caption</label>
+          <input type="text" id="editEntryRecordCaption-${idx}" value="${(entry.record_caption || '').replace(/"/g, '&quot;')}">
+        ` : ''}
+        ${isFragments ? `
+          <label>Text</label>
+          <textarea id="editEntryText-${idx}" style="min-height:60px">${entry.text || ''}</textarea>
+          <label>Tags (comma separated)</label>
+          <input type="text" id="editEntryTags-${idx}" value="${safeTags}">
+        ` : `
+          <label>Note</label>
+          <textarea id="editEntryNote-${idx}" style="min-height:60px">${entry.note || ''}</textarea>
+        `}
+        <div style="margin-top:8px;display:flex;gap:8px;">
+          <button class="btn btn-primary btn-small" onclick="saveEditEntry(${idx})">Save</button>
+          <button class="btn btn-secondary btn-small" onclick="toggleEditEntry(${idx})">Cancel</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleEditEntry(idx) {
+  const form = document.getElementById('editEntry-' + idx);
+  if (form) form.classList.toggle('hidden');
+}
+
+async function saveEditEntry(idx) {
+  const entry = currentActivityJson.entries[idx];
+  const isFragments = currentActivityType === 'found-fragments';
+  const hasRecordField = ['snowboarding', 'diving'].includes(currentActivityType);
+
+  try {
+    showProgress('Saving changes...');
+
+    entry.date = document.getElementById('editEntryDate-' + idx).value.trim();
+
+    if (!isFragments) {
+      entry.location = document.getElementById('editEntryLocation-' + idx).value.trim();
+    }
+
+    if (hasRecordField) {
+      entry.record_caption = document.getElementById('editEntryRecordCaption-' + idx).value.trim();
+    }
+
+    if (isFragments) {
+      entry.text = document.getElementById('editEntryText-' + idx).value.trim();
+      entry.tags = document.getElementById('editEntryTags-' + idx).value.split(',').map(t => t.trim()).filter(Boolean);
+    } else {
+      entry.note = document.getElementById('editEntryNote-' + idx).value.trim();
+    }
+
+    // Re-sort by date after edit
+    sortEntriesByDate(currentActivityJson.entries);
+
+    await updateJsonFile(currentActivityType + '.json', currentActivityJson);
+
+    hideProgress();
+    showStatus('uploadStatus', 'Entry updated!', 'success');
+    renderActivityEntries();
+  } catch (e) {
+    hideProgress();
+    showStatus('uploadStatus', 'Save failed: ' + e.message, 'error');
+  }
+}
+
+async function deleteActivityEntry(idx) {
+  const entry = currentActivityJson.entries[idx];
+  if (!await confirmAction(`Delete entry "${entry.date} ${entry.location || ''}"? This will also delete associated images.`)) return;
+
+  try {
+    showProgress('Deleting entry...');
+
+    // Delete associated image files
+    const imagesToDelete = [...(entry.photos || [])];
+    if (entry.record_image) imagesToDelete.push(entry.record_image);
+
+    for (const img of imagesToDelete) {
+      try {
+        const path = img.startsWith('/') ? img.slice(1) : img;
+        await deleteGitHubFile(path);
+        log(`Deleted ${path}`, 'success');
+      } catch (e) {
+        log(`Could not delete ${img}: ${e.message}`, 'warn');
+      }
+    }
+
+    // Remove entry from JSON
+    currentActivityJson.entries.splice(idx, 1);
+    await updateJsonFile(currentActivityType + '.json', currentActivityJson);
+
+    hideProgress();
+    showStatus('uploadStatus', 'Entry deleted', 'success');
+    renderActivityEntries();
+  } catch (e) {
+    hideProgress();
+    showStatus('uploadStatus', 'Delete failed: ' + e.message, 'error');
+  }
+}
+
+async function deleteEntryPhoto(entryIdx, photoIdx) {
+  const photo = currentActivityJson.entries[entryIdx].photos[photoIdx];
+  if (!await confirmAction(`Delete this photo?`)) return;
+
+  try {
+    showProgress('Deleting photo...');
+
+    // Delete from GitHub
+    try {
+      const path = photo.startsWith('/') ? photo.slice(1) : photo;
+      await deleteGitHubFile(path);
+      log(`Deleted ${path}`, 'success');
+    } catch (e) {
+      log(`Could not delete file: ${e.message}`, 'warn');
+    }
+
+    // Remove from JSON
+    currentActivityJson.entries[entryIdx].photos.splice(photoIdx, 1);
+    await updateJsonFile(currentActivityType + '.json', currentActivityJson);
+
+    hideProgress();
+    showStatus('uploadStatus', 'Photo deleted', 'success');
+    renderActivityEntries();
+  } catch (e) {
+    hideProgress();
+    showStatus('uploadStatus', 'Delete failed: ' + e.message, 'error');
+  }
+}
+
+// ==================== ACTIVITY UPLOAD ====================
+async function handleRecordImage(fileList) {
+  if (fileList.length === 0) return;
+  const file = fileList[0];
+  if (!file.type.startsWith('image/')) return;
+  
+  const maxW = parseInt(document.getElementById('activityMaxWidth').value);
+  const quality = parseFloat(document.getElementById('activityQuality').value);
+  recordImageFile = await processImage(file, maxW, quality);
+  
+  const preview = document.getElementById('recordPreview');
+  preview.innerHTML = `
+    <img src="${recordImageFile.dataUrl}">
+    <div>
+      <strong>${file.name}</strong><br>
+      <span style="color:var(--text-light);font-size:0.85em">
+        ${(recordImageFile.compressed.byteLength / 1024).toFixed(0)} KB
+      </span>
+      <br>
+      <button class="btn btn-danger btn-small" onclick="removeRecordImage()" style="margin-top:6px">Remove</button>
+    </div>
+  `;
+  preview.style.display = 'flex';
+}
+
+function removeRecordImage() {
+  recordImageFile = null;
+  document.getElementById('recordPreview').style.display = 'none';
+  document.getElementById('recordPreview').innerHTML = '';
+  // Reset file input
+  const input = document.querySelector('#recordUploadArea input[type="file"]');
+  if (input) input.value = '';
+}
+
+async function handleActivityFiles(fileList) {
+  for (const file of fileList) {
+    if (!file.type.startsWith('image/')) continue;
+    const maxW = parseInt(document.getElementById('activityMaxWidth').value);
+    const quality = parseFloat(document.getElementById('activityQuality').value);
+    const result = await processImage(file, maxW, quality);
+    activityFiles.push(result);
+  }
+  renderActivityPreview();
+}
+
+function renderActivityPreview() {
+  const grid = document.getElementById('activityPreview');
+  grid.innerHTML = activityFiles.map((f, i) => `
+    <div class="preview-item">
+      <img src="${f.dataUrl}">
+      <button class="remove-btn" onclick="removeActivityFile(${i})">×</button>
+    </div>
+  `).join('');
+}
+
+function removeActivityFile(i) {
+  activityFiles.splice(i, 1);
+  renderActivityPreview();
+}
+
+async function submitActivityEntry() {
+  const date = document.getElementById('entryDate').value.trim();
+  const isFragments = currentActivityType === 'found-fragments';
+
+  if (!date) {
+    showStatus('uploadStatus', 'Please enter a date', 'error');
+    return;
+  }
+
+  if (!isFragments && !document.getElementById('entryLocation').value.trim()) {
+    showStatus('uploadStatus', 'Please enter a location', 'error');
+    return;
+  }
+
+  try {
+    const totalUploads = activityFiles.length + (recordImageFile ? 1 : 0) + 1;
+    let done = 0;
+    showProgress(`Uploading entry...`);
+
+    // Ensure we have current JSON
+    if (!currentActivityJson) {
+      currentActivityJson = { entries: [] };
+    }
+
+    // Build new entry
+    const entry = { date };
+
+    if (!isFragments) {
+      entry.location = document.getElementById('entryLocation').value.trim();
+    }
+
+    // Upload record image
+    if (recordImageFile && ['snowboarding', 'diving'].includes(currentActivityType)) {
+      const filename = generateFilename(recordImageFile.file.name, 'record');
+      const path = `images/${filename}`;
+      log(`Uploading record image: ${filename}...`);
+      await uploadFileToGitHub(path, recordImageFile.compressed);
+      entry.record_image = '/' + path;
+      entry.record_caption = document.getElementById('recordCaption').value.trim();
+      done++;
+      updateProgress(done / totalUploads);
+    }
+
+    // Upload photos
+    entry.photos = [];
+    for (const f of activityFiles) {
+      const filename = generateFilename(f.file.name);
+      const path = `images/${filename}`;
+      log(`Uploading ${filename}...`);
+      await uploadFileToGitHub(path, f.compressed);
+      entry.photos.push('/' + path);
+      done++;
+      updateProgress(done / totalUploads);
+    }
+
+    // Videos
+    const videoStr = document.getElementById('entryVideos').value.trim();
+    entry.videos = videoStr ? videoStr.split(',').map(v => v.trim()).filter(Boolean) : [];
+
+    // Note or text
+    if (isFragments) {
+      entry.text = document.getElementById('entryText').value.trim();
+      const tagsStr = document.getElementById('entryTextTags').value.trim();
+      entry.tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(Boolean) : [];
+    } else {
+      entry.note = document.getElementById('entryNote').value.trim();
+    }
+
+    // Add entry and sort
+    currentActivityJson.entries.push(entry);
+    sortEntriesByDate(currentActivityJson.entries);
+
+    // Save JSON
+    log('Updating ' + currentActivityType + '.json...');
+    await updateJsonFile(currentActivityType + '.json', currentActivityJson);
+    done++;
+    updateProgress(1);
+
+    hideProgress();
+    showStatus('uploadStatus', 'Entry submitted successfully!', 'success');
+
+    // Reset form
+    document.getElementById('entryDate').value = '';
+    document.getElementById('entryLocation').value = '';
+    document.getElementById('recordCaption').value = '';
+    document.getElementById('entryNote').value = '';
+    document.getElementById('entryText').value = '';
+    document.getElementById('entryTextTags').value = '';
+    document.getElementById('entryVideos').value = '';
+    recordImageFile = null;
+    activityFiles = [];
+    document.getElementById('recordPreview').style.display = 'none';
+    document.getElementById('recordPreview').innerHTML = '';
+    renderActivityPreview();
+
+    // Refresh list
+    renderActivityEntries();
+  } catch (e) {
+    hideProgress();
+    showStatus('uploadStatus', 'Upload failed: ' + e.message, 'error');
+    log('Error: ' + e.stack || e.message, 'error');
+  }
+}
+
+// ==================== IMAGE PROCESSING ====================
+async function processImage(file, maxWidth, quality) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const dataUrl = e.target.result;
+
+      if (maxWidth === 0) {
+        // No compression
+        const arr = new Uint8Array(await file.arrayBuffer());
+        resolve({ file, dataUrl, compressed: arr });
+        return;
+      }
+
+      // Compress via canvas
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width;
+        let h = img.height;
+
+        if (w > maxWidth) {
+          h = Math.round(h * (maxWidth / w));
+          w = maxWidth;
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+
+        canvas.toBlob(blob => {
+          blob.arrayBuffer().then(buf => {
+            const compressed = new Uint8Array(buf);
+            const compressedUrl = URL.createObjectURL(blob);
+            log(`Compressed ${file.name}: ${(file.size/1024).toFixed(0)}KB → ${(compressed.byteLength/1024).toFixed(0)}KB (${w}×${h})`);
+            resolve({ file, dataUrl: compressedUrl, compressed });
+          });
+        }, 'image/jpeg', quality);
+      };
+      img.src = dataUrl;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ==================== GITHUB API HELPERS ====================
+async function ghFetch(path, options = {}) {
+  const url = path.startsWith('http') ? path : API + path;
+  return fetch(url, {
+    ...options,
+    headers: {
+      'Authorization': `token ${TOKEN}`,
+      'Accept': 'application/vnd.github.v3+json',
+      ...(options.headers || {})
+    }
+  });
+}
+
+async function fetchJsonFile(filename) {
+  const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${filename}`);
+  if (!res.ok) {
+    if (res.status === 404) return { items: [], entries: [] };
+    throw new Error(`Failed to fetch ${filename}: ${res.status}`);
+  }
+  const data = await res.json();
+  const content = atob(data.content.replace(/\n/g, ''));
+  // Decode UTF-8
+  const bytes = new Uint8Array([...content].map(c => c.charCodeAt(0)));
+  const decoded = new TextDecoder('utf-8').decode(bytes);
+  const json = JSON.parse(decoded);
+  json._sha = data.sha; // Store SHA for updates
+  return json;
+}
+
+async function updateJsonFile(filename, data) {
+  const sha = data._sha;
+  const cleanData = { ...data };
+  delete cleanData._sha;
+
+  const jsonStr = JSON.stringify(cleanData, null, 2);
+  // Encode UTF-8 to base64
+  const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
+
+  const body = {
+    message: `Update ${filename}`,
+    content: encoded,
+  };
+  if (sha) body.sha = sha;
+
+  const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${filename}`, {
+    method: 'PUT',
+    body: JSON.stringify(body)
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(`Failed to update ${filename}: ${res.status} ${err.message || ''}`);
+  }
+
+  const result = await res.json();
+  data._sha = result.content.sha; // Update SHA
+  log(`Updated ${filename}`, 'success');
+}
+
+async function uploadFileToGitHub(path, uint8Array) {
+  // Check if file exists first
+  let sha = null;
+  try {
+    const check = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${path}`);
+    if (check.ok) {
+      const existing = await check.json();
+      sha = existing.sha;
+    }
+  } catch (e) {}
+
+  // Convert Uint8Array to base64
+  let binary = '';
+  const chunkSize = 8192;
+  for (let i = 0; i < uint8Array.length; i += chunkSize) {
+    const chunk = uint8Array.subarray(i, i + chunkSize);
+    binary += String.fromCharCode.apply(null, chunk);
+  }
+  const base64 = btoa(binary);
+
+  const body = {
+    message: `Upload ${path}`,
+    content: base64,
+  };
+  if (sha) body.sha = sha;
+
+  const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${path}`, {
+    method: 'PUT',
+    body: JSON.stringify(body)
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(`Upload failed for ${path}: ${res.status} ${err.message || ''}`);
+  }
+
+  log(`Uploaded ${path}`, 'success');
+}
+
+async function deleteGitHubFile(path) {
+  // Get current SHA
+  const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${path}`);
+  if (!res.ok) throw new Error(`File not found: ${path}`);
+  const data = await res.json();
+
+  const delRes = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${path}`, {
+    method: 'DELETE',
+    body: JSON.stringify({
+      message: `Delete ${path}`,
+      sha: data.sha
+    })
+  });
+
+  if (!delRes.ok) {
+    const err = await delRes.json().catch(() => ({}));
+    throw new Error(`Delete failed: ${delRes.status} ${err.message || ''}`);
+  }
+}
+
+// ==================== FILENAME GENERATION ====================
+function generateFilename(originalName, prefix = '') {
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).substring(2, 6);
+  const ext = originalName.split('.').pop()?.toLowerCase() || 'jpg';
+  const safeName = originalName.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '').substring(0, 20);
+  return `${prefix ? prefix + '_' : ''}${safeName}_${timestamp}_${random}.${ext === 'jpeg' ? 'jpg' : ext}`;
+}
+
+// ==================== UI HELPERS ====================
+function showStatus(id, msg, type) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = 'status ' + type;
+  if (type === 'success') {
+    setTimeout(() => { el.className = 'status'; }, 5000);
+  }
+}
+
+function showProgress(title) {
+  document.getElementById('progressSection').classList.remove('hidden');
+  document.getElementById('progressTitle').textContent = title;
+  updateProgress(0);
+}
+
+function updateProgress(ratio) {
+  const pct = Math.round(ratio * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = pct + '%';
+}
+
+function hideProgress() {
+  document.getElementById('progressSection').classList.add('hidden');
+}
+
+function log(msg, type = '') {
+  const logArea = document.getElementById('logArea');
+  logArea.style.display = 'block';
+  const time = new Date().toLocaleTimeString();
+  logArea.innerHTML += `<span class="${type}">[${time}] ${msg}</span>\n`;
+  logArea.scrollTop = logArea.scrollHeight;
+}
+
+function toggleLog() {
+  const logArea = document.getElementById('logArea');
+  logArea.style.display = logArea.style.display === 'none' ? 'block' : 'none';
+}
+
+// ==================== MAP MARKERS ====================
+let currentMarkersJson = null;
+
+async function loadMapMarkers() {
+  try {
+    currentMarkersJson = await fetchJsonFile('map-markers.json');
+    renderMapMarkers();
+  } catch (e) {
+    currentMarkersJson = { markers: [] };
+    renderMapMarkers();
+    log('map-markers.json not found, will create on first add', 'warn');
+  }
+}
+
+function renderMapMarkers() {
+  const list = document.getElementById('markerList');
+  const items = currentMarkersJson.markers || [];
+
+  if (items.length === 0) {
+    list.innerHTML = '<p style="color:var(--text-light);font-style:italic">No markers yet.</p>';
+    return;
+  }
+
+  list.innerHTML = items.map((m, i) => `
+    <div class="entry-card">
+      <div class="entry-header">
+        <div>
+          <span class="entry-date">${m.title}</span>
+          <span class="entry-location"> · ${m.page} · (${m.lat}, ${m.lng})</span>
+        </div>
+        <button class="btn btn-danger btn-small" onclick="deleteMapMarker(${i})">Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function addMapMarker() {
+  const title = document.getElementById('markerTitle').value.trim();
+  const page = document.getElementById('markerPage').value.trim();
+  const lat = parseFloat(document.getElementById('markerLat').value.trim());
+  const lng = parseFloat(document.getElementById('markerLng').value.trim());
+
+  if (!title || !page || isNaN(lat) || isNaN(lng)) {
+    showStatus('uploadStatus', 'Please fill in all marker fields with valid values', 'error');
+    return;
+  }
+
+  try {
+    showProgress('Adding marker...');
+
+    if (!currentMarkersJson) {
+      try {
+        currentMarkersJson = await fetchJsonFile('map-markers.json');
+      } catch (e) {
+        currentMarkersJson = { markers: [] };
+      }
+    }
+
+    currentMarkersJson.markers.push({ lat, lng, title, page });
+    await updateJsonFile('map-markers.json', currentMarkersJson);
+
+    hideProgress();
+    showStatus('uploadStatus', `Marker "${title}" added!`, 'success');
+
+    document.getElementById('markerTitle').value = '';
+    document.getElementById('markerPage').value = '';
+    document.getElementById('markerLat').value = '';
+    document.getElementById('markerLng').value = '';
+    renderMapMarkers();
+  } catch (e) {
+    hideProgress();
+    showStatus('uploadStatus', 'Failed to add marker: ' + e.message, 'error');
+  }
+}
+
+async function deleteMapMarker(idx) {
+  const marker = currentMarkersJson.markers[idx];
+  if (!await confirmAction(`Delete marker "${marker.title}"?`)) return;
+
+  try {
+    showProgress('Deleting marker...');
+    currentMarkersJson.markers.splice(idx, 1);
+    await updateJsonFile('map-markers.json', currentMarkersJson);
+    hideProgress();
+    showStatus('uploadStatus', 'Marker deleted', 'success');
+    renderMapMarkers();
+  } catch (e) {
+    hideProgress();
+    showStatus('uploadStatus', 'Delete failed: ' + e.message, 'error');
+  }
+}
+
+// ==================== CONFIRM DIALOG ====================
+function confirmAction(message) {
+  return new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.className = 'confirm-overlay';
+    overlay.innerHTML = `
+      <div class="confirm-box">
+        <p>${message}</p>
+        <div class="btn-row">
+          <button class="btn btn-secondary" id="confirmCancel">Cancel</button>
+          <button class="btn btn-danger" id="confirmOk">Delete</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    
+    overlay.querySelector('#confirmOk').onclick = () => {
+      document.body.removeChild(overlay);
+      resolve(true);
+    };
+    overlay.querySelector('#confirmCancel').onclick = () => {
+      document.body.removeChild(overlay);
+      resolve(false);
+    };
+  });
+}
+</script>
+</body>
+</html>
