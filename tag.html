@@ -221,6 +221,7 @@
 
       const params = new URLSearchParams(window.location.search);
       const currentTag = (params.get("tag") || "").trim().toLowerCase();
+      const currentPage = params.get("page") || "";
 
       const tagTitle = document.getElementById("tagTitle");
       const tagSubtitle = document.getElementById("tagSubtitle");
@@ -229,15 +230,25 @@
 
       if (currentTag) {
         tagTitle.textContent = "#" + currentTag;
-        tagSubtitle.textContent = `Showing all items tagged with "${currentTag}".`;
+        if (currentPage) {
+          const pageName = currentPage.replace('.html', '');
+          tagSubtitle.textContent = `Showing items tagged "${currentTag}" in ${pageName}.`;
+        } else {
+          tagSubtitle.textContent = `Showing all items tagged with "${currentTag}".`;
+        }
       } else {
         tagTitle.textContent = "Tag";
         tagSubtitle.textContent = "No tag selected.";
       }
 
-      const filtered = allTaggedItems.filter(item =>
+      let filtered = allTaggedItems.filter(item =>
         item.tags.some(tag => tag.toLowerCase() === currentTag)
       );
+
+      // If page param exists, scope to that album only
+      if (currentPage) {
+        filtered = filtered.filter(item => item.page === currentPage);
+      }
 
       if (!currentTag || filtered.length === 0) {
         emptyState.style.display = "block";
