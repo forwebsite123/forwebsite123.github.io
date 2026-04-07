@@ -71,6 +71,54 @@
       "lng": 2.3522,
       "title": "France",
       "page": "france.html"
+    },
+    {
+      "lat": 38.9072,
+      "lng": -77.0369,
+      "title": "USA",
+      "page": "usa.html"
+    },
+    {
+      "lat": 41.8719,
+      "lng": 12.5674,
+      "title": "Italy",
+      "page": "italy.html"
+    },
+    {
+      "lat": 41.9029,
+      "lng": 12.4534,
+      "title": "Vatican",
+      "page": "vatican.html"
+    },
+    {
+      "lat": 46.8182,
+      "lng": 8.2275,
+      "title": "Switzerland",
+      "page": "switzerland.html"
+    },
+    {
+      "lat": 55.6761,
+      "lng": 12.5683,
+      "title": "Denmark",
+      "page": "denmark.html"
+    },
+    {
+      "lat": 48.2082,
+      "lng": 16.3738,
+      "title": "Austria",
+      "page": "austria.html"
+    },
+    {
+      "lat": 40.4168,
+      "lng": -3.7038,
+      "title": "Spain",
+      "page": "spain.html"
+    },
+    {
+      "lat": 44.8176,
+      "lng": 20.4569,
+      "title": "Serbia",
+      "page": "serbia.html"
     }
   ]
 }
