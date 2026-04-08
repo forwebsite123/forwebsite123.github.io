@@ -70,6 +70,7 @@
       color: var(--rose-dark);
     }
 
+    /* ── 镂空描边按钮 ── */
     .enter-btn {
       position: relative;
       display: inline-block;
@@ -84,42 +85,44 @@
       font-weight: 700;
       letter-spacing: 0.18em;
       text-transform: uppercase;
-      overflow: hidden;
-      transition: color 0.3s ease, border-color 0.3s ease;
+      overflow: visible;
+      transition: color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
     }
 
     .enter-btn:hover {
       color: var(--rose-dark);
       border-color: var(--rose-dark);
+      box-shadow: 0 0 0 4px rgba(138, 107, 107, 0.08);
     }
 
-    .enter-btn .ripple {
+    /* 点击时的向外扩散光环 */
+    .enter-btn::after {
+      content: '';
       position: absolute;
-      border-radius: 50%;
-      background: rgba(138, 107, 107, 0.25);
-      transform: scale(0);
-      animation: ripple-out 0.7s ease-out forwards;
-      pointer-events: none;
-    }
-
-    @keyframes ripple-out {
-      to { transform: scale(4); opacity: 0; }
-    }
-
-    .lightbox-flash {
-      position: fixed;
-      inset: 0;
-      background: radial-gradient(ellipse at center, rgba(138,107,107,0.18) 0%, transparent 70%);
+      inset: -1px;
+      border-radius: 999px;
+      border: 1.5px solid var(--rose-muted);
       opacity: 0;
       pointer-events: none;
-      z-index: 100;
-      animation: flash-in-out 0.8s ease forwards;
     }
 
-    @keyframes flash-in-out {
-      0%   { opacity: 0; }
-      30%  { opacity: 1; }
-      100% { opacity: 0; }
+    .enter-btn.clicked::after {
+      animation: ring-expand 0.6s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
+    }
+
+    .enter-btn.clicked {
+      animation: btn-pulse 0.6s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
+    }
+
+    @keyframes ring-expand {
+      0%   { transform: scale(1);    opacity: 0.7; }
+      100% { transform: scale(1.55); opacity: 0;   }
+    }
+
+    @keyframes btn-pulse {
+      0%   { box-shadow: 0 0 0 0   rgba(138,107,107,0.0); }
+      30%  { box-shadow: 0 0 0 8px rgba(138,107,107,0.12); }
+      100% { box-shadow: 0 0 0 16px rgba(138,107,107,0.0); }
     }
 
     @media (max-width: 768px) {
@@ -141,19 +144,14 @@
   <script>
     const btn = document.getElementById('enterBtn');
     btn.addEventListener('click', function (e) {
-      const rect = btn.getBoundingClientRect();
-      const size = Math.max(rect.width, rect.height);
-      const x = e.clientX - rect.left - size / 2;
-      const y = e.clientY - rect.top - size / 2;
-      const ripple = document.createElement('span');
-      ripple.classList.add('ripple');
-      ripple.style.cssText = `width:${size}px;height:${size}px;left:${x}px;top:${y}px;`;
-      btn.appendChild(ripple);
-      ripple.addEventListener('animationend', () => ripple.remove());
-      const flash = document.createElement('div');
-      flash.classList.add('lightbox-flash');
-      document.body.appendChild(flash);
-      flash.addEventListener('animationend', () => flash.remove());
+      e.preventDefault();
+      btn.classList.remove('clicked');
+      void btn.offsetWidth; // reflow to restart animation
+      btn.classList.add('clicked');
+      btn.addEventListener('animationend', () => {
+        btn.classList.remove('clicked');
+        window.location.href = btn.href;
+      }, { once: true });
     });
   </script>
 
