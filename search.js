@@ -160,7 +160,6 @@
       backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
       display: flex; flex-direction: column; align-items: center;
       padding-top: 90px; opacity: 0; pointer-events: none;
-      transition: opacity 0.22s cubic-bezier(.4,0,.2,1);
     }
     #sk-overlay.sk-open { opacity: 1; pointer-events: all; }
     #sk-input-wrap { position: relative; width: min(560px, 88vw); }
@@ -208,6 +207,21 @@
     .sk-tag { background: #f5edee; color: #a07880; padding: 2px 8px; border-radius: 20px; font-size: 0.68rem; }
     .sk-empty { text-align: center; color: #b09090; font-size: 0.88rem; margin-top: 24px; letter-spacing: 0.04em; }
     .sk-loading { text-align: center; color: #c4a0a6; font-size: 0.82rem; margin-top: 24px; letter-spacing: 0.08em; }
+    .sk-icon-ring {
+      position: fixed; border-radius: 50%;
+      border: 1.5px solid rgba(156, 115, 115, 0.7);
+      pointer-events: none; z-index: 99998;
+      animation: sk-ring-expand 0.55s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
+    }
+    @keyframes sk-ring-expand {
+      0%   { transform: translate(-50%, -50%) scale(1);    opacity: 0.85; }
+      100% { transform: translate(-50%, -50%) scale(3.2);  opacity: 0;    }
+    }
+    #sk-overlay {
+      transform: translateY(-8px);
+      transition: opacity 0.28s cubic-bezier(.4,0,.2,1), transform 0.28s cubic-bezier(.16,1,.3,1);
+    }
+    #sk-overlay.sk-open { opacity: 1; pointer-events: all; transform: translateY(0); }
     @media (prefers-color-scheme: dark) {
       #sk-overlay { background: rgba(30, 22, 22, 0.93); }
       #sk-input { color: #e8d0d0; border-bottom-color: #7a5555; }
@@ -288,8 +302,25 @@
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
+  function fireIconRing() {
+    const icon = document.getElementById('search-icon')
+      || document.querySelector('[class*="search"]')
+      || document.querySelector('button, span, div, i, label');
+    if (!icon) return;
+    const rect = icon.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const size = Math.max(rect.width, rect.height);
+    const ring = document.createElement('div');
+    ring.className = 'sk-icon-ring';
+    ring.style.cssText = `width:${size}px;height:${size}px;left:${cx}px;top:${cy}px;`;
+    document.body.appendChild(ring);
+    ring.addEventListener('animationend', () => ring.remove());
+  }
+
   async function open() {
     if (!overlay) buildOverlay();
+    fireIconRing();
     const scope = detectScope();
     document.getElementById('sk-hint').innerHTML =
       `按 ESC 关闭 <span class="sk-scope-label">${scopeLabel(scope)}</span>`;
