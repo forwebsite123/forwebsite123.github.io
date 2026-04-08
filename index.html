@@ -5,16 +5,24 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🌿%3C/text%3E%3C/svg%3E">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Welcome</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600;1,700&display=swap" rel="stylesheet">
+
   <style>
-    * {
-      box-sizing: border-box;
+    :root {
+      --rose-muted: #8a6b6b;
+      --rose-dark: #6b4f4f;
+      --cream: #f7f3f0;
     }
+
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: white;
-      color: #333;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      background: var(--cream);
+      color: var(--rose-dark);
     }
 
     .hero {
@@ -33,15 +41,12 @@
       position: relative;
     }
 
-    /* 图片向下渐变到白色 */
     .hero-image::after {
       content: "";
       position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 120px;
-      background: linear-gradient(to bottom, rgba(255,255,255,0) 50%, white 100%);
+      left: 0; right: 0; bottom: 0;
+      height: 140px;
+      background: linear-gradient(to bottom, rgba(247,243,240,0) 30%, var(--cream) 100%);
     }
 
     .content {
@@ -56,82 +61,119 @@
     }
 
     .content h1 {
-      font-size: 38px;
-      font-weight: 600;
-      margin: 0 0 16px;
-      color: #1f2937;
-    }
-
-    .content p {
-      font-size: 17px;
-      line-height: 1.8;
-      color: #6b7280;
-      margin: 0 0 80px;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 42px;
+      font-weight: 700;
+      font-style: italic;
+      letter-spacing: 0.02em;
+      margin: 0 0 36px;
+      color: var(--rose-dark);
     }
 
     .enter-btn {
+      position: relative;
       display: inline-block;
-      padding: 14px 34px;
+      padding: 13px 38px;
       border-radius: 999px;
-      background: rgba(17, 24, 39, 0.8);
-      color: white;
+      border: 1.5px solid var(--rose-muted);
+      background: transparent;
+      color: var(--rose-muted);
       text-decoration: none;
-      font-size: 15px;
-      transition: transform 0.2s ease, opacity 0.2s ease;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      overflow: hidden;
+      transition: color 0.3s ease, border-color 0.3s ease;
     }
 
     .enter-btn:hover {
-      transform: translateY(-2px);
-      opacity: 0.9;
+      color: var(--rose-dark);
+      border-color: var(--rose-dark);
+    }
+
+    .enter-btn .ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(138, 107, 107, 0.25);
+      transform: scale(0);
+      animation: ripple-out 0.7s ease-out forwards;
+      pointer-events: none;
+    }
+
+    @keyframes ripple-out {
+      to { transform: scale(4); opacity: 0; }
+    }
+
+    .lightbox-flash {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at center, rgba(138,107,107,0.18) 0%, transparent 70%);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 100;
+      animation: flash-in-out 0.8s ease forwards;
+    }
+
+    @keyframes flash-in-out {
+      0%   { opacity: 0; }
+      30%  { opacity: 1; }
+      100% { opacity: 0; }
     }
 
     @media (max-width: 768px) {
-      .hero-image {
-        height: 58vh;
-      }
-
-      .content {
-        bottom: 10vh;
-      }
-
-      .content h1 {
-        font-size: 28px;
-      }
-
-      .content p {
-        font-size: 15px;
-      }
+      .hero-image { height: 58vh; }
+      .content { bottom: 10vh; }
+      .content h1 { font-size: 30px; }
     }
   </style>
 </head>
 <body>
   <section class="hero">
     <div class="hero-image"></div>
-
     <div class="content">
-      <h1><em>A place to leave traces.</em></h1>
-      <a href="home.html" class="enter-btn"></em>WANDER IN.</em></a>
+      <h1>A place to leave traces.</h1>
+      <a href="home.html" class="enter-btn" id="enterBtn">Wander In.</a>
     </div>
   </section>
-</section>
-    <script data-goatcounter="https://kiara-mytrace.goatcounter.com/count"
-        async src="https://gc.zgo.at/count.js"></script>
+
   <script>
-      (function() {
-        fetch('https://ipapi.co/json/')
-          .then(r => r.json())
-          .then(d => {
-            console.log("Session Log:", {
-              timestamp: new Date().toISOString(),
-              location: `${d.city}, ${d.region}, ${d.country_name}`,
-              network: d.org,
-              resolution: `${window.innerWidth}px`,
-              referrer: document.referrer || "direct"
-            });
-          })
-          .catch(() => {});
-      })();
-    </script>
+    const btn = document.getElementById('enterBtn');
+    btn.addEventListener('click', function (e) {
+      const rect = btn.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      const x = e.clientX - rect.left - size / 2;
+      const y = e.clientY - rect.top - size / 2;
+      const ripple = document.createElement('span');
+      ripple.classList.add('ripple');
+      ripple.style.cssText = `width:${size}px;height:${size}px;left:${x}px;top:${y}px;`;
+      btn.appendChild(ripple);
+      ripple.addEventListener('animationend', () => ripple.remove());
+      const flash = document.createElement('div');
+      flash.classList.add('lightbox-flash');
+      document.body.appendChild(flash);
+      flash.addEventListener('animationend', () => flash.remove());
+    });
+  </script>
+
+  <script data-goatcounter="https://kiara-mytrace.goatcounter.com/count"
+      async src="https://gc.zgo.at/count.js"></script>
+  <script>
+    (function() {
+      fetch('https://ipapi.co/json/')
+        .then(r => r.json())
+        .then(d => {
+          console.log("Session Log:", {
+            timestamp: new Date().toISOString(),
+            location: `${d.city}, ${d.region}, ${d.country_name}`,
+            network: d.org,
+            resolution: `${window.innerWidth}px`,
+            referrer: document.referrer || "direct"
+          });
+        })
+        .catch(() => {});
+    })();
+  </script>
 </body>
 </html>
-
