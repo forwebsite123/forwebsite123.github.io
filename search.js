@@ -27,6 +27,31 @@
     'horse-riding': '🐴 骑马', 'kitesurfing': '🪁 风筝冲浪'
   };
 
+  // 相册中英文对照，搜索时自动补充
+  const ALBUM_ZH = {
+    'guangzhou': '广州 中国 华南',
+    'korea': '韩国 首尔 釜山',
+    'japan': '日本 东京 京都 大阪',
+    'thailand': '泰国 曼谷 清迈',
+    'singapore': '新加坡',
+    'egypt': '埃及 开罗',
+    'tanzania': '坦桑尼亚 非洲',
+    'australia': '澳大利亚 澳洲 悉尼',
+    'brazil': '巴西 里约',
+    'canada': '加拿大',
+    'uk': '英国 伦敦',
+    'usa': '美国 纽约 洛杉矶',
+    'italy': '意大利 罗马 米兰 佛罗伦萨',
+    'vatican': '梵蒂冈',
+    'switzerland': '瑞士',
+    'denmark': '丹麦 哥本哈根',
+    'austria': '奥地利 维也纳',
+    'spain': '西班牙 巴塞罗那 马德里',
+    'serbia': '塞尔维亚 贝尔格莱德',
+    'france': '法国 巴黎',
+    'country': '南极 南极洲',
+  };
+
   async function safeJson(url) {
     try { const r = await fetch(url); if (!r.ok) return null; return await r.json(); }
     catch { return null; }
@@ -46,11 +71,16 @@
         const byPage = {};
         for (const item of data.items) {
           const key = item.page;
-          if (!byPage[key]) byPage[key] = {
-            type: 'photo', icon: '📷',
-            title: item.pageLabel || item.page || '',
-            section: '漂流坐标', tags: [], url: '/' + item.page, text: ''
-          };
+          if (!byPage[key]) {
+            const pageKey = (item.page || '').replace('.html','').toLowerCase();
+            const zhAlias = ALBUM_ZH[pageKey] || '';
+            byPage[key] = {
+              type: 'photo', icon: '📷',
+              title: item.pageLabel || item.page || '',
+              section: '漂流坐标', tags: [], url: '/' + item.page,
+              text: zhAlias + ' '
+            };
+          }
           byPage[key].text += ' ' + (item.title || '') + ' ' + (item.tags || []).join(' ');
           byPage[key].tags = [...new Set([...byPage[key].tags, ...(item.tags || [])])].slice(0, 6);
         }
