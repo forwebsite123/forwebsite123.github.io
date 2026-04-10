@@ -131,7 +131,18 @@
       100% { box-shadow: 0 0 0 16px rgba(138,107,107,0.0); }
     }
 
-    @media (max-width: 768px) {
+    .corner-note {
+      position: fixed;
+      bottom: 18px;
+      right: 24px;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 11px;
+      font-style: italic;
+      color: rgba(107, 79, 79, 0.35);
+      letter-spacing: 0.04em;
+      pointer-events: none;
+      z-index: 10;
+    }
       .hero-image { height: 58vh; }
       .content { bottom: 10vh; }
       .content h1 { font-size: 30px; margin-top: 20px; }
@@ -146,6 +157,7 @@
       <a href="home.html" class="enter-btn" id="enterBtn">Wander In.</a>
     </div>
   </section>
+  <div class="corner-note">Built by someone, rewritten by me.</div>
 
   <script>
     const btn = document.getElementById('enterBtn');
