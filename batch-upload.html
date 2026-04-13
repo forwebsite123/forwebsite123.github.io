@@ -251,16 +251,52 @@
   .record-preview {
     display: flex;
     align-items: flex-start;
-    gap: 12px;
+    gap: 10px;
     margin-bottom: 12px;
+    flex-wrap: wrap;
   }
 
-  .record-preview img {
+  .record-preview .record-thumb {
+    position: relative;
+    width: 120px;
+    flex-shrink: 0;
+  }
+
+  .record-preview .record-thumb img {
     width: 120px;
     height: 120px;
     object-fit: cover;
     border-radius: 6px;
     border: 1px solid var(--border);
+    display: block;
+  }
+
+  .record-preview .record-thumb .remove-record {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--danger);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 22px;
+    text-align: center;
+    opacity: 0.8;
+  }
+  .record-preview .record-thumb .remove-record:hover { opacity: 1; }
+
+  .record-preview .record-thumb .record-info {
+    font-size: 0.75em;
+    color: var(--text-light);
+    text-align: center;
+    margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   /* Existing entries */
@@ -631,12 +667,12 @@
 
       <!-- Record Image (snowboarding/diving only) -->
       <div id="recordImageSection">
-        <label>Record Image (achievement/record photo)</label>
+        <label>Record Images (achievement/record photos)</label>
         <div class="upload-area" id="recordUploadArea">
-          <input type="file" accept="image/*" onchange="handleRecordImage(this.files)">
+          <input type="file" accept="image/*" multiple onchange="handleRecordImages(this.files)">
           <div class="icon">🏔️</div>
-          <div>Upload record image</div>
-          <div class="hint">This appears in the left column of the timeline</div>
+          <div>Upload record images</div>
+          <div class="hint">One or more · These appear in the left column of the timeline</div>
         </div>
         <div class="record-preview" id="recordPreview" style="display:none"></div>
         <label for="recordCaption">Record Caption (optional)</label>
@@ -755,7 +791,7 @@ const API = 'https://api.github.com';
 // File queues
 let albumFiles = [];      // [{file, dataUrl, compressed}]
 let activityFiles = [];   // [{file, dataUrl, compressed}]
-let recordImageFile = null; // {file, dataUrl, compressed}
+let recordImageFiles = [];   // [{file, dataUrl, compressed}]
 
 // Current data
 let currentPhotosJson = null;
@@ -776,7 +812,7 @@ window.addEventListener('DOMContentLoaded', () => {
   // Drag and drop
   setupDragDrop('albumUploadArea', files => handleAlbumFiles(files));
   setupDragDrop('activityUploadArea', files => handleActivityFiles(files));
-  setupDragDrop('recordUploadArea', files => handleRecordImage(files));
+  setupDragDrop('recordUploadArea', files => handleRecordImages(files));
 });
 
 function setupDragDrop(id, handler) {
@@ -1228,10 +1264,12 @@ function renderActivityEntries() {
       ${hasRecord ? `
         <div style="margin:6px 0">
           <span style="font-size:0.85em;color:var(--text-light)">Record: </span>
-          <img src="https://${OWNER}.github.io${entry.record_image}" 
-               style="width:60px;height:60px;object-fit:cover;border-radius:4px;vertical-align:middle;border:1px solid var(--border)"
-               onerror="this.style.display='none'">
-          ${entry.record_caption ? `<span style="font-size:0.85em;color:var(--text-light);margin-left:6px">${entry.record_caption}</span>` : ''}
+          ${(Array.isArray(entry.record_image) ? entry.record_image : [entry.record_image]).map(ri => `
+            <img src="https://${OWNER}.github.io${ri}" 
+                 style="width:60px;height:60px;object-fit:cover;border-radius:4px;vertical-align:middle;border:1px solid var(--border);margin-right:4px"
+                 onerror="this.style.display='none'">
+          `).join('')}
+          ${entry.record_caption ? `<span style="font-size:0.85em;color:var(--text-light);margin-left:2px">${entry.record_caption}</span>` : ''}
         </div>
       ` : ''}
       ${photos.length > 0 ? `
@@ -1328,7 +1366,10 @@ async function deleteActivityEntry(idx) {
 
     // Delete associated image files
     const imagesToDelete = [...(entry.photos || [])];
-    if (entry.record_image) imagesToDelete.push(entry.record_image);
+    if (entry.record_image) {
+      const records = Array.isArray(entry.record_image) ? entry.record_image : [entry.record_image];
+      imagesToDelete.push(...records);
+    }
 
     for (const img of imagesToDelete) {
       try {
@@ -1383,37 +1424,47 @@ async function deleteEntryPhoto(entryIdx, photoIdx) {
 }
 
 // ==================== ACTIVITY UPLOAD ====================
-async function handleRecordImage(fileList) {
+async function handleRecordImages(fileList) {
   if (fileList.length === 0) return;
-  const file = fileList[0];
-  if (!file.type.startsWith('image/')) return;
   
   const maxW = parseInt(document.getElementById('activityMaxWidth').value);
   const quality = parseFloat(document.getElementById('activityQuality').value);
-  recordImageFile = await processImage(file, maxW, quality);
+
+  for (const file of fileList) {
+    if (!file.type.startsWith('image/')) continue;
+    const result = await processImage(file, maxW, quality);
+    recordImageFiles.push(result);
+  }
   
+  renderRecordPreview();
+}
+
+function renderRecordPreview() {
   const preview = document.getElementById('recordPreview');
-  preview.innerHTML = `
-    <img src="${recordImageFile.dataUrl}">
-    <div>
-      <strong>${file.name}</strong><br>
-      <span style="color:var(--text-light);font-size:0.85em">
-        ${(recordImageFile.compressed.byteLength / 1024).toFixed(0)} KB
-      </span>
-      <br>
-      <button class="btn btn-danger btn-small" onclick="removeRecordImage()" style="margin-top:6px">Remove</button>
+  if (recordImageFiles.length === 0) {
+    preview.style.display = 'none';
+    preview.innerHTML = '';
+    return;
+  }
+
+  preview.innerHTML = recordImageFiles.map((f, i) => `
+    <div class="record-thumb">
+      <img src="${f.dataUrl}">
+      <button class="remove-record" onclick="removeRecordImage(${i})">×</button>
+      <div class="record-info">${(f.compressed.byteLength / 1024).toFixed(0)} KB</div>
     </div>
-  `;
+  `).join('');
   preview.style.display = 'flex';
 }
 
-function removeRecordImage() {
-  recordImageFile = null;
-  document.getElementById('recordPreview').style.display = 'none';
-  document.getElementById('recordPreview').innerHTML = '';
-  // Reset file input
-  const input = document.querySelector('#recordUploadArea input[type="file"]');
-  if (input) input.value = '';
+function removeRecordImage(index) {
+  recordImageFiles.splice(index, 1);
+  renderRecordPreview();
+  if (recordImageFiles.length === 0) {
+    // Reset file input
+    const input = document.querySelector('#recordUploadArea input[type="file"]');
+    if (input) input.value = '';
+  }
 }
 
 async function handleActivityFiles(fileList) {
@@ -1457,7 +1508,7 @@ async function submitActivityEntry() {
   }
 
   try {
-    const totalUploads = activityFiles.length + (recordImageFile ? 1 : 0) + 1;
+    const totalUploads = activityFiles.length + recordImageFiles.length + 1;
     let done = 0;
     showProgress(`Uploading entry...`);
 
@@ -1473,16 +1524,19 @@ async function submitActivityEntry() {
       entry.location = document.getElementById('entryLocation').value.trim();
     }
 
-    // Upload record image
-    if (recordImageFile && ['snowboarding', 'diving'].includes(currentActivityType)) {
-      const filename = generateFilename(recordImageFile.file.name, 'record');
-      const path = `images/${filename}`;
-      log(`Uploading record image: ${filename}...`);
-      await uploadFileToGitHub(path, recordImageFile.compressed);
-      entry.record_image = '/' + path;
+    // Upload record images
+    if (recordImageFiles.length > 0 && ['snowboarding', 'diving'].includes(currentActivityType)) {
+      entry.record_image = [];
+      for (const rf of recordImageFiles) {
+        const filename = generateFilename(rf.file.name, 'record');
+        const path = `images/${filename}`;
+        log(`Uploading record image: ${filename}...`);
+        await uploadFileToGitHub(path, rf.compressed);
+        entry.record_image.push('/' + path);
+        done++;
+        updateProgress(done / totalUploads);
+      }
       entry.record_caption = document.getElementById('recordCaption').value.trim();
-      done++;
-      updateProgress(done / totalUploads);
     }
 
     // Upload photos
@@ -1531,7 +1585,7 @@ async function submitActivityEntry() {
     document.getElementById('entryText').value = '';
     document.getElementById('entryTextTags').value = '';
     document.getElementById('entryVideos').value = '';
-    recordImageFile = null;
+    recordImageFiles = [];
     activityFiles = [];
     document.getElementById('recordPreview').style.display = 'none';
     document.getElementById('recordPreview').innerHTML = '';
