@@ -1093,13 +1093,21 @@ async function deleteAlbumPhoto(imagePath, page) {
 
 // ==================== ALBUM UPLOAD ====================
 async function handleAlbumFiles(fileList) {
-  for (const file of fileList) {
-    if (!file.type.startsWith('image/')) continue;
-    const maxW = parseInt(document.getElementById('albumMaxWidth').value);
-    const quality = parseFloat(document.getElementById('albumQuality').value);
-    const result = await processImage(file, maxW, quality);
-    albumFiles.push(result);
+  const maxW = parseInt(document.getElementById('albumMaxWidth').value);
+  const quality = parseFloat(document.getElementById('albumQuality').value);
+  const images = [...fileList].filter(f => f.type.startsWith('image/'));
+  for (let i = 0; i < images.length; i++) {
+    showStatus('uploadStatus', `Processing image ${i + 1} / ${images.length}...`, 'info');
+    await yieldToMain();
+    try {
+      const result = await processImage(images[i], maxW, quality);
+      albumFiles.push(result);
+    } catch (e) {
+      log(`Failed to process ${images[i].name}: ${e.message}`, 'error');
+    }
+    await yieldToMain();
   }
+  showStatus('uploadStatus', '', '');
   renderAlbumPreview();
   document.getElementById('albumSubmit').disabled = albumFiles.length === 0;
 }
@@ -1429,13 +1437,20 @@ async function handleRecordImages(fileList) {
   
   const maxW = parseInt(document.getElementById('activityMaxWidth').value);
   const quality = parseFloat(document.getElementById('activityQuality').value);
+  const images = [...fileList].filter(f => f.type.startsWith('image/'));
 
-  for (const file of fileList) {
-    if (!file.type.startsWith('image/')) continue;
-    const result = await processImage(file, maxW, quality);
-    recordImageFiles.push(result);
+  for (let i = 0; i < images.length; i++) {
+    showStatus('uploadStatus', `Processing record image ${i + 1} / ${images.length}...`, 'info');
+    await yieldToMain();
+    try {
+      const result = await processImage(images[i], maxW, quality);
+      recordImageFiles.push(result);
+    } catch (e) {
+      log(`Failed to process ${images[i].name}: ${e.message}`, 'error');
+    }
+    await yieldToMain();
   }
-  
+  showStatus('uploadStatus', '', '');
   renderRecordPreview();
 }
 
@@ -1468,13 +1483,21 @@ function removeRecordImage(index) {
 }
 
 async function handleActivityFiles(fileList) {
-  for (const file of fileList) {
-    if (!file.type.startsWith('image/')) continue;
-    const maxW = parseInt(document.getElementById('activityMaxWidth').value);
-    const quality = parseFloat(document.getElementById('activityQuality').value);
-    const result = await processImage(file, maxW, quality);
-    activityFiles.push(result);
+  const maxW = parseInt(document.getElementById('activityMaxWidth').value);
+  const quality = parseFloat(document.getElementById('activityQuality').value);
+  const images = [...fileList].filter(f => f.type.startsWith('image/'));
+  for (let i = 0; i < images.length; i++) {
+    showStatus('uploadStatus', `Processing image ${i + 1} / ${images.length}...`, 'info');
+    await yieldToMain();
+    try {
+      const result = await processImage(images[i], maxW, quality);
+      activityFiles.push(result);
+    } catch (e) {
+      log(`Failed to process ${images[i].name}: ${e.message}`, 'error');
+    }
+    await yieldToMain();
   }
+  showStatus('uploadStatus', '', '');
   renderActivityPreview();
 }
 
@@ -1601,48 +1624,65 @@ async function submitActivityEntry() {
 }
 
 // ==================== IMAGE PROCESSING ====================
-async function processImage(file, maxWidth, quality) {
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const dataUrl = e.target.result;
+function yieldToMain() {
+  return new Promise(resolve => setTimeout(resolve, 0));
+}
 
-      if (maxWidth === 0) {
-        // No compression
-        const arr = new Uint8Array(await file.arrayBuffer());
-        resolve({ file, dataUrl, compressed: arr });
-        return;
+async function processImage(file, maxWidth, quality) {
+  // Use createObjectURL for preview (no base64 in memory)
+  const previewUrl = URL.createObjectURL(file);
+
+  if (maxWidth === 0) {
+    const arr = new Uint8Array(await file.arrayBuffer());
+    return { file, dataUrl: previewUrl, compressed: arr };
+  }
+
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      let w = img.width;
+      let h = img.height;
+
+      if (w > maxWidth) {
+        h = Math.round(h * (maxWidth / w));
+        w = maxWidth;
       }
 
-      // Compress via canvas
-      const img = new Image();
-      img.onload = () => {
-        let w = img.width;
-        let h = img.height;
-
-        if (w > maxWidth) {
-          h = Math.round(h * (maxWidth / w));
-          w = maxWidth;
-        }
-
-        const canvas = document.createElement('canvas');
+      // Use OffscreenCanvas if available (better perf on mobile)
+      let canvas, ctx;
+      if (typeof OffscreenCanvas !== 'undefined') {
+        canvas = new OffscreenCanvas(w, h);
+        ctx = canvas.getContext('2d');
+      } else {
+        canvas = document.createElement('canvas');
         canvas.width = w;
         canvas.height = h;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, w, h);
+        ctx = canvas.getContext('2d');
+      }
+      ctx.drawImage(img, 0, 0, w, h);
 
-        canvas.toBlob(blob => {
-          blob.arrayBuffer().then(buf => {
-            const compressed = new Uint8Array(buf);
-            const compressedUrl = URL.createObjectURL(blob);
-            log(`Compressed ${file.name}: ${(file.size/1024).toFixed(0)}KB → ${(compressed.byteLength/1024).toFixed(0)}KB (${w}×${h})`);
-            resolve({ file, dataUrl: compressedUrl, compressed });
-          });
-        }, 'image/jpeg', quality);
+      // Release the object URL used for Image decode
+      URL.revokeObjectURL(img.src);
+
+      const blobCallback = blob => {
+        if (!blob) { reject(new Error(`Compression failed for ${file.name}`)); return; }
+        blob.arrayBuffer().then(buf => {
+          const compressed = new Uint8Array(buf);
+          const compressedUrl = URL.createObjectURL(blob);
+          log(`Compressed ${file.name}: ${(file.size/1024).toFixed(0)}KB → ${(compressed.byteLength/1024).toFixed(0)}KB (${w}×${h})`);
+          resolve({ file, dataUrl: compressedUrl, compressed });
+        });
       };
-      img.src = dataUrl;
+
+      if (canvas instanceof OffscreenCanvas) {
+        canvas.convertToBlob({ type: 'image/jpeg', quality }).then(blobCallback);
+      } else {
+        canvas.toBlob(blobCallback, 'image/jpeg', quality);
+      }
     };
-    reader.readAsDataURL(file);
+    img.onerror = () => reject(new Error(`Failed to load ${file.name}`));
+    // Use a temporary object URL to decode the image (avoids base64 overhead)
+    img.src = URL.createObjectURL(file);
   });
 }
 
@@ -1705,7 +1745,22 @@ async function updateJsonFile(filename, data) {
   log(`Updated ${filename}`, 'success');
 }
 
-async function uploadFileToGitHub(path, uint8Array) {
+async function uint8ToBase64(uint8Array) {
+  // Use Blob + FileReader for efficient base64 on mobile (avoids string concat bottleneck)
+  return new Promise((resolve, reject) => {
+    const blob = new Blob([uint8Array]);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result;
+      // Strip "data:application/octet-stream;base64," prefix
+      resolve(dataUrl.split(',')[1]);
+    };
+    reader.onerror = () => reject(new Error('Base64 conversion failed'));
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function uploadFileToGitHub(path, uint8Array, retries = 2) {
   // Check if file exists first
   let sha = null;
   try {
@@ -1716,14 +1771,8 @@ async function uploadFileToGitHub(path, uint8Array) {
     }
   } catch (e) {}
 
-  // Convert Uint8Array to base64
-  let binary = '';
-  const chunkSize = 8192;
-  for (let i = 0; i < uint8Array.length; i += chunkSize) {
-    const chunk = uint8Array.subarray(i, i + chunkSize);
-    binary += String.fromCharCode.apply(null, chunk);
-  }
-  const base64 = btoa(binary);
+  // Convert Uint8Array to base64 efficiently
+  const base64 = await uint8ToBase64(uint8Array);
 
   const body = {
     message: `Upload ${path}`,
@@ -1731,17 +1780,34 @@ async function uploadFileToGitHub(path, uint8Array) {
   };
   if (sha) body.sha = sha;
 
-  const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${path}`, {
-    method: 'PUT',
-    body: JSON.stringify(body)
-  });
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${path}`, {
+        method: 'PUT',
+        body: JSON.stringify(body)
+      });
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(`Upload failed for ${path}: ${res.status} ${err.message || ''}`);
+      if (res.ok) {
+        log(`Uploaded ${path}`, 'success');
+        return;
+      }
+
+      const err = await res.json().catch(() => ({}));
+      // Don't retry on 4xx client errors (except 409 conflict)
+      if (res.status >= 400 && res.status < 500 && res.status !== 409) {
+        throw new Error(`Upload failed for ${path}: ${res.status} ${err.message || ''}`);
+      }
+      throw new Error(`Server error ${res.status}: ${err.message || ''}`);
+    } catch (e) {
+      if (attempt < retries) {
+        const wait = (attempt + 1) * 2000;
+        log(`Retry ${attempt + 1}/${retries} for ${path} in ${wait/1000}s: ${e.message}`, 'warn');
+        await new Promise(r => setTimeout(r, wait));
+      } else {
+        throw new Error(`Upload failed for ${path} after ${retries + 1} attempts: ${e.message}`);
+      }
+    }
   }
-
-  log(`Uploaded ${path}`, 'success');
 }
 
 async function deleteGitHubFile(path) {
