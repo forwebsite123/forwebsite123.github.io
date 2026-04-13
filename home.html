@@ -262,6 +262,50 @@
         transform-origin: center center;
       }
     }
+  
+
+    .entry-links {
+      text-align: center;
+      margin-bottom: 44px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .jianmu-link {
+      font-size: 23px;
+      letter-spacing: 0.14em;
+      line-height: 1.2;
+      font-style: normal;
+      font-family: "Songti SC", "STSong", "Noto Serif SC", "Source Han Serif SC", "PMingLiU", serif;
+      color: transparent;
+      -webkit-text-stroke: 0.8px rgba(156, 115, 115, 0.42);
+      text-decoration: none;
+      transition: -webkit-text-stroke-color 0.4s ease, letter-spacing 0.4s ease, transform 0.25s ease, opacity 0.25s ease;
+      cursor: pointer;
+      display: inline-block;
+    }
+
+    .jianmu-link:hover {
+      -webkit-text-stroke-color: rgba(156, 115, 115, 0.86);
+      letter-spacing: 0.18em;
+      transform: translateY(-1px);
+    }
+
+    @media (max-width: 820px) {
+      .entry-links {
+        margin-bottom: 30px;
+        gap: 10px;
+      }
+
+      .jianmu-link {
+        font-size: 19px;
+        letter-spacing: 0.12em;
+      }
+    }
+
   </style>
 </head>
 
@@ -274,7 +318,8 @@
     </div>
 
     <!-- about.html updated -->
-    <div class="about-link-wrap">
+    <div class="entry-links">
+      <a href="jianmu.html" class="jianmu-link">「 见木 」</a>
       <a href="about.html" class="about-link">Behind the pixels</a>
     </div>
 
@@ -345,6 +390,7 @@
         .catch(function() {});
     })();
   </script>
-  <script src="/search.js"></script>
+
+<script src="/search.js"></script>
 </body>
 </html>
