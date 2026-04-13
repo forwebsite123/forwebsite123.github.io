@@ -459,6 +459,75 @@
 
   .checkbox-row input { width: auto; margin: 0; }
 
+
+  /* Collapsible uploaded items */
+  .collapsed-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+  .collapsed-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .collapsed-meta {
+    flex: 1;
+    min-width: 0;
+  }
+  .collapsed-title {
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 4px;
+  }
+  .collapsed-sub {
+    color: var(--text-light);
+    font-size: 0.88em;
+    line-height: 1.7;
+  }
+  .collapsed-preview {
+    margin-top: 6px;
+    font-size: 0.9em;
+    color: var(--text-light);
+    line-height: 1.7;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    white-space: pre-wrap;
+  }
+  .collapsed-badges {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  .collapsed-badge {
+    font-size: 0.78em;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #f0ebe5;
+    color: var(--primary);
+  }
+  .collapsed-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+  .collapsed-detail {
+    display: none;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--border);
+  }
+  .collapsed-detail.open {
+    display: block;
+  }
+
   /* Responsive */
   @media (max-width: 600px) {
     body { padding: 12px; }
@@ -985,32 +1054,44 @@ function renderAlbumPhotos(photos, page) {
   }
 
   list.innerHTML = photos.map((p, i) => {
-    const safeImage = p.image.replace(/'/g, "\\'");
-    const safeTags = (p.tags || []).join(', ').replace(/'/g, "\\'");
-    const safeTitle = (p.title || '').replace(/'/g, "\\'");
+    const safeImage = p.image.replace(/'/g, "\'");
+    const safeTags = (p.tags || []).join(', ').replace(/'/g, "\'");
+    const safeTitle = (p.title || '').replace(/'/g, "\'");
+    const detailId = `album-detail-${i}`;
+    const displayTitle = p.title || '(untitled)';
+    const previewUrl = `https://${OWNER}.github.io/${p.image}`;
+    const tagCount = (p.tags || []).length;
     return `
-    <div class="entry-card" data-index="${i}">
-      <div class="entry-header">
-        <span>${p.title || '(untitled)'}</span>
-        <div style="display:flex;gap:6px;">
-          <button class="btn btn-secondary btn-small" onclick="toggleEditPhoto('${safeImage}', '${page}')">Edit</button>
+    <div class="collapsed-card" data-index="${i}">
+      <div class="collapsed-summary">
+        <div class="collapsed-meta">
+          <div class="collapsed-title">${escapeAttr(displayTitle)}</div>
+          <div class="collapsed-sub">${escapeAttr(p.image)}</div>
+          <div class="collapsed-badges">
+            <span class="collapsed-badge">${tagCount} tags</span>
+            <span class="collapsed-badge">${p.video ? '含视频' : '纯图片'}</span>
+          </div>
+        </div>
+        <div class="collapsed-actions">
+          <button class="btn btn-secondary btn-small" onclick="toggleCollapsedDetail('${detailId}')">展开</button>
           <button class="btn btn-danger btn-small" onclick="deleteAlbumPhoto('${safeImage}', '${page}')">Delete</button>
         </div>
       </div>
-      <div class="entry-photos">
-        <div class="thumb"><img src="https://${OWNER}.github.io/${p.image}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%2250%25%22 x=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22>?</text></svg>'"></div>
-      </div>
-      ${p.tags && p.tags.length ? `<div class="entry-note">Tags: ${p.tags.join(', ')}</div>` : ''}
-      <div class="edit-form hidden" id="edit-${i}">
-        <label>Title</label>
-        <input type="text" id="editTitle-${i}" value="${safeTitle}" placeholder="(optional)">
-        <label>Tags (comma separated)</label>
-        <input type="text" id="editTags-${i}" value="${safeTags}">
-        <label>Bilibili BV (optional)</label>
-        <input type="text" id="editVideo-${i}" value="${p.video || ''}" placeholder="BVxxxxxxxxxx">
-        <div style="margin-top:8px;display:flex;gap:8px;">
-          <button class="btn btn-primary btn-small" onclick="saveEditPhoto('${safeImage}', ${i})">Save</button>
-          <button class="btn btn-secondary btn-small" onclick="toggleEditPhoto('${safeImage}', '${page}')">Cancel</button>
+      <div class="collapsed-detail" id="${detailId}">
+        <div class="entry-photos" style="margin-top:0">
+          <div class="thumb" style="width:90px;height:90px"><img src="${previewUrl}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%2250%25%22 x=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22>?</text></svg>'"></div>
+        </div>
+        ${p.tags && p.tags.length ? `<div class="entry-note">Tags: ${escapeAttr(p.tags.join(', '))}</div>` : ''}
+        <div class="edit-form" id="edit-${i}">
+          <label>Title</label>
+          <input type="text" id="editTitle-${i}" value="${safeTitle}" placeholder="(optional)">
+          <label>Tags (comma separated)</label>
+          <input type="text" id="editTags-${i}" value="${safeTags}">
+          <label>Bilibili BV (optional)</label>
+          <input type="text" id="editVideo-${i}" value="${p.video || ''}" placeholder="BVxxxxxxxxxx">
+          <div style="margin-top:8px;display:flex;gap:8px;">
+            <button class="btn btn-primary btn-small" onclick="saveEditPhoto('${safeImage}', ${i})">Save</button>
+          </div>
         </div>
       </div>
     </div>`;
@@ -1018,12 +1099,10 @@ function renderAlbumPhotos(photos, page) {
 }
 
 function toggleEditPhoto(imagePath, page) {
-  // Find the index of this photo in the rendered list
   const photos = currentPhotosJson.items.filter(item => item.page === page);
   const idx = photos.findIndex(p => p.image === imagePath);
   if (idx === -1) return;
-  const form = document.getElementById('edit-' + idx);
-  if (form) form.classList.toggle('hidden');
+  toggleCollapsedDetail('album-detail-' + idx);
 }
 
 async function saveEditPhoto(imagePath, displayIdx) {
@@ -1254,67 +1333,70 @@ function renderActivityEntries() {
   list.innerHTML = entries.map((entry, idx) => {
     const photos = entry.photos || [];
     const hasRecord = entry.record_image;
-    const safeNote = (isFragments ? (entry.text || '') : (entry.note || '')).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    const textPreview = isFragments ? (entry.text || '') : (entry.note || '');
     const safeTags = isFragments ? (entry.tags || []).join(', ') : '';
-    
+    const detailId = `activity-detail-${idx}`;
     return `
-    <div class="entry-card">
-      <div class="entry-header">
-        <div>
-          <span class="entry-date">${entry.date || '(no date)'}</span>
-          ${!isFragments ? `<span class="entry-location"> · ${entry.location || ''}</span>` : ''}
+    <div class="collapsed-card">
+      <div class="collapsed-summary">
+        <div class="collapsed-meta">
+          <div class="collapsed-title">${escapeAttr(entry.date || '(no date)')}${!isFragments ? ` · ${escapeAttr(entry.location || '')}` : ''}</div>
+          <div class="collapsed-sub">${photos.length} 张照片${hasRecord ? ' · 含 record image' : ''}${entry.videos && entry.videos.length ? ` · ${entry.videos.length} 个视频` : ''}</div>
+          <div class="collapsed-preview">${escapeAttr(excerpt(textPreview, 120))}</div>
+          ${isFragments && safeTags ? `<div class="collapsed-badges"><span class="collapsed-badge">${escapeAttr(safeTags)}</span></div>` : ''}
         </div>
-        <div style="display:flex;gap:6px;">
-          <button class="btn btn-secondary btn-small" onclick="toggleEditEntry(${idx})">Edit</button>
+        <div class="collapsed-actions">
+          <button class="btn btn-secondary btn-small" onclick="toggleCollapsedDetail('${detailId}')">展开</button>
           <button class="btn btn-danger btn-small" onclick="deleteActivityEntry(${idx})">Delete</button>
         </div>
       </div>
-      ${hasRecord ? `
-        <div style="margin:6px 0">
-          <span style="font-size:0.85em;color:var(--text-light)">Record: </span>
-          ${(Array.isArray(entry.record_image) ? entry.record_image : [entry.record_image]).map(ri => `
-            <img src="https://${OWNER}.github.io${ri}" 
-                 style="width:60px;height:60px;object-fit:cover;border-radius:4px;vertical-align:middle;border:1px solid var(--border);margin-right:4px"
-                 onerror="this.style.display='none'">
-          `).join('')}
-          ${entry.record_caption ? `<span style="font-size:0.85em;color:var(--text-light);margin-left:2px">${entry.record_caption}</span>` : ''}
-        </div>
-      ` : ''}
-      ${photos.length > 0 ? `
-        <div class="entry-photos">
-          ${photos.map((p, pi) => `
-            <div class="thumb">
-              <img src="https://${OWNER}.github.io${p}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%2250%25%22 x=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22>?</text></svg>'">
-              <button class="del-photo" onclick="deleteEntryPhoto(${idx}, ${pi})" title="Delete this photo">×</button>
-            </div>
-          `).join('')}
-        </div>
-      ` : ''}
-      <div class="entry-note">${isFragments ? (entry.text || '') : (entry.note || '')}</div>
+      <div class="collapsed-detail" id="${detailId}">
+        ${hasRecord ? `
+          <div style="margin:6px 0 10px">
+            <span style="font-size:0.85em;color:var(--text-light)">Record: </span>
+            ${(Array.isArray(entry.record_image) ? entry.record_image : [entry.record_image]).map(ri => `
+              <img src="https://${OWNER}.github.io${ri}" 
+                   style="width:60px;height:60px;object-fit:cover;border-radius:4px;vertical-align:middle;border:1px solid var(--border);margin-right:4px"
+                   onerror="this.style.display='none'">
+            `).join('')}
+            ${entry.record_caption ? `<span style="font-size:0.85em;color:var(--text-light);margin-left:2px">${escapeAttr(entry.record_caption)}</span>` : ''}
+          </div>
+        ` : ''}
+        ${photos.length > 0 ? `
+          <div class="entry-photos">
+            ${photos.map((p, pi) => `
+              <div class="thumb">
+                <img src="https://${OWNER}.github.io${p}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%2250%25%22 x=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22>?</text></svg>'">
+                <button class="del-photo" onclick="deleteEntryPhoto(${idx}, ${pi})" title="Delete this photo">×</button>
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+        <div class="entry-note">${escapeAttr(isFragments ? (entry.text || '') : (entry.note || ''))}</div>
 
-      <div class="edit-form hidden" id="editEntry-${idx}">
-        <label>Date</label>
-        <input type="text" id="editEntryDate-${idx}" value="${entry.date || ''}">
-        ${!isFragments ? `
-          <label>Location</label>
-          <input type="text" id="editEntryLocation-${idx}" value="${entry.location || ''}">
-        ` : ''}
-        ${hasRecordField ? `
-          <label>Record Caption</label>
-          <input type="text" id="editEntryRecordCaption-${idx}" value="${(entry.record_caption || '').replace(/"/g, '&quot;')}">
-        ` : ''}
-        ${isFragments ? `
-          <label>Text</label>
-          <textarea id="editEntryText-${idx}" style="min-height:60px">${entry.text || ''}</textarea>
-          <label>Tags (comma separated)</label>
-          <input type="text" id="editEntryTags-${idx}" value="${safeTags}">
-        ` : `
-          <label>Note</label>
-          <textarea id="editEntryNote-${idx}" style="min-height:60px">${entry.note || ''}</textarea>
-        `}
-        <div style="margin-top:8px;display:flex;gap:8px;">
-          <button class="btn btn-primary btn-small" onclick="saveEditEntry(${idx})">Save</button>
-          <button class="btn btn-secondary btn-small" onclick="toggleEditEntry(${idx})">Cancel</button>
+        <div class="edit-form" id="editEntry-${idx}">
+          <label>Date</label>
+          <input type="text" id="editEntryDate-${idx}" value="${entry.date || ''}">
+          ${!isFragments ? `
+            <label>Location</label>
+            <input type="text" id="editEntryLocation-${idx}" value="${escapeAttr(entry.location || '')}">
+          ` : ''}
+          ${hasRecordField ? `
+            <label>Record Caption</label>
+            <input type="text" id="editEntryRecordCaption-${idx}" value="${escapeAttr(entry.record_caption || '')}">
+          ` : ''}
+          ${isFragments ? `
+            <label>Text</label>
+            <textarea id="editEntryText-${idx}" style="min-height:60px">${escapeAttr(entry.text || '')}</textarea>
+            <label>Tags (comma separated)</label>
+            <input type="text" id="editEntryTags-${idx}" value="${escapeAttr(safeTags)}">
+          ` : `
+            <label>Note</label>
+            <textarea id="editEntryNote-${idx}" style="min-height:60px">${escapeAttr(entry.note || '')}</textarea>
+          `}
+          <div style="margin-top:8px;display:flex;gap:8px;">
+            <button class="btn btn-primary btn-small" onclick="saveEditEntry(${idx})">Save</button>
+          </div>
         </div>
       </div>
     </div>`;
@@ -1322,8 +1404,7 @@ function renderActivityEntries() {
 }
 
 function toggleEditEntry(idx) {
-  const form = document.getElementById('editEntry-' + idx);
-  if (form) form.classList.toggle('hidden');
+  toggleCollapsedDetail('activity-detail-' + idx);
 }
 
 async function saveEditEntry(idx) {
@@ -1901,17 +1982,25 @@ function renderMapMarkers() {
     return;
   }
 
-  list.innerHTML = items.map((m, i) => `
-    <div class="entry-card">
-      <div class="entry-header">
-        <div>
-          <span class="entry-date">${m.title}</span>
-          <span class="entry-location"> · ${m.page} · (${m.lat}, ${m.lng})</span>
+  list.innerHTML = items.map((m, i) => {
+    const detailId = `marker-detail-${i}`;
+    return `
+    <div class="collapsed-card">
+      <div class="collapsed-summary">
+        <div class="collapsed-meta">
+          <div class="collapsed-title">${escapeAttr(m.title)}</div>
+          <div class="collapsed-sub">${escapeAttr(m.page)} · (${m.lat}, ${m.lng})</div>
         </div>
-        <button class="btn btn-danger btn-small" onclick="deleteMapMarker(${i})">Delete</button>
+        <div class="collapsed-actions">
+          <button class="btn btn-secondary btn-small" onclick="toggleCollapsedDetail('${detailId}')">展开</button>
+          <button class="btn btn-danger btn-small" onclick="deleteMapMarker(${i})">Delete</button>
+        </div>
       </div>
-    </div>
-  `).join('');
+      <div class="collapsed-detail" id="${detailId}">
+        <div class="entry-note">Marker title: ${escapeAttr(m.title)}<br>Album page: ${escapeAttr(m.page)}<br>Latitude: ${m.lat}<br>Longitude: ${m.lng}</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 async function addMapMarker() {
@@ -1968,6 +2057,28 @@ async function deleteMapMarker(idx) {
     hideProgress();
     showStatus('uploadStatus', 'Delete failed: ' + e.message, 'error');
   }
+}
+
+
+function escapeAttr(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function excerpt(value, max = 90) {
+  const text = String(value || '').replace(/\s+/g, ' ').trim();
+  if (!text) return '';
+  return text.length > max ? text.slice(0, max) + '…' : text;
+}
+
+function toggleCollapsedDetail(id) {
+  const detail = document.getElementById(id);
+  if (!detail) return;
+  detail.classList.toggle('open');
 }
 
 // ==================== CONFIRM DIALOG ====================
