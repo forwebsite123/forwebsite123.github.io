@@ -227,6 +227,8 @@
         font-size: 13px;
         margin-top: 6px;
         margin-bottom: 16px;
+        position: relative;
+        z-index: 1;
       }
 
       .flora-tl {
@@ -246,21 +248,23 @@
 
       .flora-bl {
         width: 70px;
-        bottom: -24px;
+        bottom: 0;
         left: auto;
         right: 0;
-        opacity: 0.15;
+        opacity: 0.18;
         transform: rotate(-8deg);
+        z-index: 0;
       }
 
       .flora-br {
         width: 75px;
-        bottom: -26px;
+        bottom: 0;
         right: auto;
         left: 0;
-        opacity: 0.15;
+        opacity: 0.18;
         transform: rotate(-90deg);
         transform-origin: center center;
+        z-index: 0;
       }
     }
   
