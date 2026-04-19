@@ -370,6 +370,81 @@
     font-style: italic;
   }
 
+  /* ==================== 拖拽排序 ==================== */
+  /* 拖拽手柄 */
+  .drag-handle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    cursor: grab;
+    color: var(--text-light);
+    font-size: 18px;
+    line-height: 1;
+    user-select: none;
+    touch-action: none; /* 关键:禁用浏览器默认手势, 让 pointer events 全权处理 */
+    flex-shrink: 0;
+  }
+  .drag-handle:active {
+    cursor: grabbing;
+    color: var(--primary);
+  }
+  .drag-handle::before {
+    content: '⋮⋮';
+    letter-spacing: -2px;
+  }
+
+  /* 拖拽中的项 */
+  .sortable-item.dragging {
+    opacity: 0.4;
+    transform: scale(0.98);
+  }
+
+  /* sortable-item 内的 img 禁用浏览器原生拖拽,避免干扰 pointer events */
+  .sortable-item img {
+    -webkit-user-drag: none;
+    user-select: none;
+    pointer-events: none;
+  }
+
+  /* 拖拽时的"幽灵"副本 (跟随手指/鼠标) */
+  .drag-ghost {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.85;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    transform: scale(0.95);
+    transition: none;
+    background: var(--card);
+    border: 1px solid var(--primary);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  /* 小缩略图拖拽时的 ghost */
+  .drag-ghost.thumb-ghost {
+    border-radius: 4px;
+    border: 2px solid var(--primary);
+  }
+
+  /* 可放置区域的占位指示 */
+  .sortable-item.drop-before {
+    border-top: 3px solid var(--primary);
+  }
+  .sortable-item.drop-after {
+    border-bottom: 3px solid var(--primary);
+  }
+
+  /* photo thumbs 排序时:占位高亮 */
+  .entry-photos .thumb.drop-before {
+    box-shadow: -3px 0 0 var(--primary);
+  }
+  .entry-photos .thumb.drop-after {
+    box-shadow: 3px 0 0 var(--primary);
+  }
+
   /* Progress */
   .progress-bar {
     width: 100%;
@@ -985,6 +1060,10 @@ let albumFiles = [];      // [{file, dataUrl, compressed}]
 let activityFiles = [];   // [{file, dataUrl, compressed}]
 let recordImageFiles = [];   // [{file, dataUrl, compressed}]
 
+// 已有 entry 追加照片的暂存区: entryIdx -> [{file, dataUrl, compressed}]
+// 用 Map 是因为用户可能同时展开多个 entry 各自追加
+const entryAppendFiles = new Map();
+
 // Current data
 let currentPhotosJson = null;
 let currentActivityJson = null;
@@ -1176,7 +1255,11 @@ function renderAlbumPhotos(photos, page) {
     return;
   }
 
-  list.innerHTML = photos.map((p, i) => {
+  list.innerHTML = `
+    <div style="font-size:0.85em;color:var(--text-light);font-style:italic;margin-bottom:8px">
+      拖动 ⋮⋮ 可调整排序 · 改变顺序会自动保存
+    </div>
+  ` + photos.map((p, i) => {
     const safeImage = p.image.replace(/'/g, "\'");
     const safeTags = (p.tags || []).join(', ').replace(/'/g, "\'");
     const safeTitle = (p.title || '').replace(/'/g, "\'");
@@ -1185,8 +1268,9 @@ function renderAlbumPhotos(photos, page) {
     const previewUrl = `https://${OWNER}.github.io/${p.image}`;
     const tagCount = (p.tags || []).length;
     return `
-    <div class="collapsed-card" data-index="${i}">
+    <div class="collapsed-card sortable-item" data-index="${i}" data-image="${escapeAttr(p.image)}">
       <div class="collapsed-summary">
+        <div class="drag-handle" title="拖动排序"></div>
         <div class="collapsed-meta">
           <div class="collapsed-title">${escapeAttr(displayTitle)}</div>
           <div class="collapsed-sub">${escapeAttr(p.image)}</div>
@@ -1219,6 +1303,64 @@ function renderAlbumPhotos(photos, page) {
       </div>
     </div>`;
   }).join('');
+
+  // 设置拖拽排序
+  makeSortable(list, {
+    itemSelector: '.sortable-item',
+    handleSelector: '.drag-handle',
+    horizontal: false,
+    onReorder: (fromIdx, toIdx) => reorderAlbumPhotos(page, fromIdx, toIdx)
+  });
+}
+
+// 相册内照片重排: 在整个 photos.json 里找到这两项,交换位置,保存
+async function reorderAlbumPhotos(page, fromIdx, toIdx) {
+  if (!currentPhotosJson) return;
+
+  // 深拷贝一份来操作,不直接修改 currentPhotosJson
+  // 这样 commit 失败时本地状态不会错乱
+  const draft = JSON.parse(JSON.stringify(currentPhotosJson));
+  delete draft._sha;
+
+  // 找当前相册在全局 items 里的索引列表
+  const draftItems = draft.items;
+  const albumIndices = [];
+  draftItems.forEach((item, i) => {
+    if (item.page === page) albumIndices.push(i);
+  });
+
+  const globalFrom = albumIndices[fromIdx];
+  const globalTo = albumIndices[toIdx];
+  if (globalFrom === undefined || globalTo === undefined) return;
+
+  // 从数组里取出拖的项,插入到目标位置
+  const [moved] = draftItems.splice(globalFrom, 1);
+  // globalTo 是取出前的位置, 如果 globalFrom < globalTo, 取出后右侧前移 1, insertAt 减 1
+  const insertAt = globalFrom < globalTo ? globalTo - 1 : globalTo;
+  draftItems.splice(insertAt, 0, moved);
+
+  try {
+    showProgress('Saving new order...');
+    await batchCommit({
+      files: [],
+      jsonUpdates: [{ path: 'photos.json', data: draft }],
+      message: `Reorder photos in ${page}`,
+      onProgress: (ratio) => updateProgress(ratio)
+    });
+    hideProgress();
+    showStatus('uploadStatus', 'Order saved', 'success');
+    // commit 成功后才应用到 currentPhotosJson
+    currentPhotosJson = draft;
+    // 重渲染
+    const pagePhotos = currentPhotosJson.items.filter(item => item.page === page);
+    renderAlbumPhotos(pagePhotos, page);
+  } catch (e) {
+    hideProgress();
+    showStatus('uploadStatus', 'Failed to save order: ' + e.message, 'error');
+    // 重渲染恢复原始顺序的视图
+    const pagePhotos = currentPhotosJson.items.filter(item => item.page === page);
+    renderAlbumPhotos(pagePhotos, page);
+  }
 }
 
 function toggleEditPhoto(imagePath, page) {
@@ -1359,21 +1501,18 @@ async function submitAlbumPhotos() {
   const video = document.getElementById('albumVideo').value.trim();
 
   try {
-    const total = albumFiles.length + 1; // +1 for JSON update
-    let done = 0;
     showProgress(`Uploading ${albumFiles.length} photos...`);
 
     // Get current photos.json
     const jsonData = await fetchJsonFile('photos.json');
+    delete jsonData._sha; // Git Data API 不用 sha
 
-    // 并行上传 (3路) - GitHub API 能接受合理并发, 总耗时接近 / N
-    // 每个任务先生成文件名,上传,再把条目推进 jsonData
-    const CONCURRENCY = 3;
-    const tasks = albumFiles.map(f => async () => {
+    // 预生成文件名和路径,拼好要提交的文件清单
+    const files = [];
+    for (const f of albumFiles) {
       const filename = generateFilename(f.file.name);
       const path = `images/${filename}`;
-      log(`Uploading ${filename}...`);
-      await uploadFileToGitHub(path, f.compressed);
+      files.push({ path, bytes: f.compressed });
       jsonData.items.push({
         title: '',
         image: '/' + path,
@@ -1382,17 +1521,18 @@ async function submitAlbumPhotos() {
         page: page,
         pageLabel: pageLabel
       });
-      done++;
-      updateProgress(done / total);
+    }
+
+    // 一次性 commit 所有照片 + 更新后的 photos.json
+    await batchCommit({
+      files,
+      jsonUpdates: [{ path: 'photos.json', data: jsonData }],
+      message: `Upload ${albumFiles.length} photos to ${page}`,
+      onProgress: (ratio) => updateProgress(ratio)
     });
 
-    await runWithConcurrency(tasks, CONCURRENCY);
-
-    // Save JSON
-    log('Updating photos.json...');
-    await updateJsonFile('photos.json', jsonData);
-    done++;
-    updateProgress(1);
+    // 本地缓存也同步更新
+    currentPhotosJson = jsonData;
 
     hideProgress();
     showStatus('uploadStatus', `${albumFiles.length} photos uploaded successfully!`, 'success');
@@ -1419,6 +1559,21 @@ async function submitAlbumPhotos() {
 // ==================== ACTIVITY MODE ====================
 async function loadActivityEntries() {
   const sel = document.getElementById('activitySelect');
+
+  // 切换 activity 类型: 追加队列的 idx 不再对应新 activity 的 entry, 必须清空
+  if (entryAppendFiles.size > 0) {
+    const hasQueue = [...entryAppendFiles.values()].some(q => q.length > 0);
+    if (hasQueue) {
+      const ok = await confirmAction('You have queued photos not yet uploaded. Switching activity will discard them. Continue?');
+      if (!ok) {
+        // 还原 select
+        sel.value = currentActivityType;
+        return;
+      }
+    }
+    clearAllEntryAppendQueues();
+  }
+
   currentActivityType = sel.value;
   if (!currentActivityType) {
     document.getElementById('activityExisting').style.display = 'none';
@@ -1505,13 +1660,16 @@ function renderActivityEntries() {
           </div>
         ` : ''}
         ${photos.length > 0 ? `
-          <div class="entry-photos">
+          <div class="entry-photos sortable-photos" id="entry-photos-${idx}">
             ${photos.map((p, pi) => `
-              <div class="thumb">
+              <div class="thumb sortable-item" data-photo-index="${pi}">
                 <img src="https://${OWNER}.github.io${p}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%2250%25%22 x=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22>?</text></svg>'">
-                <button class="del-photo" onclick="deleteEntryPhoto(${idx}, ${pi})" title="Delete this photo">×</button>
+                <button class="del-photo" onclick="deleteEntryPhoto(${idx}, ${pi})" onpointerdown="event.stopPropagation()" title="Delete this photo">×</button>
               </div>
             `).join('')}
+          </div>
+          <div style="font-size:0.8em;color:var(--text-light);font-style:italic;margin-top:4px">
+            长按并拖动缩略图可调整排序
           </div>
         ` : ''}
         <div class="entry-note">${escapeAttr(isFragments ? (entry.text || '') : (entry.note || ''))}</div>
@@ -1536,17 +1694,238 @@ function renderActivityEntries() {
             <label>Note</label>
             <textarea id="editEntryNote-${idx}" style="min-height:60px">${escapeAttr(entry.note || '')}</textarea>
           `}
-          <div style="margin-top:8px;display:flex;gap:8px;">
-            <button class="btn btn-primary btn-small" onclick="saveEditEntry(${idx})">Save</button>
+
+          <!-- 追加照片入口 -->
+          <label style="margin-top:10px">Add more photos to this entry</label>
+          <div class="upload-area" style="padding:14px;margin-bottom:8px">
+            <input type="file" accept="image/*" multiple onchange="handleEntryAppendFiles(${idx}, this.files)">
+            <div class="icon" style="font-size:1.5em">＋</div>
+            <div style="font-size:0.9em">Click or drag photos to add</div>
+            <div class="hint" style="font-size:0.8em">Will use the same compression settings as the main upload area above</div>
+          </div>
+          <div class="preview-grid" id="entryAppendPreview-${idx}"></div>
+          <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-primary btn-small" id="entrySaveBtn-${idx}" onclick="saveEditEntry(${idx})">Save Entry Details</button>
+            <button class="btn btn-primary btn-small" id="entryAppendSubmit-${idx}" onclick="submitEntryAppend(${idx})" disabled>Upload New Photos</button>
+          </div>
+          <div id="entryAppendHint-${idx}" style="display:none;font-size:0.8em;color:var(--warning);margin-top:6px">
+            Please upload or clear the queued photos before saving entry details.
           </div>
         </div>
       </div>
     </div>`;
   }).join('');
+
+  // 绑定每个 entry 内部 photos 的拖拽排序
+  entries.forEach((entry, idx) => {
+    const container = document.getElementById(`entry-photos-${idx}`);
+    if (!container) return; // 该 entry 没照片
+    makeSortable(container, {
+      itemSelector: '.sortable-item',
+      handleSelector: null, // 整个 thumb 都是拖拽区
+      horizontal: true,
+      onReorder: (fromPi, toPi) => reorderEntryPhotos(idx, fromPi, toPi)
+    });
+  });
+
+  // 恢复追加照片队列的预览 (重渲后 DOM 重建, 但队列仍在 Map 中)
+  // 注意: entryAppendFiles 的 key 是 entry idx, renderActivityEntries 不改 date 所以 idx 稳定
+  for (const [idx, queue] of entryAppendFiles.entries()) {
+    if (queue.length === 0) continue;
+    // 展开此 entry 的编辑区, 不然用户看不到
+    const detail = document.getElementById('activity-detail-' + idx);
+    if (detail && !detail.classList.contains('open')) {
+      detail.classList.add('open');
+    }
+    renderEntryAppendPreview(idx);
+  }
 }
 
 function toggleEditEntry(idx) {
   toggleCollapsedDetail('activity-detail-' + idx);
+}
+
+// Entry 内照片重排: 修改 entry.photos 数组顺序后保存
+async function reorderEntryPhotos(entryIdx, fromPi, toPi) {
+  if (!currentActivityJson || !currentActivityJson.entries[entryIdx]) return;
+
+  // 深拷贝 draft,避免 commit 失败本地状态错乱
+  const draft = JSON.parse(JSON.stringify(currentActivityJson));
+  delete draft._sha;
+  const entry = draft.entries[entryIdx];
+  if (!entry.photos) return;
+
+  const [moved] = entry.photos.splice(fromPi, 1);
+  const insertAt = fromPi < toPi ? toPi - 1 : toPi;
+  entry.photos.splice(insertAt, 0, moved);
+
+  try {
+    showProgress('Saving new photo order...');
+    await batchCommit({
+      files: [],
+      jsonUpdates: [{ path: currentActivityType + '.json', data: draft }],
+      message: `Reorder photos in entry ${entry.date || entryIdx}`,
+      onProgress: (ratio) => updateProgress(ratio)
+    });
+    hideProgress();
+    showStatus('uploadStatus', 'Order saved', 'success');
+    currentActivityJson = draft;
+    renderActivityEntries();
+  } catch (e) {
+    hideProgress();
+    showStatus('uploadStatus', 'Failed to save order: ' + e.message, 'error');
+    renderActivityEntries(); // 恢复视图
+  }
+}
+
+// ========== 向已有 entry 追加照片 ==========
+async function handleEntryAppendFiles(entryIdx, fileList) {
+  const maxW = parseInt(document.getElementById('activityMaxWidth').value);
+  const quality = parseFloat(document.getElementById('activityQuality').value);
+  const images = [...fileList].filter(f => f.type.startsWith('image/'));
+  if (images.length === 0) return;
+
+  // 取/建此 entry 的追加队列
+  if (!entryAppendFiles.has(entryIdx)) {
+    entryAppendFiles.set(entryIdx, []);
+  }
+  const queue = entryAppendFiles.get(entryIdx);
+
+  let done = 0;
+  const total = images.length;
+  showStatus('uploadStatus', `Processing 0 / ${total}...`, 'info');
+
+  const tasks = images.map(img =>
+    processImage(img, maxW, quality)
+      .then(result => {
+        queue.push(result);
+        done++;
+        showStatus('uploadStatus', `Processing ${done} / ${total}...`, 'info');
+        renderEntryAppendPreview(entryIdx);
+      })
+      .catch(e => {
+        done++;
+        log(`Failed to process ${img.name}: ${e.message}`, 'error');
+        showStatus('uploadStatus', `Processing ${done} / ${total}...`, 'info');
+      })
+  );
+
+  await Promise.all(tasks);
+
+  showStatus('uploadStatus', '', '');
+  renderEntryAppendPreview(entryIdx);
+
+  // 重置 file input,让用户能重复选同一文件
+  const editForm = document.getElementById('editEntry-' + entryIdx);
+  if (editForm) {
+    const input = editForm.querySelector('.upload-area input[type="file"]');
+    if (input) input.value = '';
+  }
+}
+
+function renderEntryAppendPreview(entryIdx) {
+  const preview = document.getElementById('entryAppendPreview-' + entryIdx);
+  const submitBtn = document.getElementById('entryAppendSubmit-' + entryIdx);
+  const saveBtn = document.getElementById('entrySaveBtn-' + entryIdx);
+  const hint = document.getElementById('entryAppendHint-' + entryIdx);
+  if (!preview) return;
+  const queue = entryAppendFiles.get(entryIdx) || [];
+
+  preview.innerHTML = queue.map((f, i) => `
+    <div class="preview-item">
+      <img src="${f.dataUrl}">
+      <button class="remove-btn" onclick="removeEntryAppendFile(${entryIdx}, ${i})">×</button>
+    </div>
+  `).join('');
+
+  const hasQueue = queue.length > 0;
+  if (submitBtn) submitBtn.disabled = !hasQueue;
+  // 有待追加照片时, 禁止保存 entry 详情, 避免重排导致照片丢失
+  if (saveBtn) saveBtn.disabled = hasQueue;
+  if (hint) hint.style.display = hasQueue ? 'block' : 'none';
+}
+
+function removeEntryAppendFile(entryIdx, i) {
+  const queue = entryAppendFiles.get(entryIdx);
+  if (!queue) return;
+  const [removed] = queue.splice(i, 1);
+  if (removed && removed.dataUrl) {
+    try { URL.revokeObjectURL(removed.dataUrl); } catch (_) {}
+  }
+  renderEntryAppendPreview(entryIdx);
+}
+
+// 清空某 entry 的追加队列 + 释放 object URL
+function clearEntryAppendQueue(entryIdx) {
+  const queue = entryAppendFiles.get(entryIdx);
+  if (!queue) return;
+  for (const f of queue) {
+    if (f && f.dataUrl) {
+      try { URL.revokeObjectURL(f.dataUrl); } catch (_) {}
+    }
+  }
+  entryAppendFiles.delete(entryIdx);
+}
+
+// 清空所有 entry 的追加队列
+function clearAllEntryAppendQueues() {
+  for (const [idx] of entryAppendFiles.entries()) {
+    const queue = entryAppendFiles.get(idx);
+    for (const f of queue) {
+      if (f && f.dataUrl) {
+        try { URL.revokeObjectURL(f.dataUrl); } catch (_) {}
+      }
+    }
+  }
+  entryAppendFiles.clear();
+}
+
+async function submitEntryAppend(entryIdx) {
+  const queue = entryAppendFiles.get(entryIdx) || [];
+  if (queue.length === 0) return;
+  if (!currentActivityJson || !currentActivityJson.entries[entryIdx]) {
+    showStatus('uploadStatus', 'Entry not found', 'error');
+    return;
+  }
+
+  try {
+    showProgress(`Uploading ${queue.length} new photos...`);
+
+    // Draft 模式: commit 成功后才更新本地状态
+    const draft = JSON.parse(JSON.stringify(currentActivityJson));
+    delete draft._sha;
+    const entry = draft.entries[entryIdx];
+    if (!entry.photos) entry.photos = [];
+
+    // 生成新文件名和路径
+    const files = [];
+    for (const qf of queue) {
+      const filename = generateFilename(qf.file.name);
+      const path = `images/${filename}`;
+      files.push({ path, bytes: qf.compressed });
+      entry.photos.push('/' + path);
+    }
+
+    await batchCommit({
+      files,
+      jsonUpdates: [{ path: currentActivityType + '.json', data: draft }],
+      message: `Add ${queue.length} photos to entry ${entry.date || entryIdx}`,
+      onProgress: (ratio) => updateProgress(ratio)
+    });
+
+    hideProgress();
+    showStatus('uploadStatus', `${queue.length} photos added to entry!`, 'success');
+
+    // 成功: 应用 draft、清空队列 (释放 object URL)、重渲染
+    currentActivityJson = draft;
+    clearEntryAppendQueue(entryIdx);
+    renderActivityEntries();
+  } catch (e) {
+    hideProgress();
+    showStatus('uploadStatus', 'Upload failed: ' + e.message, 'error');
+    // 队列保留, 用户可以重试
+    log('Error: ' + (e.stack || e.message), 'error');
+  }
 }
 
 async function saveEditEntry(idx) {
@@ -1575,7 +1954,21 @@ async function saveEditEntry(idx) {
     }
 
     // Re-sort by date after edit
+    // 排序前保存 ref→oldIdx 映射, 以便修正 entryAppendFiles 的 key
+    const oldEntryRefs = currentActivityJson.entries.map((e, i) => ({ ref: e, oldIdx: i }));
     sortEntriesByDate(currentActivityJson.entries);
+
+    if (entryAppendFiles.size > 0) {
+      const newMap = new Map();
+      for (const [oldIdx, queue] of entryAppendFiles.entries()) {
+        const ref = oldEntryRefs.find(r => r.oldIdx === oldIdx)?.ref;
+        if (!ref) continue;
+        const newIdx = currentActivityJson.entries.indexOf(ref);
+        if (newIdx >= 0) newMap.set(newIdx, queue);
+      }
+      entryAppendFiles.clear();
+      for (const [k, v] of newMap.entries()) entryAppendFiles.set(k, v);
+    }
 
     await updateJsonFile(currentActivityType + '.json', currentActivityJson);
 
@@ -1615,6 +2008,26 @@ async function deleteActivityEntry(idx) {
     // Remove entry from JSON
     currentActivityJson.entries.splice(idx, 1);
     await updateJsonFile(currentActivityType + '.json', currentActivityJson);
+
+    // entry 被删后, 追加队列 Map 的 key 要做相应调整
+    // 被删的 entry 自己的 queue 丢弃, 后面的 key 都减 1
+    if (entryAppendFiles.size > 0) {
+      const adjusted = new Map();
+      for (const [k, v] of entryAppendFiles.entries()) {
+        if (k === idx) {
+          // 被删 entry 自己的队列: 释放 object URL 后丢弃
+          for (const f of v) {
+            if (f && f.dataUrl) {
+              try { URL.revokeObjectURL(f.dataUrl); } catch (_) {}
+            }
+          }
+          continue;
+        }
+        adjusted.set(k > idx ? k - 1 : k, v);
+      }
+      entryAppendFiles.clear();
+      for (const [k, v] of adjusted.entries()) entryAppendFiles.set(k, v);
+    }
 
     hideProgress();
     showStatus('uploadStatus', 'Entry deleted', 'success');
@@ -1785,8 +2198,6 @@ async function submitActivityEntry() {
   }
 
   try {
-    const totalUploads = activityFiles.length + recordImageFiles.length + 1;
-    let done = 0;
     showProgress(`Uploading entry...`);
 
     // Ensure we have current JSON
@@ -1801,35 +2212,30 @@ async function submitActivityEntry() {
       entry.location = document.getElementById('entryLocation').value.trim();
     }
 
-    // Upload record images (保序:用索引数组)
+    // 预生成所有文件清单,一次 commit 搞定
+    const files = [];
+
+    // Record images
     if (recordImageFiles.length > 0 && ['snowboarding', 'diving'].includes(currentActivityType)) {
-      const recordPaths = new Array(recordImageFiles.length);
-      const recordTasks = recordImageFiles.map((rf, idx) => async () => {
+      const recordPaths = [];
+      for (const rf of recordImageFiles) {
         const filename = generateFilename(rf.file.name, 'record');
         const path = `images/${filename}`;
-        log(`Uploading record image: ${filename}...`);
-        await uploadFileToGitHub(path, rf.compressed);
-        recordPaths[idx] = '/' + path;
-        done++;
-        updateProgress(done / totalUploads);
-      });
-      await runWithConcurrency(recordTasks, 3);
+        files.push({ path, bytes: rf.compressed });
+        recordPaths.push('/' + path);
+      }
       entry.record_image = recordPaths;
       entry.record_caption = document.getElementById('recordCaption').value.trim();
     }
 
-    // Upload photos (保序:用索引数组)
-    const photoPaths = new Array(activityFiles.length);
-    const photoTasks = activityFiles.map((f, idx) => async () => {
+    // Photos (保序:数组顺序即 activityFiles 顺序)
+    const photoPaths = [];
+    for (const f of activityFiles) {
       const filename = generateFilename(f.file.name);
       const path = `images/${filename}`;
-      log(`Uploading ${filename}...`);
-      await uploadFileToGitHub(path, f.compressed);
-      photoPaths[idx] = '/' + path;
-      done++;
-      updateProgress(done / totalUploads);
-    });
-    await runWithConcurrency(photoTasks, 3);
+      files.push({ path, bytes: f.compressed });
+      photoPaths.push('/' + path);
+    }
     entry.photos = photoPaths;
 
     // Videos
@@ -1847,13 +2253,44 @@ async function submitActivityEntry() {
 
     // Add entry and sort
     currentActivityJson.entries.push(entry);
+    // 保存排序前的 ref→oldIdx 映射, 用于 commit 成功后修正 entryAppendFiles 的 key
+    const oldEntryRefs = currentActivityJson.entries.map((e, i) => ({ ref: e, oldIdx: i }));
     sortEntriesByDate(currentActivityJson.entries);
 
-    // Save JSON
-    log('Updating ' + currentActivityType + '.json...');
-    await updateJsonFile(currentActivityType + '.json', currentActivityJson);
-    done++;
-    updateProgress(1);
+    const jsonCopy = { ...currentActivityJson };
+    delete jsonCopy._sha;
+
+    // 一次 commit 提交所有:record images + photos + 更新后的 activity JSON
+    await batchCommit({
+      files,
+      jsonUpdates: [{ path: currentActivityType + '.json', data: jsonCopy }],
+      message: `Activity entry: ${date}`,
+      onProgress: (ratio) => updateProgress(ratio)
+    });
+
+    // commit 成功后, 修正 entryAppendFiles 的 key (因为 sort 可能改变了 idx)
+    if (entryAppendFiles.size > 0) {
+      const newMap = new Map();
+      for (const [oldIdx, queue] of entryAppendFiles.entries()) {
+        // oldIdx 是用户放入 queue 时的 entry idx (在 push 之前的)
+        // push 到末尾后, 原来前面的 idx 不变; sort 后 idx 可能任意变化
+        // 用 oldEntryRefs 里 oldIdx 找到对应 ref, 再找它现在的 idx
+        const ref = oldEntryRefs.find(r => r.oldIdx === oldIdx)?.ref;
+        if (!ref) continue;
+        const newIdx = currentActivityJson.entries.indexOf(ref);
+        if (newIdx >= 0) newMap.set(newIdx, queue);
+      }
+      entryAppendFiles.clear();
+      for (const [k, v] of newMap.entries()) entryAppendFiles.set(k, v);
+    }
+
+    // 一次 commit 提交所有:record images + photos + 更新后的 activity JSON
+    await batchCommit({
+      files,
+      jsonUpdates: [{ path: currentActivityType + '.json', data: jsonCopy }],
+      message: `Activity entry: ${date}`,
+      onProgress: (ratio) => updateProgress(ratio)
+    });
 
     hideProgress();
     showStatus('uploadStatus', 'Entry submitted successfully!', 'success');
@@ -1913,6 +2350,165 @@ async function runWithConcurrency(tasks, concurrency) {
 
   if (firstError) throw firstError;
   return results;
+}
+
+// ==================== 拖拽排序 (Pointer Events, 手机电脑统一) ====================
+// 用法:
+//   makeSortable(containerEl, {
+//     itemSelector: '.sortable-item',        // 哪些子元素可拖
+//     handleSelector: '.drag-handle',        // 哪个子元素当手柄 (null=整个item)
+//     horizontal: false,                     // 水平 (缩略图) 还是垂直 (卡片)
+//     onReorder: (fromIdx, toIdx) => {...}   // 数据层改完重渲染
+//   });
+function makeSortable(container, opts) {
+  const {
+    itemSelector,
+    handleSelector = null,
+    horizontal = false,
+    onReorder
+  } = opts;
+
+  let draggingItem = null;
+  let ghost = null;
+  let startX = 0, startY = 0;
+  let ghostOffsetX = 0, ghostOffsetY = 0;
+  let currentDropTarget = null;
+  let currentDropPosition = null; // 'before' | 'after'
+  let startIndex = -1;
+  let pointerId = null;
+
+  function getItems() {
+    return [...container.querySelectorAll(itemSelector)];
+  }
+
+  function clearDropIndicators() {
+    getItems().forEach(el => {
+      el.classList.remove('drop-before', 'drop-after');
+    });
+  }
+
+  function onPointerDown(e) {
+    // 只响应主键 / 单指
+    if (e.button !== undefined && e.button !== 0) return;
+
+    // 找到目标 item
+    const item = e.target.closest(itemSelector);
+    if (!item || !container.contains(item)) return;
+
+    // 如果指定了 handle,必须点在 handle 上
+    if (handleSelector) {
+      const handle = e.target.closest(handleSelector);
+      if (!handle || !item.contains(handle)) return;
+    }
+
+    // 开始拖拽
+    pointerId = e.pointerId;
+    draggingItem = item;
+    startIndex = getItems().indexOf(item);
+    startX = e.clientX;
+    startY = e.clientY;
+
+    const rect = item.getBoundingClientRect();
+    ghostOffsetX = e.clientX - rect.left;
+    ghostOffsetY = e.clientY - rect.top;
+
+    // 创建 ghost (clone)
+    ghost = item.cloneNode(true);
+    ghost.classList.add('drag-ghost');
+    if (horizontal) ghost.classList.add('thumb-ghost');
+    ghost.style.width = rect.width + 'px';
+    ghost.style.height = rect.height + 'px';
+    ghost.style.left = rect.left + 'px';
+    ghost.style.top = rect.top + 'px';
+    // 清除 ghost 里所有可能引起副作用的 ID / 事件
+    ghost.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+    document.body.appendChild(ghost);
+
+    item.classList.add('dragging');
+
+    // 捕获 pointer,之后的 move/up 都只走这个 element
+    try { container.setPointerCapture(pointerId); } catch (_) {}
+
+    e.preventDefault();
+  }
+
+  function onPointerMove(e) {
+    if (!draggingItem || e.pointerId !== pointerId) return;
+
+    // 移动 ghost
+    ghost.style.left = (e.clientX - ghostOffsetX) + 'px';
+    ghost.style.top = (e.clientY - ghostOffsetY) + 'px';
+
+    // 找指针下方的 item (不是 ghost 本身)
+    ghost.style.display = 'none';
+    const underEl = document.elementFromPoint(e.clientX, e.clientY);
+    ghost.style.display = '';
+
+    clearDropIndicators();
+
+    if (!underEl) return;
+    const targetItem = underEl.closest(itemSelector);
+    if (!targetItem || targetItem === draggingItem || !container.contains(targetItem)) {
+      currentDropTarget = null;
+      return;
+    }
+
+    const rect = targetItem.getBoundingClientRect();
+    let before;
+    if (horizontal) {
+      before = (e.clientX - rect.left) < rect.width / 2;
+    } else {
+      before = (e.clientY - rect.top) < rect.height / 2;
+    }
+    currentDropTarget = targetItem;
+    currentDropPosition = before ? 'before' : 'after';
+    targetItem.classList.add(before ? 'drop-before' : 'drop-after');
+
+    e.preventDefault();
+  }
+
+  function onPointerUp(e) {
+    if (!draggingItem || e.pointerId !== pointerId) return;
+
+    draggingItem.classList.remove('dragging');
+    if (ghost) { ghost.remove(); ghost = null; }
+    clearDropIndicators();
+
+    try { container.releasePointerCapture(pointerId); } catch (_) {}
+
+    // 计算目标索引
+    if (currentDropTarget) {
+      const items = getItems();
+      const targetIndex = items.indexOf(currentDropTarget);
+      let toIndex = currentDropPosition === 'before' ? targetIndex : targetIndex + 1;
+      // 如果拖的是前面的项往后挪,调整
+      if (startIndex < toIndex) toIndex--;
+      if (toIndex !== startIndex && toIndex >= 0) {
+        onReorder(startIndex, toIndex);
+      }
+    }
+
+    draggingItem = null;
+    currentDropTarget = null;
+    currentDropPosition = null;
+    pointerId = null;
+  }
+
+  function onPointerCancel(e) {
+    if (draggingItem) {
+      draggingItem.classList.remove('dragging');
+    }
+    if (ghost) { ghost.remove(); ghost = null; }
+    clearDropIndicators();
+    draggingItem = null;
+    currentDropTarget = null;
+    pointerId = null;
+  }
+
+  container.addEventListener('pointerdown', onPointerDown);
+  container.addEventListener('pointermove', onPointerMove);
+  container.addEventListener('pointerup', onPointerUp);
+  container.addEventListener('pointercancel', onPointerCancel);
 }
 
 async function processImage(file, maxWidth, quality) {
@@ -2014,6 +2610,136 @@ async function ghFetch(path, options = {}) {
     }
   });
 }
+
+// ========== Git Data API: 批量提交 (又稳又快) ==========
+// files: [{ path, bytes }]  — bytes 是 Uint8Array
+// jsonUpdates: [{ path, data }]  — data 是要写入的 JSON 对象 (会自动 stringify)
+// 返回新 commit 的 SHA
+// 优势: 一次 commit 一次性提交所有文件,blob 上传可以真并行,无 409 race
+async function batchCommit({ files = [], jsonUpdates = [], message = 'Batch upload', onProgress = null }) {
+  // 防御:什么都没有就早退
+  if (files.length === 0 && jsonUpdates.length === 0) {
+    log('batchCommit called with nothing to commit, skipping', 'warn');
+    return null;
+  }
+
+  const totalSteps = files.length + jsonUpdates.length + 4; // blobs + json + (ref + commit + tree + patch)
+  let completed = 0;
+  const tick = (label) => {
+    completed++;
+    if (onProgress) onProgress(completed / totalSteps, label);
+  };
+
+  // 1. 拿当前 ref (HEAD)
+  log('Getting current HEAD...');
+  let refData, branchName;
+  const refRes = await ghFetch(`/repos/${OWNER}/${REPO}/git/ref/heads/main`);
+  if (refRes.ok) {
+    refData = await refRes.json();
+    branchName = 'main';
+  } else {
+    // 某些仓库默认分支叫 master
+    const refRes2 = await ghFetch(`/repos/${OWNER}/${REPO}/git/ref/heads/master`);
+    if (!refRes2.ok) throw new Error('Could not find main or master branch');
+    refData = await refRes2.json();
+    branchName = 'master';
+  }
+  const currentCommitSha = refData.object.sha;
+  tick('ref');
+
+  // 2. 拿当前 commit → base tree
+  const commitRes = await ghFetch(`/repos/${OWNER}/${REPO}/git/commits/${currentCommitSha}`);
+  if (!commitRes.ok) throw new Error('Failed to get current commit');
+  const commitData = await commitRes.json();
+  const baseTreeSha = commitData.tree.sha;
+  tick('base tree');
+
+  // 3. 并行上传所有 blob (这一步是真正的并行加速,无 race)
+  const blobTasks = files.map(f => async () => {
+    const base64 = await uint8ToBase64(f.bytes);
+    const res = await ghFetch(`/repos/${OWNER}/${REPO}/git/blobs`, {
+      method: 'POST',
+      body: JSON.stringify({ content: base64, encoding: 'base64' })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(`Blob upload failed for ${f.path}: ${res.status} ${err.message || ''}`);
+    }
+    const blob = await res.json();
+    log(`Blob uploaded: ${f.path}`, 'success');
+    tick('blob');
+    return { path: f.path, mode: '100644', type: 'blob', sha: blob.sha };
+  });
+
+  // blob 上传并发 4 (blob API 允许,且互不影响)
+  const blobEntries = await runWithConcurrency(blobTasks, 4);
+
+  // 4. JSON 文件也作为 blob 一起加入 tree
+  const jsonBlobTasks = jsonUpdates.map(u => async () => {
+    const jsonStr = JSON.stringify(u.data, null, 2);
+    const utf8Bytes = new TextEncoder().encode(jsonStr);
+    const base64 = await uint8ToBase64(utf8Bytes);
+    const res = await ghFetch(`/repos/${OWNER}/${REPO}/git/blobs`, {
+      method: 'POST',
+      body: JSON.stringify({ content: base64, encoding: 'base64' })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(`JSON blob upload failed for ${u.path}: ${res.status} ${err.message || ''}`);
+    }
+    const blob = await res.json();
+    log(`JSON blob uploaded: ${u.path}`, 'success');
+    tick('json');
+    return { path: u.path, mode: '100644', type: 'blob', sha: blob.sha };
+  });
+  const jsonEntries = await runWithConcurrency(jsonBlobTasks, 4);
+
+  // 5. 创建新 tree (基于 base tree + 新/改的文件)
+  const treeRes = await ghFetch(`/repos/${OWNER}/${REPO}/git/trees`, {
+    method: 'POST',
+    body: JSON.stringify({
+      base_tree: baseTreeSha,
+      tree: [...blobEntries, ...jsonEntries]
+    })
+  });
+  if (!treeRes.ok) {
+    const err = await treeRes.json().catch(() => ({}));
+    throw new Error(`Tree creation failed: ${treeRes.status} ${err.message || ''}`);
+  }
+  const treeData = await treeRes.json();
+  tick('tree');
+
+  // 6. 创建新 commit
+  const newCommitRes = await ghFetch(`/repos/${OWNER}/${REPO}/git/commits`, {
+    method: 'POST',
+    body: JSON.stringify({
+      message: message,
+      tree: treeData.sha,
+      parents: [currentCommitSha]
+    })
+  });
+  if (!newCommitRes.ok) {
+    const err = await newCommitRes.json().catch(() => ({}));
+    throw new Error(`Commit creation failed: ${newCommitRes.status} ${err.message || ''}`);
+  }
+  const newCommit = await newCommitRes.json();
+  tick('commit');
+
+  // 7. 更新 ref 指向新 commit
+  const patchRes = await ghFetch(`/repos/${OWNER}/${REPO}/git/refs/heads/${branchName}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ sha: newCommit.sha })
+  });
+  if (!patchRes.ok) {
+    const err = await patchRes.json().catch(() => ({}));
+    throw new Error(`Ref update failed: ${patchRes.status} ${err.message || ''}`);
+  }
+  tick('ref update');
+
+  log(`Batch commit done: ${newCommit.sha.substring(0, 7)}`, 'success');
+  return newCommit.sha;
+}
+
 
 async function fetchJsonFile(filename) {
   const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${filename}`);
