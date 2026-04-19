@@ -3113,7 +3113,9 @@ async function batchCommit({ files = [], jsonUpdates = [], message = 'Batch uplo
 
     // 4. JSON 文件也作为 blob 一起加入 tree
     const jsonBlobTasks = jsonUpdates.map(u => async () => {
-      const jsonStr = JSON.stringify(u.data, null, 2);
+      const cleanJson = (u.data && typeof u.data === 'object') ? { ...u.data } : u.data;
+      if (cleanJson && typeof cleanJson === 'object') delete cleanJson._sha;
+      const jsonStr = JSON.stringify(cleanJson, null, 2);
       const utf8Bytes = new TextEncoder().encode(jsonStr);
       const base64 = await uint8ToBase64(utf8Bytes);
       const res = await ghFetch(`/repos/${OWNER}/${REPO}/git/blobs`, {
@@ -3173,6 +3175,19 @@ async function batchCommit({ files = [], jsonUpdates = [], message = 'Batch uplo
     }
     tick('ref update');
 
+    // 8. 同步被更新 JSON 文件的 contents SHA，供后续 updateJsonFile/delete 流程继续使用
+    for (const u of jsonUpdates) {
+      try {
+        const latestRes = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${u.path}`);
+        if (latestRes.ok && u.data && typeof u.data === 'object') {
+          const latest = await latestRes.json();
+          u.data._sha = latest.sha;
+        }
+      } catch (_) {
+        // 不阻塞主流程；最坏情况后续 updateJsonFile 会自己再补查一次 sha
+      }
+    }
+
     log(`Batch commit done: ${newCommit.sha.substring(0, 7)}`, 'success');
     return newCommit.sha;
   };
@@ -3215,7 +3230,20 @@ async function fetchJsonFile(filename) {
 }
 
 async function updateJsonFile(filename, data) {
-  const sha = data._sha;
+  let sha = data._sha;
+
+  // 某些流程(batchCommit 成功后把 draft 赋回本地状态)会导致 _sha 丢失；
+  // 这里自动补查一次，避免 422 "sha wasn't supplied"
+  if (!sha) {
+    const latestRes = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${filename}`);
+    if (!latestRes.ok) {
+      throw new Error(`Failed to fetch latest SHA for ${filename}: ${latestRes.status}`);
+    }
+    const latest = await latestRes.json();
+    sha = latest.sha;
+    data._sha = sha;
+  }
+
   const cleanData = { ...data };
   delete cleanData._sha;
 
@@ -3227,8 +3255,8 @@ async function updateJsonFile(filename, data) {
   const body = {
     message: `Update ${filename}`,
     content: encoded,
+    sha
   };
-  if (sha) body.sha = sha;
 
   const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${filename}`, {
     method: 'PUT',
