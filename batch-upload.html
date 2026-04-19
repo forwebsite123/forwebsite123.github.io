@@ -672,9 +672,11 @@
         </select>
         <label>Quality:</label>
         <select id="albumQuality">
-          <option value="0.95">95%</option>
-          <option value="0.85" selected>85%</option>
-          <option value="0.7">70%</option>
+          <option value="0.95">95% (精修摄影作品 · 最高画质)</option>
+          <option value="0.92">92% (摄影作品 · 几乎无损)</option>
+          <option value="0.90">90% (高质量 · 推荐日常精选)</option>
+          <option value="0.85" selected>85% (平衡 · 日常照片默认)</option>
+          <option value="0.7">70% (小体积 · 快速浏览)</option>
         </select>
       </div>
 
@@ -761,9 +763,11 @@
         </select>
         <label>Quality:</label>
         <select id="activityQuality">
-          <option value="0.95">95%</option>
-          <option value="0.85" selected>85%</option>
-          <option value="0.7">70%</option>
+          <option value="0.95">95% (精修摄影作品 · 最高画质)</option>
+          <option value="0.92">92% (摄影作品 · 几乎无损)</option>
+          <option value="0.90">90% (高质量 · 推荐日常精选)</option>
+          <option value="0.85" selected>85% (平衡 · 日常照片默认)</option>
+          <option value="0.7">70% (小体积 · 快速浏览)</option>
         </select>
       </div>
 
@@ -851,6 +855,125 @@
 </div>
 
 <script>
+// ==================== WEB WORKER POOL (图片压缩) ====================
+// 把压缩从主线程挪到后台线程,UI 不再卡顿
+// 使用 OffscreenCanvas + createImageBitmap,全程在 worker 内
+// 如浏览器不支持 worker+OffscreenCanvas 会自动降级到主线程
+
+const WORKER_SUPPORTED = (typeof Worker !== 'undefined') && (typeof OffscreenCanvas !== 'undefined');
+
+const WORKER_CODE = `
+self.onmessage = async (e) => {
+  const { id, fileBlob, maxWidth, quality } = e.data;
+  try {
+    // createImageBitmap 在 worker 内解码,不占用主线程
+    const bitmap = await createImageBitmap(fileBlob);
+    let w = bitmap.width;
+    let h = bitmap.height;
+
+    if (maxWidth > 0 && w > maxWidth) {
+      h = Math.round(h * (maxWidth / w));
+      w = maxWidth;
+    }
+
+    const canvas = new OffscreenCanvas(w, h);
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(bitmap, 0, 0, w, h);
+    bitmap.close(); // 立即释放解码后的位图内存
+
+    const blob = await canvas.convertToBlob({ type: 'image/jpeg', quality });
+    const buf = await blob.arrayBuffer();
+
+    // 用 transferable 回传,避免复制
+    self.postMessage({ id, ok: true, buffer: buf, width: w, height: h }, [buf]);
+  } catch (err) {
+    self.postMessage({ id, ok: false, error: err.message || 'Worker error' });
+  }
+};
+`;
+
+class WorkerPool {
+  constructor(size = 2) {
+    this.size = size;
+    this.workers = [];
+    this.queue = [];
+    this.busy = new Set();
+    this.taskId = 0;
+    this.pending = new Map(); // id -> {resolve, reject}
+
+    if (!WORKER_SUPPORTED) return;
+
+    const blob = new Blob([WORKER_CODE], { type: 'application/javascript' });
+    const url = URL.createObjectURL(blob);
+
+    for (let i = 0; i < size; i++) {
+      const w = new Worker(url);
+      w.onmessage = (e) => this._onMessage(w, e);
+      w.onerror = (e) => this._onError(w, e);
+      this.workers.push(w);
+    }
+    // URL 已嵌入各 worker, 可以 revoke
+    URL.revokeObjectURL(url);
+  }
+
+  _onMessage(worker, e) {
+    const { id } = e.data;
+    const pending = this.pending.get(id);
+    if (!pending) return;
+    this.pending.delete(id);
+    this.busy.delete(worker);
+
+    if (e.data.ok) {
+      pending.resolve({
+        buffer: e.data.buffer,
+        width: e.data.width,
+        height: e.data.height
+      });
+    } else {
+      pending.reject(new Error(e.data.error));
+    }
+    this._drainQueue();
+  }
+
+  _onError(worker, e) {
+    // worker 级错误:reject 此 worker 所有 pending 任务
+    this.busy.delete(worker);
+    for (const [id, pending] of this.pending) {
+      if (pending.worker === worker) {
+        pending.reject(new Error('Worker crashed: ' + (e.message || 'unknown')));
+        this.pending.delete(id);
+      }
+    }
+    this._drainQueue();
+  }
+
+  _drainQueue() {
+    while (this.queue.length > 0) {
+      const free = this.workers.find(w => !this.busy.has(w));
+      if (!free) break;
+      const task = this.queue.shift();
+      this.busy.add(free);
+      this.pending.get(task.id).worker = free;
+      free.postMessage(task.msg);
+    }
+  }
+
+  compress(fileBlob, maxWidth, quality) {
+    if (!WORKER_SUPPORTED) {
+      return Promise.reject(new Error('Worker not supported'));
+    }
+    return new Promise((resolve, reject) => {
+      const id = ++this.taskId;
+      this.pending.set(id, { resolve, reject });
+      this.queue.push({ id, msg: { id, fileBlob, maxWidth, quality } });
+      this._drainQueue();
+    });
+  }
+}
+
+// 2个worker并行:手机内存紧张,不宜多;电脑足够用
+const workerPool = new WorkerPool(2);
+
 // ==================== STATE ====================
 let TOKEN = '';
 let OWNER = '';
@@ -1175,20 +1298,37 @@ async function handleAlbumFiles(fileList) {
   const maxW = parseInt(document.getElementById('albumMaxWidth').value);
   const quality = parseFloat(document.getElementById('albumQuality').value);
   const images = [...fileList].filter(f => f.type.startsWith('image/'));
-  for (let i = 0; i < images.length; i++) {
-    showStatus('uploadStatus', `Processing image ${i + 1} / ${images.length}...`, 'info');
-    await yieldToMain();
-    try {
-      const result = await processImage(images[i], maxW, quality);
-      albumFiles.push(result);
-    } catch (e) {
-      log(`Failed to process ${images[i].name}: ${e.message}`, 'error');
-    }
-    await yieldToMain();
-  }
+  if (images.length === 0) return;
+
+  let done = 0;
+  const total = images.length;
+  showStatus('uploadStatus', `Processing 0 / ${total}...`, 'info');
+
+  // 并行派发给 worker 池:pool 自己会排队,主线程完全不卡
+  const tasks = images.map(img =>
+    processImage(img, maxW, quality)
+      .then(result => {
+        albumFiles.push(result);
+        done++;
+        showStatus('uploadStatus', `Processing ${done} / ${total}...`, 'info');
+        renderAlbumPreview(); // 每张完成立即出现在预览里
+      })
+      .catch(e => {
+        done++;
+        log(`Failed to process ${img.name}: ${e.message}`, 'error');
+        showStatus('uploadStatus', `Processing ${done} / ${total}...`, 'info');
+      })
+  );
+
+  await Promise.all(tasks);
+
   showStatus('uploadStatus', '', '');
   renderAlbumPreview();
   document.getElementById('albumSubmit').disabled = albumFiles.length === 0;
+
+  // 重置 file input,让用户能重复选同一文件
+  const input = document.querySelector('#albumUploadArea input[type="file"]');
+  if (input) input.value = '';
 }
 
 function renderAlbumPreview() {
@@ -1226,13 +1366,14 @@ async function submitAlbumPhotos() {
     // Get current photos.json
     const jsonData = await fetchJsonFile('photos.json');
 
-    for (const f of albumFiles) {
+    // 并行上传 (3路) - GitHub API 能接受合理并发, 总耗时接近 / N
+    // 每个任务先生成文件名,上传,再把条目推进 jsonData
+    const CONCURRENCY = 3;
+    const tasks = albumFiles.map(f => async () => {
       const filename = generateFilename(f.file.name);
       const path = `images/${filename}`;
-      
       log(`Uploading ${filename}...`);
       await uploadFileToGitHub(path, f.compressed);
-
       jsonData.items.push({
         title: '',
         image: '/' + path,
@@ -1241,10 +1382,11 @@ async function submitAlbumPhotos() {
         page: page,
         pageLabel: pageLabel
       });
-
       done++;
       updateProgress(done / total);
-    }
+    });
+
+    await runWithConcurrency(tasks, CONCURRENCY);
 
     // Save JSON
     log('Updating photos.json...');
@@ -1519,20 +1661,35 @@ async function handleRecordImages(fileList) {
   const maxW = parseInt(document.getElementById('activityMaxWidth').value);
   const quality = parseFloat(document.getElementById('activityQuality').value);
   const images = [...fileList].filter(f => f.type.startsWith('image/'));
+  if (images.length === 0) return;
 
-  for (let i = 0; i < images.length; i++) {
-    showStatus('uploadStatus', `Processing record image ${i + 1} / ${images.length}...`, 'info');
-    await yieldToMain();
-    try {
-      const result = await processImage(images[i], maxW, quality);
-      recordImageFiles.push(result);
-    } catch (e) {
-      log(`Failed to process ${images[i].name}: ${e.message}`, 'error');
-    }
-    await yieldToMain();
-  }
+  let done = 0;
+  const total = images.length;
+  showStatus('uploadStatus', `Processing record image 0 / ${total}...`, 'info');
+
+  const tasks = images.map(img =>
+    processImage(img, maxW, quality)
+      .then(result => {
+        recordImageFiles.push(result);
+        done++;
+        showStatus('uploadStatus', `Processing record image ${done} / ${total}...`, 'info');
+        renderRecordPreview();
+      })
+      .catch(e => {
+        done++;
+        log(`Failed to process ${img.name}: ${e.message}`, 'error');
+        showStatus('uploadStatus', `Processing record image ${done} / ${total}...`, 'info');
+      })
+  );
+
+  await Promise.all(tasks);
+
   showStatus('uploadStatus', '', '');
   renderRecordPreview();
+
+  // 重置 file input,让用户能重复选同一文件
+  const input = document.querySelector('#recordUploadArea input[type="file"]');
+  if (input) input.value = '';
 }
 
 function renderRecordPreview() {
@@ -1567,19 +1724,35 @@ async function handleActivityFiles(fileList) {
   const maxW = parseInt(document.getElementById('activityMaxWidth').value);
   const quality = parseFloat(document.getElementById('activityQuality').value);
   const images = [...fileList].filter(f => f.type.startsWith('image/'));
-  for (let i = 0; i < images.length; i++) {
-    showStatus('uploadStatus', `Processing image ${i + 1} / ${images.length}...`, 'info');
-    await yieldToMain();
-    try {
-      const result = await processImage(images[i], maxW, quality);
-      activityFiles.push(result);
-    } catch (e) {
-      log(`Failed to process ${images[i].name}: ${e.message}`, 'error');
-    }
-    await yieldToMain();
-  }
+  if (images.length === 0) return;
+
+  let done = 0;
+  const total = images.length;
+  showStatus('uploadStatus', `Processing 0 / ${total}...`, 'info');
+
+  const tasks = images.map(img =>
+    processImage(img, maxW, quality)
+      .then(result => {
+        activityFiles.push(result);
+        done++;
+        showStatus('uploadStatus', `Processing ${done} / ${total}...`, 'info');
+        renderActivityPreview();
+      })
+      .catch(e => {
+        done++;
+        log(`Failed to process ${img.name}: ${e.message}`, 'error');
+        showStatus('uploadStatus', `Processing ${done} / ${total}...`, 'info');
+      })
+  );
+
+  await Promise.all(tasks);
+
   showStatus('uploadStatus', '', '');
   renderActivityPreview();
+
+  // 重置 file input,让用户能重复选同一文件
+  const input = document.querySelector('#activityUploadArea input[type="file"]');
+  if (input) input.value = '';
 }
 
 function renderActivityPreview() {
@@ -1628,32 +1801,36 @@ async function submitActivityEntry() {
       entry.location = document.getElementById('entryLocation').value.trim();
     }
 
-    // Upload record images
+    // Upload record images (保序:用索引数组)
     if (recordImageFiles.length > 0 && ['snowboarding', 'diving'].includes(currentActivityType)) {
-      entry.record_image = [];
-      for (const rf of recordImageFiles) {
+      const recordPaths = new Array(recordImageFiles.length);
+      const recordTasks = recordImageFiles.map((rf, idx) => async () => {
         const filename = generateFilename(rf.file.name, 'record');
         const path = `images/${filename}`;
         log(`Uploading record image: ${filename}...`);
         await uploadFileToGitHub(path, rf.compressed);
-        entry.record_image.push('/' + path);
+        recordPaths[idx] = '/' + path;
         done++;
         updateProgress(done / totalUploads);
-      }
+      });
+      await runWithConcurrency(recordTasks, 3);
+      entry.record_image = recordPaths;
       entry.record_caption = document.getElementById('recordCaption').value.trim();
     }
 
-    // Upload photos
-    entry.photos = [];
-    for (const f of activityFiles) {
+    // Upload photos (保序:用索引数组)
+    const photoPaths = new Array(activityFiles.length);
+    const photoTasks = activityFiles.map((f, idx) => async () => {
       const filename = generateFilename(f.file.name);
       const path = `images/${filename}`;
       log(`Uploading ${filename}...`);
       await uploadFileToGitHub(path, f.compressed);
-      entry.photos.push('/' + path);
+      photoPaths[idx] = '/' + path;
       done++;
       updateProgress(done / totalUploads);
-    }
+    });
+    await runWithConcurrency(photoTasks, 3);
+    entry.photos = photoPaths;
 
     // Videos
     const videoStr = document.getElementById('entryVideos').value.trim();
@@ -1709,8 +1886,37 @@ function yieldToMain() {
   return new Promise(resolve => setTimeout(resolve, 0));
 }
 
+// 通用并发执行器: 任务数组(函数返回 Promise),最多 N 个同时在跑
+async function runWithConcurrency(tasks, concurrency) {
+  const results = new Array(tasks.length);
+  let nextIndex = 0;
+  let firstError = null;
+
+  async function worker() {
+    while (true) {
+      const i = nextIndex++;
+      if (i >= tasks.length) return;
+      try {
+        results[i] = await tasks[i]();
+      } catch (e) {
+        // 记录第一个错误,但让剩余任务继续跑完,避免"一张失败全部作废"
+        if (!firstError) firstError = e;
+      }
+    }
+  }
+
+  const runners = [];
+  for (let i = 0; i < Math.min(concurrency, tasks.length); i++) {
+    runners.push(worker());
+  }
+  await Promise.all(runners);
+
+  if (firstError) throw firstError;
+  return results;
+}
+
 async function processImage(file, maxWidth, quality) {
-  // Use createObjectURL for preview (no base64 in memory)
+  // 预览 URL 直接用原文件,浏览器会自动缩放显示,不占额外内存
   const previewUrl = URL.createObjectURL(file);
 
   if (maxWidth === 0) {
@@ -1718,8 +1924,32 @@ async function processImage(file, maxWidth, quality) {
     return { file, dataUrl: previewUrl, compressed: arr };
   }
 
+  // HEIC/HEIF: Worker 的 createImageBitmap 不支持, 但主线程 <img> 支持 (iOS Safari)
+  // 直接跳过 worker, 避免一次无谓的失败尝试
+  const isHEIC = /\.(heic|heif)$/i.test(file.name) ||
+                 file.type === 'image/heic' || file.type === 'image/heif';
+
+  // 优先走 Worker: UI 不卡
+  if (WORKER_SUPPORTED && !isHEIC) {
+    try {
+      const { buffer, width, height } = await workerPool.compress(file, maxWidth, quality);
+      const compressed = new Uint8Array(buffer);
+      log(`Compressed ${file.name}: ${(file.size/1024).toFixed(0)}KB → ${(compressed.byteLength/1024).toFixed(0)}KB (${width}×${height})`);
+      return { file, dataUrl: previewUrl, compressed };
+    } catch (err) {
+      // worker 失败就降级到主线程,不直接让整批上传失败
+      log(`Worker failed for ${file.name}, falling back to main thread: ${err.message}`, 'warn');
+    }
+  }
+
+  // 降级: 主线程压缩 (HEIC / 老浏览器 / worker 崩溃)
+  return processImageMainThread(file, maxWidth, quality, previewUrl);
+}
+
+async function processImageMainThread(file, maxWidth, quality, previewUrl) {
   return new Promise((resolve, reject) => {
     const img = new Image();
+    const imgObjectUrl = URL.createObjectURL(file);
     img.onload = () => {
       let w = img.width;
       let h = img.height;
@@ -1729,7 +1959,6 @@ async function processImage(file, maxWidth, quality) {
         w = maxWidth;
       }
 
-      // Use OffscreenCanvas if available (better perf on mobile)
       let canvas, ctx;
       if (typeof OffscreenCanvas !== 'undefined') {
         canvas = new OffscreenCanvas(w, h);
@@ -1742,16 +1971,19 @@ async function processImage(file, maxWidth, quality) {
       }
       ctx.drawImage(img, 0, 0, w, h);
 
-      // Release the object URL used for Image decode
-      URL.revokeObjectURL(img.src);
+      URL.revokeObjectURL(imgObjectUrl);
+      img.src = '';
 
       const blobCallback = blob => {
         if (!blob) { reject(new Error(`Compression failed for ${file.name}`)); return; }
         blob.arrayBuffer().then(buf => {
           const compressed = new Uint8Array(buf);
-          const compressedUrl = URL.createObjectURL(blob);
           log(`Compressed ${file.name}: ${(file.size/1024).toFixed(0)}KB → ${(compressed.byteLength/1024).toFixed(0)}KB (${w}×${h})`);
-          resolve({ file, dataUrl: compressedUrl, compressed });
+          if (canvas instanceof HTMLCanvasElement) {
+            canvas.width = 0;
+            canvas.height = 0;
+          }
+          resolve({ file, dataUrl: previewUrl, compressed });
         });
       };
 
@@ -1761,9 +1993,12 @@ async function processImage(file, maxWidth, quality) {
         canvas.toBlob(blobCallback, 'image/jpeg', quality);
       }
     };
-    img.onerror = () => reject(new Error(`Failed to load ${file.name}`));
-    // Use a temporary object URL to decode the image (avoids base64 overhead)
-    img.src = URL.createObjectURL(file);
+    img.onerror = () => {
+      URL.revokeObjectURL(imgObjectUrl);
+      URL.revokeObjectURL(previewUrl);
+      reject(new Error(`Failed to load ${file.name}`));
+    };
+    img.src = imgObjectUrl;
   });
 }
 
@@ -1802,8 +2037,9 @@ async function updateJsonFile(filename, data) {
   delete cleanData._sha;
 
   const jsonStr = JSON.stringify(cleanData, null, 2);
-  // Encode UTF-8 to base64
-  const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
+  // UTF-8 → base64,避免 deprecated 的 unescape
+  const utf8Bytes = new TextEncoder().encode(jsonStr);
+  const encoded = await uint8ToBase64(utf8Bytes);
 
   const body = {
     message: `Update ${filename}`,
@@ -1842,27 +2078,20 @@ async function uint8ToBase64(uint8Array) {
 }
 
 async function uploadFileToGitHub(path, uint8Array, retries = 2) {
-  // Check if file exists first
-  let sha = null;
-  try {
-    const check = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${path}`);
-    if (check.ok) {
-      const existing = await check.json();
-      sha = existing.sha;
-    }
-  } catch (e) {}
-
-  // Convert Uint8Array to base64 efficiently
+  // 新文件用时间戳+随机后缀命名,几乎不会冲突,无需预查 SHA
+  // 只有在收到 422 (sha required) 或 409 (conflict) 时才补查 SHA 重试
   const base64 = await uint8ToBase64(uint8Array);
 
-  const body = {
-    message: `Upload ${path}`,
-    content: base64,
-  };
-  if (sha) body.sha = sha;
+  let sha = null;
 
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
+      const body = {
+        message: `Upload ${path}`,
+        content: base64,
+      };
+      if (sha) body.sha = sha;
+
       const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${path}`, {
         method: 'PUT',
         body: JSON.stringify(body)
@@ -1874,7 +2103,18 @@ async function uploadFileToGitHub(path, uint8Array, retries = 2) {
       }
 
       const err = await res.json().catch(() => ({}));
-      // Don't retry on 4xx client errors (except 409 conflict)
+
+      // 422/409: 文件已存在,需要 sha。补查一次然后重试。
+      if ((res.status === 422 || res.status === 409) && !sha) {
+        const check = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${path}`);
+        if (check.ok) {
+          const existing = await check.json();
+          sha = existing.sha;
+          continue; // 用 sha 重试,不算消耗 retry 次数
+        }
+      }
+
+      // 其他 4xx 直接失败,不重试
       if (res.status >= 400 && res.status < 500 && res.status !== 409) {
         throw new Error(`Upload failed for ${path}: ${res.status} ${err.message || ''}`);
       }
