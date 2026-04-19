@@ -462,6 +462,95 @@
     border-radius: 3px;
   }
 
+  /* ==================== Tag 筛选 chips ==================== */
+  .tag-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 10px 0 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tag-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.85em;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .tag-chip:hover {
+    border-color: var(--primary-light);
+  }
+  .tag-chip.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+  .tag-chip .chip-count {
+    font-size: 0.85em;
+    opacity: 0.7;
+  }
+
+  /* ==================== 内联"加号"上传槽 ==================== */
+  /* 跟在缩略图后面的小 + 按钮, 视觉上是个空缩略图 */
+  .thumb-add {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    border-radius: 4px;
+    border: 1.5px dashed var(--primary-light);
+    background: var(--bg);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-light);
+    font-size: 24px;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: all 0.15s;
+    overflow: hidden;
+  }
+  .thumb-add:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: rgba(139, 111, 94, 0.05);
+  }
+  .thumb-add input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  /* 缩略图网格里的"待上传"预览: 有边框色区分 */
+  .entry-photos .thumb.queued {
+    border: 2px solid var(--primary);
+  }
+  .entry-photos .thumb.queued::after {
+    content: 'new';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--primary);
+    color: #fff;
+    font-size: 9px;
+    text-align: center;
+    padding: 1px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
   /* Log */
   .log {
     background: #2d2520;
@@ -935,7 +1024,8 @@
 // 使用 OffscreenCanvas + createImageBitmap,全程在 worker 内
 // 如浏览器不支持 worker+OffscreenCanvas 会自动降级到主线程
 
-const WORKER_SUPPORTED = (typeof Worker !== 'undefined') && (typeof OffscreenCanvas !== 'undefined');
+// WORKER_SUPPORTED 用 let, 因为可能在运行时降级 (比如沙盒环境不允许构造 Worker)
+let WORKER_SUPPORTED = (typeof Worker !== 'undefined') && (typeof OffscreenCanvas !== 'undefined');
 
 const WORKER_CODE = `
 self.onmessage = async (e) => {
@@ -978,17 +1068,30 @@ class WorkerPool {
 
     if (!WORKER_SUPPORTED) return;
 
-    const blob = new Blob([WORKER_CODE], { type: 'application/javascript' });
-    const url = URL.createObjectURL(blob);
+    // 沙盒环境(如 claude.ai artifacts) 可能禁止从 blob URL 构造 Worker
+    // 失败时整体降级到主线程
+    try {
+      const blob = new Blob([WORKER_CODE], { type: 'application/javascript' });
+      const url = URL.createObjectURL(blob);
 
-    for (let i = 0; i < size; i++) {
-      const w = new Worker(url);
-      w.onmessage = (e) => this._onMessage(w, e);
-      w.onerror = (e) => this._onError(w, e);
-      this.workers.push(w);
+      for (let i = 0; i < size; i++) {
+        const w = new Worker(url);
+        w.onmessage = (e) => this._onMessage(w, e);
+        w.onerror = (e) => this._onError(w, e);
+        this.workers.push(w);
+      }
+      // URL 已嵌入各 worker, 可以 revoke
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      // 构造失败(例如 Claude 预览沙盒禁止 blob-url workers):
+      // 清掉已建出来的 worker, 标记全局不支持, 之后所有压缩走主线程
+      for (const w of this.workers) {
+        try { w.terminate(); } catch (_) {}
+      }
+      this.workers = [];
+      WORKER_SUPPORTED = false;
+      console.warn('Web Worker unavailable in this environment, falling back to main-thread compression:', err.message);
     }
-    // URL 已嵌入各 worker, 可以 revoke
-    URL.revokeObjectURL(url);
   }
 
   _onMessage(worker, e) {
@@ -1063,6 +1166,12 @@ let recordImageFiles = [];   // [{file, dataUrl, compressed}]
 // 已有 entry 追加照片的暂存区: entryIdx -> [{file, dataUrl, compressed}]
 // 用 Map 是因为用户可能同时展开多个 entry 各自追加
 const entryAppendFiles = new Map();
+
+// Activity entry 的 record_image 追加队列: entryIdx -> [{file, dataUrl, compressed}]
+const entryRecordAppendFiles = new Map();
+
+// Album 当前 tag 筛选: null = All, 'untagged' = 无标签, 其他 = 具体 tag
+let currentAlbumTagFilter = null;
 
 // Current data
 let currentPhotosJson = null;
@@ -1240,6 +1349,7 @@ async function loadAlbumPhotos() {
 
   try {
     currentPhotosJson = await fetchJsonFile('photos.json');
+    currentAlbumTagFilter = null; // 切换相册时重置筛选
     const pagePhotos = currentPhotosJson.items.filter(item => item.page === page);
     renderAlbumPhotos(pagePhotos, page);
     document.getElementById('albumExisting').style.display = 'block';
@@ -1255,22 +1365,70 @@ function renderAlbumPhotos(photos, page) {
     return;
   }
 
+  // 统计所有 tag 的出现次数
+  const tagCounts = new Map();
+  let untaggedCount = 0;
+  for (const p of photos) {
+    const tags = p.tags || [];
+    if (tags.length === 0) untaggedCount++;
+    for (const t of tags) {
+      tagCounts.set(t, (tagCounts.get(t) || 0) + 1);
+    }
+  }
+
+  // 构建 tag filter bar
+  const pageArg = jsStringForAttr(page);
+  const filterChips = [];
+  filterChips.push(`<button class="tag-chip ${currentAlbumTagFilter === null ? 'active' : ''}" onclick="setAlbumTagFilter(null, ${pageArg})">All <span class="chip-count">${photos.length}</span></button>`);
+  // 按出现次数降序排 tag
+  const sortedTags = [...tagCounts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  for (const [tag, count] of sortedTags) {
+    const active = currentAlbumTagFilter === tag;
+    filterChips.push(`<button class="tag-chip ${active ? 'active' : ''}" onclick="setAlbumTagFilter(${jsStringForAttr(tag)}, ${pageArg})">${escapeAttr(tag)} <span class="chip-count">${count}</span></button>`);
+  }
+  if (untaggedCount > 0) {
+    const active = currentAlbumTagFilter === '__untagged__';
+    filterChips.push(`<button class="tag-chip ${active ? 'active' : ''}" onclick="setAlbumTagFilter('__untagged__', ${pageArg})">(无标签) <span class="chip-count">${untaggedCount}</span></button>`);
+  }
+
+  // 根据筛选过滤 photos (保留在完整数组中的位置索引, 拖拽要用)
+  const filtered = [];
+  photos.forEach((p, originalIdx) => {
+    const tags = p.tags || [];
+    if (currentAlbumTagFilter === null) {
+      filtered.push({ photo: p, originalIdx });
+    } else if (currentAlbumTagFilter === '__untagged__') {
+      if (tags.length === 0) filtered.push({ photo: p, originalIdx });
+    } else if (tags.includes(currentAlbumTagFilter)) {
+      filtered.push({ photo: p, originalIdx });
+    }
+  });
+
+  const isFiltered = currentAlbumTagFilter !== null;
+  const hintText = isFiltered
+    ? `筛选中: ${filtered.length} 张 · 清除筛选后才能拖动排序`
+    : `拖动 ⋮⋮ 可调整排序 · 改变顺序会自动保存`;
+
   list.innerHTML = `
-    <div style="font-size:0.85em;color:var(--text-light);font-style:italic;margin-bottom:8px">
-      拖动 ⋮⋮ 可调整排序 · 改变顺序会自动保存
+    <div class="tag-filter-bar">
+      ${filterChips.join('')}
     </div>
-  ` + photos.map((p, i) => {
-    const safeImage = p.image.replace(/'/g, "\'");
-    const safeTags = (p.tags || []).join(', ').replace(/'/g, "\'");
-    const safeTitle = (p.title || '').replace(/'/g, "\'");
-    const detailId = `album-detail-${i}`;
+    <div style="font-size:0.85em;color:var(--text-light);font-style:italic;margin-bottom:8px">
+      ${hintText}
+    </div>
+  ` + filtered.map(({ photo: p, originalIdx }, displayIdx) => {
+    const detailId = `album-detail-${originalIdx}`;
     const displayTitle = p.title || '(untitled)';
     const previewUrl = `https://${OWNER}.github.io/${p.image}`;
     const tagCount = (p.tags || []).length;
+    const tagsJoined = (p.tags || []).join(', ');
+    // 用于 JS 参数: JSON.stringify + HTML 转义, 放进双引号属性里
+    const imageJsArg = jsStringForAttr(p.image);
+    const pageJsArg = jsStringForAttr(page);
     return `
-    <div class="collapsed-card sortable-item" data-index="${i}" data-image="${escapeAttr(p.image)}">
+    <div class="collapsed-card ${isFiltered ? '' : 'sortable-item'}" data-index="${originalIdx}" data-image="${escapeAttr(p.image)}">
       <div class="collapsed-summary">
-        <div class="drag-handle" title="拖动排序"></div>
+        ${isFiltered ? '' : '<div class="drag-handle" title="拖动排序"></div>'}
         <div class="collapsed-meta">
           <div class="collapsed-title">${escapeAttr(displayTitle)}</div>
           <div class="collapsed-sub">${escapeAttr(p.image)}</div>
@@ -1281,36 +1439,45 @@ function renderAlbumPhotos(photos, page) {
         </div>
         <div class="collapsed-actions">
           <button class="btn btn-secondary btn-small" onclick="toggleCollapsedDetail('${detailId}')">展开</button>
-          <button class="btn btn-danger btn-small" onclick="deleteAlbumPhoto('${safeImage}', '${page}')">Delete</button>
+          <button class="btn btn-danger btn-small" onclick="deleteAlbumPhoto(${imageJsArg}, ${pageJsArg})">Delete</button>
         </div>
       </div>
       <div class="collapsed-detail" id="${detailId}">
         <div class="entry-photos" style="margin-top:0">
-          <div class="thumb" style="width:90px;height:90px"><img src="${previewUrl}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%2250%25%22 x=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22>?</text></svg>'"></div>
+          <div class="thumb" style="width:90px;height:90px"><img src="${escapeAttr(previewUrl)}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%2250%25%22 x=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22>?</text></svg>'"></div>
         </div>
-        ${p.tags && p.tags.length ? `<div class="entry-note">Tags: ${escapeAttr(p.tags.join(', '))}</div>` : ''}
-        <div class="edit-form" id="edit-${i}">
+        ${tagsJoined ? `<div class="entry-note">Tags: ${escapeAttr(tagsJoined)}</div>` : ''}
+        <div class="edit-form" id="edit-${originalIdx}">
           <label>Title</label>
-          <input type="text" id="editTitle-${i}" value="${safeTitle}" placeholder="(optional)">
+          <input type="text" id="editTitle-${originalIdx}" value="${escapeAttr(p.title || '')}" placeholder="(optional)">
           <label>Tags (comma separated)</label>
-          <input type="text" id="editTags-${i}" value="${safeTags}">
+          <input type="text" id="editTags-${originalIdx}" value="${escapeAttr(tagsJoined)}">
           <label>Bilibili BV (optional)</label>
-          <input type="text" id="editVideo-${i}" value="${p.video || ''}" placeholder="BVxxxxxxxxxx">
+          <input type="text" id="editVideo-${originalIdx}" value="${escapeAttr(p.video || '')}" placeholder="BVxxxxxxxxxx">
           <div style="margin-top:8px;display:flex;gap:8px;">
-            <button class="btn btn-primary btn-small" onclick="saveEditPhoto('${safeImage}', ${i})">Save</button>
+            <button class="btn btn-primary btn-small" onclick="saveEditPhoto(${imageJsArg}, ${originalIdx})">Save</button>
           </div>
         </div>
       </div>
     </div>`;
   }).join('');
 
-  // 设置拖拽排序
-  makeSortable(list, {
-    itemSelector: '.sortable-item',
-    handleSelector: '.drag-handle',
-    horizontal: false,
-    onReorder: (fromIdx, toIdx) => reorderAlbumPhotos(page, fromIdx, toIdx)
-  });
+  // 仅在未筛选时启用拖拽排序
+  if (!isFiltered) {
+    makeSortable(list, {
+      itemSelector: '.sortable-item',
+      handleSelector: '.drag-handle',
+      horizontal: false,
+      onReorder: (fromIdx, toIdx) => reorderAlbumPhotos(page, fromIdx, toIdx)
+    });
+  }
+}
+
+// 切换 album tag 筛选
+function setAlbumTagFilter(tag, page) {
+  currentAlbumTagFilter = tag;
+  const pagePhotos = currentPhotosJson.items.filter(item => item.page === page);
+  renderAlbumPhotos(pagePhotos, page);
 }
 
 // 相册内照片重排: 在整个 photos.json 里找到这两项,交换位置,保存
@@ -1561,18 +1728,18 @@ async function loadActivityEntries() {
   const sel = document.getElementById('activitySelect');
 
   // 切换 activity 类型: 追加队列的 idx 不再对应新 activity 的 entry, 必须清空
-  if (entryAppendFiles.size > 0) {
-    const hasQueue = [...entryAppendFiles.values()].some(q => q.length > 0);
-    if (hasQueue) {
-      const ok = await confirmAction('You have queued photos not yet uploaded. Switching activity will discard them. Continue?');
-      if (!ok) {
-        // 还原 select
-        sel.value = currentActivityType;
-        return;
-      }
+  const hasPhotoQueue = [...entryAppendFiles.values()].some(q => q.length > 0);
+  const hasRecordQueue = [...entryRecordAppendFiles.values()].some(q => q.length > 0);
+  if (hasPhotoQueue || hasRecordQueue) {
+    const ok = await confirmAction('You have queued photos not yet uploaded. Switching activity will discard them. Continue?');
+    if (!ok) {
+      // 还原 select
+      sel.value = currentActivityType;
+      return;
     }
-    clearAllEntryAppendQueues();
   }
+  clearAllEntryAppendQueues();
+  clearAllEntryRecordAppendQueues();
 
   currentActivityType = sel.value;
   if (!currentActivityType) {
@@ -1648,18 +1815,53 @@ function renderActivityEntries() {
         </div>
       </div>
       <div class="collapsed-detail" id="${detailId}">
-        ${hasRecord ? `
+        ${hasRecordField ? (() => {
+          // Record images 区块 (只有 snowboarding / diving 才有)
+          const records = entry.record_image
+            ? (Array.isArray(entry.record_image) ? entry.record_image : [entry.record_image])
+            : [];
+          const recordQueue = entryRecordAppendFiles.get(idx) || [];
+          return `
           <div style="margin:6px 0 10px">
-            <span style="font-size:0.85em;color:var(--text-light)">Record: </span>
-            ${(Array.isArray(entry.record_image) ? entry.record_image : [entry.record_image]).map(ri => `
-              <img src="https://${OWNER}.github.io${ri}" 
-                   style="width:60px;height:60px;object-fit:cover;border-radius:4px;vertical-align:middle;border:1px solid var(--border);margin-right:4px"
-                   onerror="this.style.display='none'">
-            `).join('')}
-            ${entry.record_caption ? `<span style="font-size:0.85em;color:var(--text-light);margin-left:2px">${escapeAttr(entry.record_caption)}</span>` : ''}
+            <span style="font-size:0.85em;color:var(--text-light);display:block;margin-bottom:4px">Record images:</span>
+            <div class="entry-photos" id="entry-record-photos-${idx}">
+              ${records.map((ri, ri_idx) => `
+                <div class="thumb">
+                  <img src="https://${OWNER}.github.io${ri}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%2250%25%22 x=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22>?</text></svg>'">
+                  <button class="del-photo" onclick="deleteEntryRecordImage(${idx}, ${ri_idx})" title="Delete this record image">×</button>
+                </div>
+              `).join('')}
+              ${recordQueue.map((qf, qi) => `
+                <div class="thumb queued">
+                  <img src="${qf.dataUrl}">
+                  <button class="del-photo" onclick="removeEntryRecordAppendFile(${idx}, ${qi})" title="Remove from queue">×</button>
+                </div>
+              `).join('')}
+              <label class="thumb-add" title="Add record image">
+                <input type="file" accept="image/*" multiple onchange="handleEntryRecordAppendFiles(${idx}, this.files, this)">
+                +
+              </label>
+            </div>
+            ${recordQueue.length > 0 ? `
+              <button class="btn btn-primary btn-small" style="margin-top:6px" onclick="submitEntryRecordAppend(${idx})">Upload ${recordQueue.length} record image(s)</button>
+            ` : ''}
+            ${entry.record_caption ? `<div style="font-size:0.85em;color:var(--text-light);margin-top:4px">Caption: ${escapeAttr(entry.record_caption)}</div>` : ''}
           </div>
-        ` : ''}
-        ${photos.length > 0 ? `
+        `; })() : ''}
+        ${(() => {
+          // Photos 区块: 已有照片 + queued 预览 + 末尾的 "+" 上传槽
+          const photoQueue = entryAppendFiles.get(idx) || [];
+          if (photos.length === 0 && photoQueue.length === 0) {
+            // 一张都没有: 单独显示一个 + 按钮
+            return `
+            <div style="margin-top:6px">
+              <label class="thumb-add" title="Add photo">
+                <input type="file" accept="image/*" multiple onchange="handleEntryAppendFiles(${idx}, this.files, this)">
+                +
+              </label>
+            </div>`;
+          }
+          return `
           <div class="entry-photos sortable-photos" id="entry-photos-${idx}">
             ${photos.map((p, pi) => `
               <div class="thumb sortable-item" data-photo-index="${pi}">
@@ -1667,16 +1869,24 @@ function renderActivityEntries() {
                 <button class="del-photo" onclick="deleteEntryPhoto(${idx}, ${pi})" onpointerdown="event.stopPropagation()" title="Delete this photo">×</button>
               </div>
             `).join('')}
+            ${photoQueue.map((qf, qi) => `
+              <div class="thumb queued">
+                <img src="${qf.dataUrl}">
+                <button class="del-photo" onclick="removeEntryAppendFile(${idx}, ${qi})" title="Remove from queue">×</button>
+              </div>
+            `).join('')}
+            <label class="thumb-add" title="Add photo">
+              <input type="file" accept="image/*" multiple onchange="handleEntryAppendFiles(${idx}, this.files, this)">
+              +
+            </label>
           </div>
-          <div style="font-size:0.8em;color:var(--text-light);font-style:italic;margin-top:4px">
-            长按并拖动缩略图可调整排序
-          </div>
-        ` : ''}
+          ${photos.length > 1 ? `<div style="font-size:0.8em;color:var(--text-light);font-style:italic;margin-top:4px">长按并拖动缩略图可调整排序</div>` : ''}
+        `; })()}
         <div class="entry-note">${escapeAttr(isFragments ? (entry.text || '') : (entry.note || ''))}</div>
 
         <div class="edit-form" id="editEntry-${idx}">
           <label>Date</label>
-          <input type="text" id="editEntryDate-${idx}" value="${entry.date || ''}">
+          <input type="text" id="editEntryDate-${idx}" value="${escapeAttr(entry.date || '')}">
           ${!isFragments ? `
             <label>Location</label>
             <input type="text" id="editEntryLocation-${idx}" value="${escapeAttr(entry.location || '')}">
@@ -1694,19 +1904,9 @@ function renderActivityEntries() {
             <label>Note</label>
             <textarea id="editEntryNote-${idx}" style="min-height:60px">${escapeAttr(entry.note || '')}</textarea>
           `}
-
-          <!-- 追加照片入口 -->
-          <label style="margin-top:10px">Add more photos to this entry</label>
-          <div class="upload-area" style="padding:14px;margin-bottom:8px">
-            <input type="file" accept="image/*" multiple onchange="handleEntryAppendFiles(${idx}, this.files)">
-            <div class="icon" style="font-size:1.5em">＋</div>
-            <div style="font-size:0.9em">Click or drag photos to add</div>
-            <div class="hint" style="font-size:0.8em">Will use the same compression settings as the main upload area above</div>
-          </div>
-          <div class="preview-grid" id="entryAppendPreview-${idx}"></div>
           <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
             <button class="btn btn-primary btn-small" id="entrySaveBtn-${idx}" onclick="saveEditEntry(${idx})">Save Entry Details</button>
-            <button class="btn btn-primary btn-small" id="entryAppendSubmit-${idx}" onclick="submitEntryAppend(${idx})" disabled>Upload New Photos</button>
+            <button class="btn btn-primary btn-small" id="entryAppendSubmit-${idx}" onclick="submitEntryAppend(${idx})" style="display:none">Upload queued photos</button>
           </div>
           <div id="entryAppendHint-${idx}" style="display:none;font-size:0.8em;color:var(--warning);margin-top:6px">
             Please upload or clear the queued photos before saving entry details.
@@ -1728,17 +1928,39 @@ function renderActivityEntries() {
     });
   });
 
-  // 恢复追加照片队列的预览 (重渲后 DOM 重建, 但队列仍在 Map 中)
-  // 注意: entryAppendFiles 的 key 是 entry idx, renderActivityEntries 不改 date 所以 idx 稳定
+  // 队列预览已经内嵌在 thumb 网格里 (渲染时就渲染了),
+  // 这里只处理两件事: 自动展开有 queue 的 entry + 更新按钮状态
   for (const [idx, queue] of entryAppendFiles.entries()) {
     if (queue.length === 0) continue;
-    // 展开此 entry 的编辑区, 不然用户看不到
     const detail = document.getElementById('activity-detail-' + idx);
     if (detail && !detail.classList.contains('open')) {
       detail.classList.add('open');
     }
-    renderEntryAppendPreview(idx);
+    updateEntryAppendButtons(idx);
   }
+  // record_image 队列同样处理
+  for (const [idx, queue] of entryRecordAppendFiles.entries()) {
+    if (queue.length === 0) continue;
+    const detail = document.getElementById('activity-detail-' + idx);
+    if (detail && !detail.classList.contains('open')) {
+      detail.classList.add('open');
+    }
+  }
+}
+
+// 更新 entry 的追加按钮状态 (不触发重渲)
+function updateEntryAppendButtons(entryIdx) {
+  const submitBtn = document.getElementById('entryAppendSubmit-' + entryIdx);
+  const saveBtn = document.getElementById('entrySaveBtn-' + entryIdx);
+  const hint = document.getElementById('entryAppendHint-' + entryIdx);
+  const queue = entryAppendFiles.get(entryIdx) || [];
+  const hasQueue = queue.length > 0;
+  if (submitBtn) {
+    submitBtn.textContent = `Upload ${queue.length} queued photo${queue.length === 1 ? '' : 's'}`;
+    submitBtn.style.display = hasQueue ? '' : 'none';
+  }
+  if (saveBtn) saveBtn.disabled = hasQueue;
+  if (hint) hint.style.display = hasQueue ? 'block' : 'none';
 }
 
 function toggleEditEntry(idx) {
@@ -1779,10 +2001,16 @@ async function reorderEntryPhotos(entryIdx, fromPi, toPi) {
 }
 
 // ========== 向已有 entry 追加照片 ==========
-async function handleEntryAppendFiles(entryIdx, fileList) {
+async function handleEntryAppendFiles(entryIdx, fileList, inputEl) {
   const maxW = parseInt(document.getElementById('activityMaxWidth').value);
   const quality = parseFloat(document.getElementById('activityQuality').value);
   const images = [...fileList].filter(f => f.type.startsWith('image/'));
+
+  // 重置 file input (让用户能重复选同一文件) —— 立即 reset, 避免异步过程中 input 已不存在
+  if (inputEl) {
+    try { inputEl.value = ''; } catch (_) {}
+  }
+
   if (images.length === 0) return;
 
   // 取/建此 entry 的追加队列
@@ -1814,35 +2042,12 @@ async function handleEntryAppendFiles(entryIdx, fileList) {
 
   showStatus('uploadStatus', '', '');
   renderEntryAppendPreview(entryIdx);
-
-  // 重置 file input,让用户能重复选同一文件
-  const editForm = document.getElementById('editEntry-' + entryIdx);
-  if (editForm) {
-    const input = editForm.querySelector('.upload-area input[type="file"]');
-    if (input) input.value = '';
-  }
 }
 
 function renderEntryAppendPreview(entryIdx) {
-  const preview = document.getElementById('entryAppendPreview-' + entryIdx);
-  const submitBtn = document.getElementById('entryAppendSubmit-' + entryIdx);
-  const saveBtn = document.getElementById('entrySaveBtn-' + entryIdx);
-  const hint = document.getElementById('entryAppendHint-' + entryIdx);
-  if (!preview) return;
-  const queue = entryAppendFiles.get(entryIdx) || [];
-
-  preview.innerHTML = queue.map((f, i) => `
-    <div class="preview-item">
-      <img src="${f.dataUrl}">
-      <button class="remove-btn" onclick="removeEntryAppendFile(${entryIdx}, ${i})">×</button>
-    </div>
-  `).join('');
-
-  const hasQueue = queue.length > 0;
-  if (submitBtn) submitBtn.disabled = !hasQueue;
-  // 有待追加照片时, 禁止保存 entry 详情, 避免重排导致照片丢失
-  if (saveBtn) saveBtn.disabled = hasQueue;
-  if (hint) hint.style.display = hasQueue ? 'block' : 'none';
+  // queue 预览内嵌在 renderActivityEntries 的 thumb 网格里,
+  // 重渲整个列表即可 (renderActivityEntries 末尾会自动调 updateEntryAppendButtons)
+  renderActivityEntries();
 }
 
 function removeEntryAppendFile(entryIdx, i) {
@@ -1928,6 +2133,177 @@ async function submitEntryAppend(entryIdx) {
   }
 }
 
+// ==================== Record image 管理 ====================
+async function handleEntryRecordAppendFiles(entryIdx, fileList, inputEl) {
+  const maxW = parseInt(document.getElementById('activityMaxWidth').value);
+  const quality = parseFloat(document.getElementById('activityQuality').value);
+  const images = [...fileList].filter(f => f.type.startsWith('image/'));
+
+  if (inputEl) {
+    try { inputEl.value = ''; } catch (_) {}
+  }
+
+  if (images.length === 0) return;
+
+  if (!entryRecordAppendFiles.has(entryIdx)) {
+    entryRecordAppendFiles.set(entryIdx, []);
+  }
+  const queue = entryRecordAppendFiles.get(entryIdx);
+
+  let done = 0;
+  const total = images.length;
+  showStatus('uploadStatus', `Processing record image 0 / ${total}...`, 'info');
+
+  const tasks = images.map(img =>
+    processImage(img, maxW, quality)
+      .then(result => {
+        queue.push(result);
+        done++;
+        showStatus('uploadStatus', `Processing record image ${done} / ${total}...`, 'info');
+        renderActivityEntries();
+      })
+      .catch(e => {
+        done++;
+        log(`Failed to process ${img.name}: ${e.message}`, 'error');
+        showStatus('uploadStatus', `Processing record image ${done} / ${total}...`, 'info');
+      })
+  );
+
+  await Promise.all(tasks);
+
+  showStatus('uploadStatus', '', '');
+  renderActivityEntries();
+}
+
+function removeEntryRecordAppendFile(entryIdx, i) {
+  const queue = entryRecordAppendFiles.get(entryIdx);
+  if (!queue) return;
+  const [removed] = queue.splice(i, 1);
+  if (removed && removed.dataUrl) {
+    try { URL.revokeObjectURL(removed.dataUrl); } catch (_) {}
+  }
+  renderActivityEntries();
+}
+
+function clearEntryRecordAppendQueue(entryIdx) {
+  const queue = entryRecordAppendFiles.get(entryIdx);
+  if (!queue) return;
+  for (const f of queue) {
+    if (f && f.dataUrl) {
+      try { URL.revokeObjectURL(f.dataUrl); } catch (_) {}
+    }
+  }
+  entryRecordAppendFiles.delete(entryIdx);
+}
+
+function clearAllEntryRecordAppendQueues() {
+  for (const [idx] of entryRecordAppendFiles.entries()) {
+    const queue = entryRecordAppendFiles.get(idx);
+    for (const f of queue) {
+      if (f && f.dataUrl) {
+        try { URL.revokeObjectURL(f.dataUrl); } catch (_) {}
+      }
+    }
+  }
+  entryRecordAppendFiles.clear();
+}
+
+async function submitEntryRecordAppend(entryIdx) {
+  const queue = entryRecordAppendFiles.get(entryIdx) || [];
+  if (queue.length === 0) return;
+  if (!currentActivityJson || !currentActivityJson.entries[entryIdx]) {
+    showStatus('uploadStatus', 'Entry not found', 'error');
+    return;
+  }
+
+  try {
+    showProgress(`Uploading ${queue.length} record image(s)...`);
+
+    const draft = JSON.parse(JSON.stringify(currentActivityJson));
+    delete draft._sha;
+    const entry = draft.entries[entryIdx];
+
+    // 统一 record_image 为数组
+    let records = entry.record_image
+      ? (Array.isArray(entry.record_image) ? entry.record_image : [entry.record_image])
+      : [];
+
+    const files = [];
+    for (const qf of queue) {
+      const filename = generateFilename(qf.file.name, 'record');
+      const path = `images/${filename}`;
+      files.push({ path, bytes: qf.compressed });
+      records.push('/' + path);
+    }
+    entry.record_image = records;
+
+    await batchCommit({
+      files,
+      jsonUpdates: [{ path: currentActivityType + '.json', data: draft }],
+      message: `Add ${queue.length} record image(s) to entry ${entry.date || entryIdx}`,
+      onProgress: (ratio) => updateProgress(ratio)
+    });
+
+    hideProgress();
+    showStatus('uploadStatus', `${queue.length} record image(s) added!`, 'success');
+    currentActivityJson = draft;
+    clearEntryRecordAppendQueue(entryIdx);
+    renderActivityEntries();
+  } catch (e) {
+    hideProgress();
+    showStatus('uploadStatus', 'Upload failed: ' + e.message, 'error');
+    log('Error: ' + (e.stack || e.message), 'error');
+  }
+}
+
+async function deleteEntryRecordImage(entryIdx, recordIdx) {
+  const entry = currentActivityJson.entries[entryIdx];
+  if (!entry || !entry.record_image) return;
+  const records = Array.isArray(entry.record_image) ? entry.record_image : [entry.record_image];
+  const photo = records[recordIdx];
+  if (!photo) return;
+  if (!await confirmAction(`Delete this record image?`)) return;
+
+  try {
+    showProgress('Deleting record image...');
+
+    // Draft 模式: 先操作 draft, commit 成功后再应用到本地
+    const draft = JSON.parse(JSON.stringify(currentActivityJson));
+    delete draft._sha;
+    const draftEntry = draft.entries[entryIdx];
+    let draftRecords = Array.isArray(draftEntry.record_image)
+      ? draftEntry.record_image
+      : [draftEntry.record_image];
+    draftRecords.splice(recordIdx, 1);
+
+    // 如果删完变成空数组,删掉这个字段(和 caption 保持一致更干净)
+    if (draftRecords.length === 0) {
+      delete draftEntry.record_image;
+    } else {
+      draftEntry.record_image = draftRecords;
+    }
+
+    // 删除文件 (失败不阻塞主流程)
+    try {
+      const path = photo.startsWith('/') ? photo.slice(1) : photo;
+      await deleteGitHubFile(path);
+      log(`Deleted ${path}`, 'success');
+    } catch (e) {
+      log(`Could not delete file: ${e.message}`, 'warn');
+    }
+
+    await updateJsonFile(currentActivityType + '.json', draft);
+    currentActivityJson = draft;
+
+    hideProgress();
+    showStatus('uploadStatus', 'Record image deleted', 'success');
+    renderActivityEntries();
+  } catch (e) {
+    hideProgress();
+    showStatus('uploadStatus', 'Delete failed: ' + e.message, 'error');
+  }
+}
+
 async function saveEditEntry(idx) {
   const entry = currentActivityJson.entries[idx];
   const isFragments = currentActivityType === 'found-fragments';
@@ -1968,6 +2344,17 @@ async function saveEditEntry(idx) {
       }
       entryAppendFiles.clear();
       for (const [k, v] of newMap.entries()) entryAppendFiles.set(k, v);
+    }
+    if (entryRecordAppendFiles.size > 0) {
+      const newMap = new Map();
+      for (const [oldIdx, queue] of entryRecordAppendFiles.entries()) {
+        const ref = oldEntryRefs.find(r => r.oldIdx === oldIdx)?.ref;
+        if (!ref) continue;
+        const newIdx = currentActivityJson.entries.indexOf(ref);
+        if (newIdx >= 0) newMap.set(newIdx, queue);
+      }
+      entryRecordAppendFiles.clear();
+      for (const [k, v] of newMap.entries()) entryRecordAppendFiles.set(k, v);
     }
 
     await updateJsonFile(currentActivityType + '.json', currentActivityJson);
@@ -2011,9 +2398,10 @@ async function deleteActivityEntry(idx) {
 
     // entry 被删后, 追加队列 Map 的 key 要做相应调整
     // 被删的 entry 自己的 queue 丢弃, 后面的 key 都减 1
-    if (entryAppendFiles.size > 0) {
+    const adjustMapAfterDelete = (map) => {
+      if (map.size === 0) return;
       const adjusted = new Map();
-      for (const [k, v] of entryAppendFiles.entries()) {
+      for (const [k, v] of map.entries()) {
         if (k === idx) {
           // 被删 entry 自己的队列: 释放 object URL 后丢弃
           for (const f of v) {
@@ -2025,9 +2413,11 @@ async function deleteActivityEntry(idx) {
         }
         adjusted.set(k > idx ? k - 1 : k, v);
       }
-      entryAppendFiles.clear();
-      for (const [k, v] of adjusted.entries()) entryAppendFiles.set(k, v);
-    }
+      map.clear();
+      for (const [k, v] of adjusted.entries()) map.set(k, v);
+    };
+    adjustMapAfterDelete(entryAppendFiles);
+    adjustMapAfterDelete(entryRecordAppendFiles);
 
     hideProgress();
     showStatus('uploadStatus', 'Entry deleted', 'success');
@@ -2268,29 +2658,22 @@ async function submitActivityEntry() {
       onProgress: (ratio) => updateProgress(ratio)
     });
 
-    // commit 成功后, 修正 entryAppendFiles 的 key (因为 sort 可能改变了 idx)
-    if (entryAppendFiles.size > 0) {
+    // commit 成功后, 修正 entryAppendFiles / entryRecordAppendFiles 的 key
+    // (sort 可能改变了 idx)
+    const remapQueue = (map) => {
+      if (map.size === 0) return;
       const newMap = new Map();
-      for (const [oldIdx, queue] of entryAppendFiles.entries()) {
-        // oldIdx 是用户放入 queue 时的 entry idx (在 push 之前的)
-        // push 到末尾后, 原来前面的 idx 不变; sort 后 idx 可能任意变化
-        // 用 oldEntryRefs 里 oldIdx 找到对应 ref, 再找它现在的 idx
+      for (const [oldIdx, queue] of map.entries()) {
         const ref = oldEntryRefs.find(r => r.oldIdx === oldIdx)?.ref;
         if (!ref) continue;
         const newIdx = currentActivityJson.entries.indexOf(ref);
         if (newIdx >= 0) newMap.set(newIdx, queue);
       }
-      entryAppendFiles.clear();
-      for (const [k, v] of newMap.entries()) entryAppendFiles.set(k, v);
-    }
-
-    // 一次 commit 提交所有:record images + photos + 更新后的 activity JSON
-    await batchCommit({
-      files,
-      jsonUpdates: [{ path: currentActivityType + '.json', data: jsonCopy }],
-      message: `Activity entry: ${date}`,
-      onProgress: (ratio) => updateProgress(ratio)
-    });
+      map.clear();
+      for (const [k, v] of newMap.entries()) map.set(k, v);
+    };
+    remapQueue(entryAppendFiles);
+    remapQueue(entryRecordAppendFiles);
 
     hideProgress();
     showStatus('uploadStatus', 'Entry submitted successfully!', 'success');
@@ -3033,6 +3416,13 @@ function escapeAttr(value) {
     .replace(/'/g, '&#39;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
+}
+
+// 把任意字符串编码成可以安全放到 HTML 属性(如 onclick)里的 JS 字符串字面量
+// 用法: <button onclick="fn(${jsStringForAttr(tag)})">
+// 属性必须用双引号包裹
+function jsStringForAttr(value) {
+  return escapeAttr(JSON.stringify(String(value ?? '')));
 }
 
 function excerpt(value, max = 90) {
