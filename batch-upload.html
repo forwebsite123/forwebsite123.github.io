@@ -1178,6 +1178,47 @@ let currentPhotosJson = null;
 let currentActivityJson = null;
 let currentActivityType = '';
 
+// 防止重复点击导致同一写操作被触发两次
+const activeOperationKeys = new Set();
+
+function setButtonBusy(button, busy, busyText = '') {
+  if (!button) return;
+  if (busy) {
+    if (!button.dataset.originalHtml) {
+      button.dataset.originalHtml = button.innerHTML;
+    }
+    button.disabled = true;
+    if (busyText) button.textContent = busyText;
+  } else {
+    button.disabled = false;
+    if (button.dataset.originalHtml) {
+      button.innerHTML = button.dataset.originalHtml;
+      delete button.dataset.originalHtml;
+    }
+  }
+}
+
+async function withOperationLock(key, fn, { button = null, busyText = '' } = {}) {
+  if (activeOperationKeys.has(key)) {
+    log(`Skipped duplicate action: ${key}`, 'warn');
+    showStatus('uploadStatus', '操作已在进行中，请不要重复点击。', 'info');
+    return null;
+  }
+
+  activeOperationKeys.add(key);
+  setButtonBusy(button, true, busyText);
+  try {
+    return await fn();
+  } finally {
+    activeOperationKeys.delete(key);
+    setButtonBusy(button, false);
+  }
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // ==================== INIT ====================
 window.addEventListener('DOMContentLoaded', () => {
   const saved = localStorage.getItem('gh_token');
@@ -1664,63 +1705,65 @@ async function submitAlbumPhotos() {
   }
   const { page, label: pageLabel } = album;
 
-  const tags = document.getElementById('albumTags').value.split(',').map(t => t.trim()).filter(Boolean);
-  const video = document.getElementById('albumVideo').value.trim();
+  return withOperationLock(`album-upload:${page}`, async () => {
+    const tags = document.getElementById('albumTags').value.split(',').map(t => t.trim()).filter(Boolean);
+    const video = document.getElementById('albumVideo').value.trim();
 
-  try {
-    showProgress(`Uploading ${albumFiles.length} photos...`);
+    try {
+      showProgress(`Uploading ${albumFiles.length} photos...`);
 
-    // Get current photos.json
-    const jsonData = await fetchJsonFile('photos.json');
-    delete jsonData._sha; // Git Data API 不用 sha
+      // Get current photos.json
+      const jsonData = await fetchJsonFile('photos.json');
+      delete jsonData._sha; // Git Data API 不用 sha
 
-    // 预生成文件名和路径,拼好要提交的文件清单
-    const files = [];
-    for (const f of albumFiles) {
-      const filename = generateFilename(f.file.name);
-      const path = `images/${filename}`;
-      files.push({ path, bytes: f.compressed });
-      jsonData.items.push({
-        title: '',
-        image: '/' + path,
-        ...(video ? { video } : {}),
-        tags: tags,
-        page: page,
-        pageLabel: pageLabel
+      // 预生成文件名和路径,拼好要提交的文件清单
+      const files = [];
+      for (const f of albumFiles) {
+        const filename = generateFilename(f.file.name);
+        const path = `images/${filename}`;
+        files.push({ path, bytes: f.compressed });
+        jsonData.items.push({
+          title: '',
+          image: '/' + path,
+          ...(video ? { video } : {}),
+          tags: tags,
+          page: page,
+          pageLabel: pageLabel
+        });
+      }
+
+      // 一次性 commit 所有照片 + 更新后的 photos.json
+      await batchCommit({
+        files,
+        jsonUpdates: [{ path: 'photos.json', data: jsonData }],
+        message: `Upload ${albumFiles.length} photos to ${page}`,
+        onProgress: (ratio) => updateProgress(ratio)
       });
+
+      // 本地缓存也同步更新
+      currentPhotosJson = jsonData;
+
+      hideProgress();
+      showStatus('uploadStatus', `${albumFiles.length} photos uploaded successfully!`, 'success');
+      
+      // Reset
+      albumFiles = [];
+      renderAlbumPreview();
+      document.getElementById('albumSubmit').disabled = true;
+      document.getElementById('albumTags').value = '';
+      document.getElementById('albumVideo').value = '';
+      document.getElementById('newAlbumPage').value = '';
+      document.getElementById('newAlbumLabel').value = '';
+      document.getElementById('newAlbumRow').classList.add('hidden');
+      await populateAlbumSelect();
+      document.getElementById('albumSelect').value = page;
+      loadAlbumPhotos();
+    } catch (e) {
+      hideProgress();
+      showStatus('uploadStatus', 'Upload failed: ' + e.message, 'error');
+      log('Error: ' + e.message, 'error');
     }
-
-    // 一次性 commit 所有照片 + 更新后的 photos.json
-    await batchCommit({
-      files,
-      jsonUpdates: [{ path: 'photos.json', data: jsonData }],
-      message: `Upload ${albumFiles.length} photos to ${page}`,
-      onProgress: (ratio) => updateProgress(ratio)
-    });
-
-    // 本地缓存也同步更新
-    currentPhotosJson = jsonData;
-
-    hideProgress();
-    showStatus('uploadStatus', `${albumFiles.length} photos uploaded successfully!`, 'success');
-    
-    // Reset
-    albumFiles = [];
-    renderAlbumPreview();
-    document.getElementById('albumSubmit').disabled = true;
-    document.getElementById('albumTags').value = '';
-    document.getElementById('albumVideo').value = '';
-    document.getElementById('newAlbumPage').value = '';
-    document.getElementById('newAlbumLabel').value = '';
-    document.getElementById('newAlbumRow').classList.add('hidden');
-    await populateAlbumSelect();
-    document.getElementById('albumSelect').value = page;
-    loadAlbumPhotos();
-  } catch (e) {
-    hideProgress();
-    showStatus('uploadStatus', 'Upload failed: ' + e.message, 'error');
-    log('Error: ' + e.message, 'error');
-  }
+  }, { button: document.getElementById('albumSubmit'), busyText: 'Uploading...' });
 }
 
 // ==================== ACTIVITY MODE ====================
@@ -1843,7 +1886,7 @@ function renderActivityEntries() {
               </label>
             </div>
             ${recordQueue.length > 0 ? `
-              <button class="btn btn-primary btn-small" style="margin-top:6px" onclick="submitEntryRecordAppend(${idx})">Upload ${recordQueue.length} record image(s)</button>
+              <button class="btn btn-primary btn-small" id="entryRecordAppendSubmit-${idx}" style="margin-top:6px" onclick="submitEntryRecordAppend(${idx})">Upload ${recordQueue.length} record image(s)</button>
             ` : ''}
             ${entry.record_caption ? `<div style="font-size:0.85em;color:var(--text-light);margin-top:4px">Caption: ${escapeAttr(entry.record_caption)}</div>` : ''}
           </div>
@@ -2093,44 +2136,46 @@ async function submitEntryAppend(entryIdx) {
     return;
   }
 
-  try {
-    showProgress(`Uploading ${queue.length} new photos...`);
+  return withOperationLock(`entry-append:${currentActivityType}:${entryIdx}`, async () => {
+    try {
+      showProgress(`Uploading ${queue.length} new photos...`);
 
-    // Draft 模式: commit 成功后才更新本地状态
-    const draft = JSON.parse(JSON.stringify(currentActivityJson));
-    delete draft._sha;
-    const entry = draft.entries[entryIdx];
-    if (!entry.photos) entry.photos = [];
+      // Draft 模式: commit 成功后才更新本地状态
+      const draft = JSON.parse(JSON.stringify(currentActivityJson));
+      delete draft._sha;
+      const entry = draft.entries[entryIdx];
+      if (!entry.photos) entry.photos = [];
 
-    // 生成新文件名和路径
-    const files = [];
-    for (const qf of queue) {
-      const filename = generateFilename(qf.file.name);
-      const path = `images/${filename}`;
-      files.push({ path, bytes: qf.compressed });
-      entry.photos.push('/' + path);
+      // 生成新文件名和路径
+      const files = [];
+      for (const qf of queue) {
+        const filename = generateFilename(qf.file.name);
+        const path = `images/${filename}`;
+        files.push({ path, bytes: qf.compressed });
+        entry.photos.push('/' + path);
+      }
+
+      await batchCommit({
+        files,
+        jsonUpdates: [{ path: currentActivityType + '.json', data: draft }],
+        message: `Add ${queue.length} photos to entry ${entry.date || entryIdx}`,
+        onProgress: (ratio) => updateProgress(ratio)
+      });
+
+      hideProgress();
+      showStatus('uploadStatus', `${queue.length} photos added to entry!`, 'success');
+
+      // 成功: 应用 draft、清空队列 (释放 object URL)、重渲染
+      currentActivityJson = draft;
+      clearEntryAppendQueue(entryIdx);
+      renderActivityEntries();
+    } catch (e) {
+      hideProgress();
+      showStatus('uploadStatus', 'Upload failed: ' + e.message, 'error');
+      // 队列保留, 用户可以重试
+      log('Error: ' + (e.stack || e.message), 'error');
     }
-
-    await batchCommit({
-      files,
-      jsonUpdates: [{ path: currentActivityType + '.json', data: draft }],
-      message: `Add ${queue.length} photos to entry ${entry.date || entryIdx}`,
-      onProgress: (ratio) => updateProgress(ratio)
-    });
-
-    hideProgress();
-    showStatus('uploadStatus', `${queue.length} photos added to entry!`, 'success');
-
-    // 成功: 应用 draft、清空队列 (释放 object URL)、重渲染
-    currentActivityJson = draft;
-    clearEntryAppendQueue(entryIdx);
-    renderActivityEntries();
-  } catch (e) {
-    hideProgress();
-    showStatus('uploadStatus', 'Upload failed: ' + e.message, 'error');
-    // 队列保留, 用户可以重试
-    log('Error: ' + (e.stack || e.message), 'error');
-  }
+  }, { button: document.getElementById('entryAppendSubmit-' + entryIdx), busyText: 'Uploading...' });
 }
 
 // ==================== Record image 管理 ====================
@@ -2216,44 +2261,46 @@ async function submitEntryRecordAppend(entryIdx) {
     return;
   }
 
-  try {
-    showProgress(`Uploading ${queue.length} record image(s)...`);
+  return withOperationLock(`entry-record-append:${currentActivityType}:${entryIdx}`, async () => {
+    try {
+      showProgress(`Uploading ${queue.length} record image(s)...`);
 
-    const draft = JSON.parse(JSON.stringify(currentActivityJson));
-    delete draft._sha;
-    const entry = draft.entries[entryIdx];
+      const draft = JSON.parse(JSON.stringify(currentActivityJson));
+      delete draft._sha;
+      const entry = draft.entries[entryIdx];
 
-    // 统一 record_image 为数组
-    let records = entry.record_image
-      ? (Array.isArray(entry.record_image) ? entry.record_image : [entry.record_image])
-      : [];
+      // 统一 record_image 为数组
+      let records = entry.record_image
+        ? (Array.isArray(entry.record_image) ? entry.record_image : [entry.record_image])
+        : [];
 
-    const files = [];
-    for (const qf of queue) {
-      const filename = generateFilename(qf.file.name, 'record');
-      const path = `images/${filename}`;
-      files.push({ path, bytes: qf.compressed });
-      records.push('/' + path);
+      const files = [];
+      for (const qf of queue) {
+        const filename = generateFilename(qf.file.name, 'record');
+        const path = `images/${filename}`;
+        files.push({ path, bytes: qf.compressed });
+        records.push('/' + path);
+      }
+      entry.record_image = records;
+
+      await batchCommit({
+        files,
+        jsonUpdates: [{ path: currentActivityType + '.json', data: draft }],
+        message: `Add ${queue.length} record image(s) to entry ${entry.date || entryIdx}`,
+        onProgress: (ratio) => updateProgress(ratio)
+      });
+
+      hideProgress();
+      showStatus('uploadStatus', `${queue.length} record image(s) added!`, 'success');
+      currentActivityJson = draft;
+      clearEntryRecordAppendQueue(entryIdx);
+      renderActivityEntries();
+    } catch (e) {
+      hideProgress();
+      showStatus('uploadStatus', 'Upload failed: ' + e.message, 'error');
+      log('Error: ' + (e.stack || e.message), 'error');
     }
-    entry.record_image = records;
-
-    await batchCommit({
-      files,
-      jsonUpdates: [{ path: currentActivityType + '.json', data: draft }],
-      message: `Add ${queue.length} record image(s) to entry ${entry.date || entryIdx}`,
-      onProgress: (ratio) => updateProgress(ratio)
-    });
-
-    hideProgress();
-    showStatus('uploadStatus', `${queue.length} record image(s) added!`, 'success');
-    currentActivityJson = draft;
-    clearEntryRecordAppendQueue(entryIdx);
-    renderActivityEntries();
-  } catch (e) {
-    hideProgress();
-    showStatus('uploadStatus', 'Upload failed: ' + e.message, 'error');
-    log('Error: ' + (e.stack || e.message), 'error');
-  }
+  }, { button: document.getElementById('entryRecordAppendSubmit-' + entryIdx), busyText: 'Uploading...' });
 }
 
 async function deleteEntryRecordImage(entryIdx, recordIdx) {
@@ -2587,118 +2634,120 @@ async function submitActivityEntry() {
     return;
   }
 
-  try {
-    showProgress(`Uploading entry...`);
+  return withOperationLock(`activity-entry:${currentActivityType}:${date}`, async () => {
+    try {
+      showProgress(`Uploading entry...`);
 
-    // Ensure we have current JSON
-    if (!currentActivityJson) {
-      currentActivityJson = { entries: [] };
-    }
+      // Ensure we have current JSON
+      if (!currentActivityJson) {
+        currentActivityJson = { entries: [] };
+      }
 
-    // Build new entry
-    const entry = { date };
+      // Build new entry
+      const entry = { date };
 
-    if (!isFragments) {
-      entry.location = document.getElementById('entryLocation').value.trim();
-    }
+      if (!isFragments) {
+        entry.location = document.getElementById('entryLocation').value.trim();
+      }
 
-    // 预生成所有文件清单,一次 commit 搞定
-    const files = [];
+      // 预生成所有文件清单,一次 commit 搞定
+      const files = [];
 
-    // Record images
-    if (recordImageFiles.length > 0 && ['snowboarding', 'diving'].includes(currentActivityType)) {
-      const recordPaths = [];
-      for (const rf of recordImageFiles) {
-        const filename = generateFilename(rf.file.name, 'record');
+      // Record images
+      if (recordImageFiles.length > 0 && ['snowboarding', 'diving'].includes(currentActivityType)) {
+        const recordPaths = [];
+        for (const rf of recordImageFiles) {
+          const filename = generateFilename(rf.file.name, 'record');
+          const path = `images/${filename}`;
+          files.push({ path, bytes: rf.compressed });
+          recordPaths.push('/' + path);
+        }
+        entry.record_image = recordPaths;
+        entry.record_caption = document.getElementById('recordCaption').value.trim();
+      }
+
+      // Photos (保序:数组顺序即 activityFiles 顺序)
+      const photoPaths = [];
+      for (const f of activityFiles) {
+        const filename = generateFilename(f.file.name);
         const path = `images/${filename}`;
-        files.push({ path, bytes: rf.compressed });
-        recordPaths.push('/' + path);
+        files.push({ path, bytes: f.compressed });
+        photoPaths.push('/' + path);
       }
-      entry.record_image = recordPaths;
-      entry.record_caption = document.getElementById('recordCaption').value.trim();
-    }
+      entry.photos = photoPaths;
 
-    // Photos (保序:数组顺序即 activityFiles 顺序)
-    const photoPaths = [];
-    for (const f of activityFiles) {
-      const filename = generateFilename(f.file.name);
-      const path = `images/${filename}`;
-      files.push({ path, bytes: f.compressed });
-      photoPaths.push('/' + path);
-    }
-    entry.photos = photoPaths;
+      // Videos
+      const videoStr = document.getElementById('entryVideos').value.trim();
+      entry.videos = videoStr ? videoStr.split(',').map(v => v.trim()).filter(Boolean) : [];
 
-    // Videos
-    const videoStr = document.getElementById('entryVideos').value.trim();
-    entry.videos = videoStr ? videoStr.split(',').map(v => v.trim()).filter(Boolean) : [];
-
-    // Note or text
-    if (isFragments) {
-      entry.text = document.getElementById('entryText').value.trim();
-      const tagsStr = document.getElementById('entryTextTags').value.trim();
-      entry.tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(Boolean) : [];
-    } else {
-      entry.note = document.getElementById('entryNote').value.trim();
-    }
-
-    // Add entry and sort
-    currentActivityJson.entries.push(entry);
-    // 保存排序前的 ref→oldIdx 映射, 用于 commit 成功后修正 entryAppendFiles 的 key
-    const oldEntryRefs = currentActivityJson.entries.map((e, i) => ({ ref: e, oldIdx: i }));
-    sortEntriesByDate(currentActivityJson.entries);
-
-    const jsonCopy = { ...currentActivityJson };
-    delete jsonCopy._sha;
-
-    // 一次 commit 提交所有:record images + photos + 更新后的 activity JSON
-    await batchCommit({
-      files,
-      jsonUpdates: [{ path: currentActivityType + '.json', data: jsonCopy }],
-      message: `Activity entry: ${date}`,
-      onProgress: (ratio) => updateProgress(ratio)
-    });
-
-    // commit 成功后, 修正 entryAppendFiles / entryRecordAppendFiles 的 key
-    // (sort 可能改变了 idx)
-    const remapQueue = (map) => {
-      if (map.size === 0) return;
-      const newMap = new Map();
-      for (const [oldIdx, queue] of map.entries()) {
-        const ref = oldEntryRefs.find(r => r.oldIdx === oldIdx)?.ref;
-        if (!ref) continue;
-        const newIdx = currentActivityJson.entries.indexOf(ref);
-        if (newIdx >= 0) newMap.set(newIdx, queue);
+      // Note or text
+      if (isFragments) {
+        entry.text = document.getElementById('entryText').value.trim();
+        const tagsStr = document.getElementById('entryTextTags').value.trim();
+        entry.tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(Boolean) : [];
+      } else {
+        entry.note = document.getElementById('entryNote').value.trim();
       }
-      map.clear();
-      for (const [k, v] of newMap.entries()) map.set(k, v);
-    };
-    remapQueue(entryAppendFiles);
-    remapQueue(entryRecordAppendFiles);
 
-    hideProgress();
-    showStatus('uploadStatus', 'Entry submitted successfully!', 'success');
+      // Add entry and sort
+      currentActivityJson.entries.push(entry);
+      // 保存排序前的 ref→oldIdx 映射, 用于 commit 成功后修正 entryAppendFiles 的 key
+      const oldEntryRefs = currentActivityJson.entries.map((e, i) => ({ ref: e, oldIdx: i }));
+      sortEntriesByDate(currentActivityJson.entries);
 
-    // Reset form
-    document.getElementById('entryDate').value = '';
-    document.getElementById('entryLocation').value = '';
-    document.getElementById('recordCaption').value = '';
-    document.getElementById('entryNote').value = '';
-    document.getElementById('entryText').value = '';
-    document.getElementById('entryTextTags').value = '';
-    document.getElementById('entryVideos').value = '';
-    recordImageFiles = [];
-    activityFiles = [];
-    document.getElementById('recordPreview').style.display = 'none';
-    document.getElementById('recordPreview').innerHTML = '';
-    renderActivityPreview();
+      const jsonCopy = { ...currentActivityJson };
+      delete jsonCopy._sha;
 
-    // Refresh list
-    renderActivityEntries();
-  } catch (e) {
-    hideProgress();
-    showStatus('uploadStatus', 'Upload failed: ' + e.message, 'error');
-    log('Error: ' + e.stack || e.message, 'error');
-  }
+      // 一次 commit 提交所有:record images + photos + 更新后的 activity JSON
+      await batchCommit({
+        files,
+        jsonUpdates: [{ path: currentActivityType + '.json', data: jsonCopy }],
+        message: `Activity entry: ${date}`,
+        onProgress: (ratio) => updateProgress(ratio)
+      });
+
+      // commit 成功后, 修正 entryAppendFiles / entryRecordAppendFiles 的 key
+      // (sort 可能改变了 idx)
+      const remapQueue = (map) => {
+        if (map.size === 0) return;
+        const newMap = new Map();
+        for (const [oldIdx, queue] of map.entries()) {
+          const ref = oldEntryRefs.find(r => r.oldIdx === oldIdx)?.ref;
+          if (!ref) continue;
+          const newIdx = currentActivityJson.entries.indexOf(ref);
+          if (newIdx >= 0) newMap.set(newIdx, queue);
+        }
+        map.clear();
+        for (const [k, v] of newMap.entries()) map.set(k, v);
+      };
+      remapQueue(entryAppendFiles);
+      remapQueue(entryRecordAppendFiles);
+
+      hideProgress();
+      showStatus('uploadStatus', 'Entry submitted successfully!', 'success');
+
+      // Reset form
+      document.getElementById('entryDate').value = '';
+      document.getElementById('entryLocation').value = '';
+      document.getElementById('recordCaption').value = '';
+      document.getElementById('entryNote').value = '';
+      document.getElementById('entryText').value = '';
+      document.getElementById('entryTextTags').value = '';
+      document.getElementById('entryVideos').value = '';
+      recordImageFiles = [];
+      activityFiles = [];
+      document.getElementById('recordPreview').style.display = 'none';
+      document.getElementById('recordPreview').innerHTML = '';
+      renderActivityPreview();
+
+      // Refresh list
+      renderActivityEntries();
+    } catch (e) {
+      hideProgress();
+      showStatus('uploadStatus', 'Upload failed: ' + e.message, 'error');
+      log('Error: ' + e.stack || e.message, 'error');
+    }
+  }, { button: document.getElementById('activitySubmit'), busyText: 'Submitting...' });
 }
 
 // ==================== IMAGE PROCESSING ====================
@@ -2999,128 +3048,153 @@ async function ghFetch(path, options = {}) {
 // jsonUpdates: [{ path, data }]  — data 是要写入的 JSON 对象 (会自动 stringify)
 // 返回新 commit 的 SHA
 // 优势: 一次 commit 一次性提交所有文件,blob 上传可以真并行,无 409 race
-async function batchCommit({ files = [], jsonUpdates = [], message = 'Batch upload', onProgress = null }) {
+async function batchCommit({ files = [], jsonUpdates = [], message = 'Batch upload', onProgress = null, maxRetries = 2 }) {
   // 防御:什么都没有就早退
   if (files.length === 0 && jsonUpdates.length === 0) {
     log('batchCommit called with nothing to commit, skipping', 'warn');
     return null;
   }
 
-  const totalSteps = files.length + jsonUpdates.length + 4; // blobs + json + (ref + commit + tree + patch)
-  let completed = 0;
-  const tick = (label) => {
-    completed++;
-    if (onProgress) onProgress(completed / totalSteps, label);
+  const attemptCommit = async (attemptNo) => {
+    const totalSteps = files.length + jsonUpdates.length + 4; // blobs + json + (ref + commit + tree + patch)
+    let completed = 0;
+    const tick = (label) => {
+      completed++;
+      if (onProgress) onProgress(completed / totalSteps, label);
+    };
+
+    if (attemptNo > 1) {
+      log(`Retrying batch commit (${attemptNo}/${maxRetries + 1})...`, 'warn');
+    }
+
+    // 1. 拿当前 ref (HEAD)
+    log('Getting current HEAD...');
+    let refData, branchName;
+    const refRes = await ghFetch(`/repos/${OWNER}/${REPO}/git/ref/heads/main`);
+    if (refRes.ok) {
+      refData = await refRes.json();
+      branchName = 'main';
+    } else {
+      // 某些仓库默认分支叫 master
+      const refRes2 = await ghFetch(`/repos/${OWNER}/${REPO}/git/ref/heads/master`);
+      if (!refRes2.ok) throw new Error('Could not find main or master branch');
+      refData = await refRes2.json();
+      branchName = 'master';
+    }
+    const currentCommitSha = refData.object.sha;
+    tick('ref');
+
+    // 2. 拿当前 commit → base tree
+    const commitRes = await ghFetch(`/repos/${OWNER}/${REPO}/git/commits/${currentCommitSha}`);
+    if (!commitRes.ok) throw new Error('Failed to get current commit');
+    const commitData = await commitRes.json();
+    const baseTreeSha = commitData.tree.sha;
+    tick('base tree');
+
+    // 3. 并行上传所有 blob (这一步是真正的并行加速,无 race)
+    const blobTasks = files.map(f => async () => {
+      const base64 = await uint8ToBase64(f.bytes);
+      const res = await ghFetch(`/repos/${OWNER}/${REPO}/git/blobs`, {
+        method: 'POST',
+        body: JSON.stringify({ content: base64, encoding: 'base64' })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(`Blob upload failed for ${f.path}: ${res.status} ${err.message || ''}`);
+      }
+      const blob = await res.json();
+      log(`Blob uploaded: ${f.path}`, 'success');
+      tick('blob');
+      return { path: f.path, mode: '100644', type: 'blob', sha: blob.sha };
+    });
+
+    // blob 上传并发 4 (blob API 允许,且互不影响)
+    const blobEntries = await runWithConcurrency(blobTasks, 4);
+
+    // 4. JSON 文件也作为 blob 一起加入 tree
+    const jsonBlobTasks = jsonUpdates.map(u => async () => {
+      const jsonStr = JSON.stringify(u.data, null, 2);
+      const utf8Bytes = new TextEncoder().encode(jsonStr);
+      const base64 = await uint8ToBase64(utf8Bytes);
+      const res = await ghFetch(`/repos/${OWNER}/${REPO}/git/blobs`, {
+        method: 'POST',
+        body: JSON.stringify({ content: base64, encoding: 'base64' })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(`JSON blob upload failed for ${u.path}: ${res.status} ${err.message || ''}`);
+      }
+      const blob = await res.json();
+      log(`JSON blob uploaded: ${u.path}`, 'success');
+      tick('json');
+      return { path: u.path, mode: '100644', type: 'blob', sha: blob.sha };
+    });
+    const jsonEntries = await runWithConcurrency(jsonBlobTasks, 4);
+
+    // 5. 创建新 tree (基于 base tree + 新/改的文件)
+    const treeRes = await ghFetch(`/repos/${OWNER}/${REPO}/git/trees`, {
+      method: 'POST',
+      body: JSON.stringify({
+        base_tree: baseTreeSha,
+        tree: [...blobEntries, ...jsonEntries]
+      })
+    });
+    if (!treeRes.ok) {
+      const err = await treeRes.json().catch(() => ({}));
+      throw new Error(`Tree creation failed: ${treeRes.status} ${err.message || ''}`);
+    }
+    const treeData = await treeRes.json();
+    tick('tree');
+
+    // 6. 创建新 commit
+    const newCommitRes = await ghFetch(`/repos/${OWNER}/${REPO}/git/commits`, {
+      method: 'POST',
+      body: JSON.stringify({
+        message: message,
+        tree: treeData.sha,
+        parents: [currentCommitSha]
+      })
+    });
+    if (!newCommitRes.ok) {
+      const err = await newCommitRes.json().catch(() => ({}));
+      throw new Error(`Commit creation failed: ${newCommitRes.status} ${err.message || ''}`);
+    }
+    const newCommit = await newCommitRes.json();
+    tick('commit');
+
+    // 7. 更新 ref 指向新 commit
+    const patchRes = await ghFetch(`/repos/${OWNER}/${REPO}/git/refs/heads/${branchName}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ sha: newCommit.sha })
+    });
+    if (!patchRes.ok) {
+      const err = await patchRes.json().catch(() => ({}));
+      throw new Error(`Ref update failed: ${patchRes.status} ${err.message || ''}`);
+    }
+    tick('ref update');
+
+    log(`Batch commit done: ${newCommit.sha.substring(0, 7)}`, 'success');
+    return newCommit.sha;
   };
 
-  // 1. 拿当前 ref (HEAD)
-  log('Getting current HEAD...');
-  let refData, branchName;
-  const refRes = await ghFetch(`/repos/${OWNER}/${REPO}/git/ref/heads/main`);
-  if (refRes.ok) {
-    refData = await refRes.json();
-    branchName = 'main';
-  } else {
-    // 某些仓库默认分支叫 master
-    const refRes2 = await ghFetch(`/repos/${OWNER}/${REPO}/git/ref/heads/master`);
-    if (!refRes2.ok) throw new Error('Could not find main or master branch');
-    refData = await refRes2.json();
-    branchName = 'master';
-  }
-  const currentCommitSha = refData.object.sha;
-  tick('ref');
-
-  // 2. 拿当前 commit → base tree
-  const commitRes = await ghFetch(`/repos/${OWNER}/${REPO}/git/commits/${currentCommitSha}`);
-  if (!commitRes.ok) throw new Error('Failed to get current commit');
-  const commitData = await commitRes.json();
-  const baseTreeSha = commitData.tree.sha;
-  tick('base tree');
-
-  // 3. 并行上传所有 blob (这一步是真正的并行加速,无 race)
-  const blobTasks = files.map(f => async () => {
-    const base64 = await uint8ToBase64(f.bytes);
-    const res = await ghFetch(`/repos/${OWNER}/${REPO}/git/blobs`, {
-      method: 'POST',
-      body: JSON.stringify({ content: base64, encoding: 'base64' })
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(`Blob upload failed for ${f.path}: ${res.status} ${err.message || ''}`);
+  let lastError = null;
+  for (let attemptNo = 1; attemptNo <= maxRetries + 1; attemptNo++) {
+    try {
+      return await attemptCommit(attemptNo);
+    } catch (e) {
+      lastError = e;
+      const msg = String(e && e.message ? e.message : e);
+      const isFastForwardConflict = /not a fast forward/i.test(msg);
+      if (isFastForwardConflict && attemptNo <= maxRetries) {
+        log('HEAD changed before ref update, retrying with latest commit...', 'warn');
+        await sleep(350 * attemptNo);
+        continue;
+      }
+      throw e;
     }
-    const blob = await res.json();
-    log(`Blob uploaded: ${f.path}`, 'success');
-    tick('blob');
-    return { path: f.path, mode: '100644', type: 'blob', sha: blob.sha };
-  });
-
-  // blob 上传并发 4 (blob API 允许,且互不影响)
-  const blobEntries = await runWithConcurrency(blobTasks, 4);
-
-  // 4. JSON 文件也作为 blob 一起加入 tree
-  const jsonBlobTasks = jsonUpdates.map(u => async () => {
-    const jsonStr = JSON.stringify(u.data, null, 2);
-    const utf8Bytes = new TextEncoder().encode(jsonStr);
-    const base64 = await uint8ToBase64(utf8Bytes);
-    const res = await ghFetch(`/repos/${OWNER}/${REPO}/git/blobs`, {
-      method: 'POST',
-      body: JSON.stringify({ content: base64, encoding: 'base64' })
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(`JSON blob upload failed for ${u.path}: ${res.status} ${err.message || ''}`);
-    }
-    const blob = await res.json();
-    log(`JSON blob uploaded: ${u.path}`, 'success');
-    tick('json');
-    return { path: u.path, mode: '100644', type: 'blob', sha: blob.sha };
-  });
-  const jsonEntries = await runWithConcurrency(jsonBlobTasks, 4);
-
-  // 5. 创建新 tree (基于 base tree + 新/改的文件)
-  const treeRes = await ghFetch(`/repos/${OWNER}/${REPO}/git/trees`, {
-    method: 'POST',
-    body: JSON.stringify({
-      base_tree: baseTreeSha,
-      tree: [...blobEntries, ...jsonEntries]
-    })
-  });
-  if (!treeRes.ok) {
-    const err = await treeRes.json().catch(() => ({}));
-    throw new Error(`Tree creation failed: ${treeRes.status} ${err.message || ''}`);
   }
-  const treeData = await treeRes.json();
-  tick('tree');
 
-  // 6. 创建新 commit
-  const newCommitRes = await ghFetch(`/repos/${OWNER}/${REPO}/git/commits`, {
-    method: 'POST',
-    body: JSON.stringify({
-      message: message,
-      tree: treeData.sha,
-      parents: [currentCommitSha]
-    })
-  });
-  if (!newCommitRes.ok) {
-    const err = await newCommitRes.json().catch(() => ({}));
-    throw new Error(`Commit creation failed: ${newCommitRes.status} ${err.message || ''}`);
-  }
-  const newCommit = await newCommitRes.json();
-  tick('commit');
-
-  // 7. 更新 ref 指向新 commit
-  const patchRes = await ghFetch(`/repos/${OWNER}/${REPO}/git/refs/heads/${branchName}`, {
-    method: 'PATCH',
-    body: JSON.stringify({ sha: newCommit.sha })
-  });
-  if (!patchRes.ok) {
-    const err = await patchRes.json().catch(() => ({}));
-    throw new Error(`Ref update failed: ${patchRes.status} ${err.message || ''}`);
-  }
-  tick('ref update');
-
-  log(`Batch commit done: ${newCommit.sha.substring(0, 7)}`, 'success');
-  return newCommit.sha;
+  throw lastError || new Error('Batch commit failed');
 }
 
 
