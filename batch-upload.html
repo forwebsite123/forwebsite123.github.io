@@ -1231,30 +1231,13 @@ function sleep(ms) {
 }
 
 // ==================== INIT ====================
-function safeStorageGet(key) {
-  try {
-    return window.localStorage ? localStorage.getItem(key) : null;
-  } catch (e) {
-    console.warn('localStorage unavailable:', e && e.message ? e.message : e);
-    return null;
-  }
-}
-
-function safeStorageSet(key, value) {
-  try {
-    if (window.localStorage) localStorage.setItem(key, value);
-  } catch (e) {
-    console.warn('localStorage unavailable:', e && e.message ? e.message : e);
-  }
-}
-
 window.addEventListener('DOMContentLoaded', () => {
-  const saved = safeStorageGet('gh_token');
+  const saved = localStorage.getItem('gh_token');
   if (saved) {
     document.getElementById('tokenInput').value = saved;
   }
-  const savedOwner = safeStorageGet('gh_owner');
-  const savedRepo = safeStorageGet('gh_repo');
+  const savedOwner = localStorage.getItem('gh_owner');
+  const savedRepo = localStorage.getItem('gh_repo');
   if (savedOwner) document.getElementById('repoOwner').value = savedOwner;
   if (savedRepo) document.getElementById('repoName').value = savedRepo;
 
@@ -1292,9 +1275,9 @@ async function connectGitHub() {
     if (!res.ok) throw new Error('Cannot access repo');
     
     if (document.getElementById('rememberToken').checked) {
-      safeStorageSet('gh_token', TOKEN);
-      safeStorageSet('gh_owner', OWNER);
-      safeStorageSet('gh_repo', REPO);
+      localStorage.setItem('gh_token', TOKEN);
+      localStorage.setItem('gh_owner', OWNER);
+      localStorage.setItem('gh_repo', REPO);
     }
     
     showStatus('connectStatus', 'Connected to ' + OWNER + '/' + REPO, 'success');
@@ -1411,7 +1394,7 @@ function getSelectedAlbum() {
   } else if (sel.value) {
     return {
       page: sel.value,
-      label: sel.selectedOptions[0]?.dataset.label || sel.selectedOptions[0]?.text || ''
+      label: ((sel.selectedOptions && sel.selectedOptions[0] && sel.selectedOptions[0].dataset && sel.selectedOptions[0].dataset.label) || (sel.selectedOptions && sel.selectedOptions[0] && sel.selectedOptions[0].text) || '')
     };
   }
   return null;
@@ -2437,7 +2420,8 @@ async function saveEditEntry(idx) {
     if (entryAppendFiles.size > 0) {
       const newMap = new Map();
       for (const [oldIdx, queue] of entryAppendFiles.entries()) {
-        const ref = oldEntryRefs.find(r => r.oldIdx === oldIdx)?.ref;
+        const matchRef = oldEntryRefs.find(r => r.oldIdx === oldIdx);
+        const ref = matchRef ? matchRef.ref : null;
         if (!ref) continue;
         const newIdx = currentActivityJson.entries.indexOf(ref);
         if (newIdx >= 0) newMap.set(newIdx, queue);
@@ -2448,7 +2432,8 @@ async function saveEditEntry(idx) {
     if (entryRecordAppendFiles.size > 0) {
       const newMap = new Map();
       for (const [oldIdx, queue] of entryRecordAppendFiles.entries()) {
-        const ref = oldEntryRefs.find(r => r.oldIdx === oldIdx)?.ref;
+        const matchRef = oldEntryRefs.find(r => r.oldIdx === oldIdx);
+        const ref = matchRef ? matchRef.ref : null;
         if (!ref) continue;
         const newIdx = currentActivityJson.entries.indexOf(ref);
         if (newIdx >= 0) newMap.set(newIdx, queue);
@@ -2765,7 +2750,8 @@ async function submitActivityEntry() {
         if (map.size === 0) return;
         const newMap = new Map();
         for (const [oldIdx, queue] of map.entries()) {
-          const ref = oldEntryRefs.find(r => r.oldIdx === oldIdx)?.ref;
+          const matchRef = oldEntryRefs.find(r => r.oldIdx === oldIdx);
+        const ref = matchRef ? matchRef.ref : null;
           if (!ref) continue;
           const newIdx = currentActivityJson.entries.indexOf(ref);
           if (newIdx >= 0) newMap.set(newIdx, queue);
@@ -3419,7 +3405,8 @@ async function deleteGitHubFile(path) {
 function generateFilename(originalName, prefix = '') {
   const timestamp = Date.now();
   const random = Math.random().toString(36).substring(2, 6);
-  const ext = originalName.split('.').pop()?.toLowerCase() || 'jpg';
+  const extPart = originalName.split('.').pop();
+  const ext = extPart ? extPart.toLowerCase() : 'jpg';
   const safeName = originalName.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '').substring(0, 20);
   return `${prefix ? prefix + '_' : ''}${safeName}_${timestamp}_${random}.${ext === 'jpeg' ? 'jpg' : ext}`;
 }
@@ -3577,7 +3564,7 @@ function escapeAttr(value) {
 // 用法: <button onclick="fn(${jsStringForAttr(tag)})">
 // 属性必须用双引号包裹
 function jsStringForAttr(value) {
-  return escapeAttr(JSON.stringify(String(value ?? '')));
+  return escapeAttr(JSON.stringify(String(value == null ? '' : value)));
 }
 
 function excerpt(value, max = 90) {
