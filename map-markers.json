@@ -7,6 +7,60 @@
       "page": "guangzhou.html"
     },
     {
+      "lat": 39.9042,
+      "lng": 116.4074,
+      "title": "北京",
+      "page": "beijing.html"
+    },
+    {
+      "lat": 30.2741,
+      "lng": 120.1551,
+      "title": "杭州",
+      "page": "hangzhou.html"
+    },
+    {
+      "lat": 30.0301,
+      "lng": 120.5800,
+      "title": "绍兴",
+      "page": "shaoxing.html"
+    },
+    {
+      "lat": 31.2989,
+      "lng": 120.5853,
+      "title": "苏州",
+      "page": "suzhou.html"
+    },
+    {
+      "lat": 26.8721,
+      "lng": 100.2299,
+      "title": "丽江",
+      "page": "lijiang.html"
+    },
+    {
+      "lat": 25.6065,
+      "lng": 100.2679,
+      "title": "大理",
+      "page": "dali.html"
+    },
+    {
+      "lat": 29.5630,
+      "lng": 106.5516,
+      "title": "重庆",
+      "page": "chongqing.html"
+    },
+    {
+      "lat": 23.6978,
+      "lng": 120.9605,
+      "title": "台湾",
+      "page": "taiwan.html"
+    },
+    {
+      "lat": 47.8429,
+      "lng": 88.1369,
+      "title": "阿勒泰",
+      "page": "altay.html"
+    },
+    {
       "lat": 37.5665,
       "lng": 126.978,
       "title": "Korea",
