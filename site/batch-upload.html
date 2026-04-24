@@ -1189,6 +1189,13 @@ function repoPath(path) {
   return `${SITE_ROOT}/${clean}`;
 }
 
+function assetUrl(path) {
+  const clean = String(path || '');
+  if (!clean) return '';
+  if (/^https?:\/\//i.test(clean) || clean.startsWith('data:') || clean.startsWith('blob:')) return clean;
+  return clean.startsWith('/') ? clean : '/' + clean;
+}
+
 // 防止重复点击导致同一写操作被触发两次
 const activeOperationKeys = new Set();
 
@@ -1394,7 +1401,7 @@ function getSelectedAlbum() {
   } else if (sel.value) {
     return {
       page: sel.value,
-      label: sel.selectedOptions[0]?.dataset.label || sel.selectedOptions[0]?.text || ''
+      label: ((sel.selectedOptions && sel.selectedOptions[0] && sel.selectedOptions[0].dataset && sel.selectedOptions[0].dataset.label) || (sel.selectedOptions && sel.selectedOptions[0] && sel.selectedOptions[0].text) || '')
     };
   }
   return null;
@@ -1480,7 +1487,7 @@ function renderAlbumPhotos(photos, page) {
   ` + filtered.map(({ photo: p, originalIdx }, displayIdx) => {
     const detailId = `album-detail-${originalIdx}`;
     const displayTitle = p.title || '(untitled)';
-    const previewUrl = `https://${OWNER}.github.io/${p.image}`;
+    const previewUrl = assetUrl(p.image);
     const tagCount = (p.tags || []).length;
     const tagsJoined = (p.tags || []).join(', ');
     // 用于 JS 参数: JSON.stringify + HTML 转义, 放进双引号属性里
@@ -1906,7 +1913,7 @@ function renderActivityEntries() {
             <div class="entry-photos" id="entry-record-photos-${idx}">
               ${records.map((ri, ri_idx) => `
                 <div class="thumb">
-                  <img src="https://${OWNER}.github.io${ri}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%2250%25%22 x=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22>?</text></svg>'">
+                  <img src="${escapeAttr(assetUrl(ri))}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%2250%25%22 x=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22>?</text></svg>'">
                   <button class="del-photo" onclick="deleteEntryRecordImage(${idx}, ${ri_idx})" title="Delete this record image">×</button>
                 </div>
               `).join('')}
@@ -1944,7 +1951,7 @@ function renderActivityEntries() {
           <div class="entry-photos sortable-photos" id="entry-photos-${idx}">
             ${photos.map((p, pi) => `
               <div class="thumb sortable-item" data-photo-index="${pi}">
-                <img src="https://${OWNER}.github.io${p}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%2250%25%22 x=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22>?</text></svg>'">
+                <img src="${escapeAttr(assetUrl(p))}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%2250%25%22 x=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22>?</text></svg>'">
                 <button class="del-photo" onclick="deleteEntryPhoto(${idx}, ${pi})" onpointerdown="event.stopPropagation()" title="Delete this photo">×</button>
               </div>
             `).join('')}
@@ -2420,7 +2427,8 @@ async function saveEditEntry(idx) {
     if (entryAppendFiles.size > 0) {
       const newMap = new Map();
       for (const [oldIdx, queue] of entryAppendFiles.entries()) {
-        const ref = oldEntryRefs.find(r => r.oldIdx === oldIdx)?.ref;
+        const matchRef = oldEntryRefs.find(r => r.oldIdx === oldIdx);
+        const ref = matchRef ? matchRef.ref : null;
         if (!ref) continue;
         const newIdx = currentActivityJson.entries.indexOf(ref);
         if (newIdx >= 0) newMap.set(newIdx, queue);
@@ -2431,7 +2439,8 @@ async function saveEditEntry(idx) {
     if (entryRecordAppendFiles.size > 0) {
       const newMap = new Map();
       for (const [oldIdx, queue] of entryRecordAppendFiles.entries()) {
-        const ref = oldEntryRefs.find(r => r.oldIdx === oldIdx)?.ref;
+        const matchRef = oldEntryRefs.find(r => r.oldIdx === oldIdx);
+        const ref = matchRef ? matchRef.ref : null;
         if (!ref) continue;
         const newIdx = currentActivityJson.entries.indexOf(ref);
         if (newIdx >= 0) newMap.set(newIdx, queue);
@@ -2748,7 +2757,8 @@ async function submitActivityEntry() {
         if (map.size === 0) return;
         const newMap = new Map();
         for (const [oldIdx, queue] of map.entries()) {
-          const ref = oldEntryRefs.find(r => r.oldIdx === oldIdx)?.ref;
+          const matchRef = oldEntryRefs.find(r => r.oldIdx === oldIdx);
+        const ref = matchRef ? matchRef.ref : null;
           if (!ref) continue;
           const newIdx = currentActivityJson.entries.indexOf(ref);
           if (newIdx >= 0) newMap.set(newIdx, queue);
@@ -3402,7 +3412,8 @@ async function deleteGitHubFile(path) {
 function generateFilename(originalName, prefix = '') {
   const timestamp = Date.now();
   const random = Math.random().toString(36).substring(2, 6);
-  const ext = originalName.split('.').pop()?.toLowerCase() || 'jpg';
+  const extPart = originalName.split('.').pop();
+  const ext = extPart ? extPart.toLowerCase() : 'jpg';
   const safeName = originalName.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '').substring(0, 20);
   return `${prefix ? prefix + '_' : ''}${safeName}_${timestamp}_${random}.${ext === 'jpeg' ? 'jpg' : ext}`;
 }
@@ -3560,7 +3571,7 @@ function escapeAttr(value) {
 // 用法: <button onclick="fn(${jsStringForAttr(tag)})">
 // 属性必须用双引号包裹
 function jsStringForAttr(value) {
-  return escapeAttr(JSON.stringify(String(value ?? '')));
+  return escapeAttr(JSON.stringify(String(value == null ? '' : value)));
 }
 
 function excerpt(value, max = 90) {
