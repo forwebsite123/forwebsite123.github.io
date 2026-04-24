@@ -499,8 +499,8 @@
         <div class="source-label">GitHub JSON source</div>
         <div class="source-url" id="source-url-display"></div>
         <div class="source-hint">
-          这里需要的是 raw GitHub JSON 链接。你也可以通过
-          <code>?src=你的raw-json地址</code>
+          默认读取站内 /dopamine-ledger.json。你也可以通过
+          <code>?src=你的json地址</code>
           临时覆盖。
         </div>
       </div>
@@ -542,7 +542,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script>
 
-    const RAW_JSON_URL = "https://raw.githubusercontent.com/forwebsite123/forwebsite123.github.io/main/dopamine-ledger.json";
+    const RAW_JSON_URL = "/dopamine-ledger.json";
 
     const LABELS = {
       Running:'跑步', Cycling:'骑行', Swimming:'游泳', Walking:'步行',
