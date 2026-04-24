@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🌿%3C/text%3E%3C/svg%3E">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Found Fragments</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #fcfbf8;
+      color: #6e4a4a;
+      font-family: "Times New Roman", Georgia, serif;
+    }
+
+    .page {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 34px 28px 90px;
+      position: relative;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 26px;
+    }
+
+    .top-left {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .site-note {
+      font-size: 14px;
+      font-style: italic;
+      color: rgba(122, 87, 87, 0.7);
+      letter-spacing: 0.3px;
+    }
+
+    .back {
+      text-decoration: none;
+      color: rgba(122, 87, 87, 0.78);
+      font-size: 15px;
+    }
+
+    .search-btn {
+      text-decoration: none;
+      color: #8a6666;
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 70px 1fr;
+      gap: 26px;
+      align-items: start;
+    }
+
+    .timeline-side {
+      position: sticky;
+      top: 28px;
+      min-height: 760px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .timeline-line {
+      position: relative;
+      width: 1px;
+      background: rgba(122, 87, 87, 0.36);
+      min-height: 760px;
+    }
+
+    .timeline-arrow {
+      position: absolute;
+      top: -8px;
+      left: -6px;
+      font-size: 26px;
+      color: rgba(122, 87, 87, 0.75);
+      line-height: 1;
+    }
+
+    .timeline-text {
+      position: absolute;
+      top: 80px;
+      left: -22px;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      font-size: 16px;
+      letter-spacing: 2px;
+      color: rgba(122, 87, 87, 0.8);
+    }
+
+    .timeline-note {
+      position: absolute;
+      top: 210px;
+      left: -32px;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      font-size: 12px;
+      line-height: 1.6;
+      color: rgba(122, 87, 87, 0.62);
+    }
+
+    .main {
+      min-width: 0;
+    }
+
+    .intro {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 26px;
+      color: rgba(122, 87, 87, 0.78);
+      font-size: 15px;
+      line-height: 1.9;
+    }
+
+    .intro-left {
+      max-width: 760px;
+    }
+
+    .intro-title {
+      font-size: 34px;
+      color: #8b5e5e;
+      font-style: italic;
+      margin-bottom: 8px;
+    }
+
+    .intro-right {
+      max-width: 220px;
+      font-size: 14px;
+      line-height: 1.9;
+      text-align: left;
+    }
+
+    .entries {
+      display: flex;
+      flex-direction: column;
+      gap: 34px;
+    }
+
+    .entry {
+      display: grid;
+      grid-template-columns: 360px 1fr 180px;
+      gap: 34px;
+      align-items: start;
+    }
+
+    .entry-left {
+      min-width: 0;
+    }
+
+    .date-line {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 18px;
+      color: #946565;
+    }
+
+    .date-line::before,
+    .date-line::after {
+      content: "";
+      display: block;
+      height: 1px;
+      background: rgba(122, 87, 87, 0.46);
+      flex: 1;
+    }
+
+    .date-text {
+      font-size: 30px;
+      line-height: 1;
+      white-space: nowrap;
+      letter-spacing: 1px;
+    }
+
+    .thumb-row {
+      display: flex;
+      gap: 14px;
+      flex-wrap: nowrap;
+    }
+
+    .thumb-row img {
+      width: 104px;
+      height: 126px;
+      object-fit: cover;
+      display: block;
+      background: #fff;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .thumb-row img:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(122, 87, 87, 0.12);
+    }
+    .video-thumb {
+      width: 104px;
+      height: 126px;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .video-thumb iframe {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      border: none;
+    }
+
+    .entry-middle {
+      min-height: 126px;
+      padding-top: 6px;
+    }
+
+    .entry-text {
+      max-width: 520px;
+      font-size: 18px;
+      line-height: 1.95;
+      color: rgba(122, 87, 87, 0.78);
+    }
+
+    .entry-right {
+      padding-top: 10px;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 12px;
+      align-items: flex-start;
+    }
+
+    .tag {
+      text-decoration: none;
+      font-size: 18px;
+      font-style: italic;
+      color: #9a6d6d;
+      transition: opacity 0.2s ease;
+    }
+
+    .tag:hover {
+      opacity: 0.65;
+    }
+
+    .footer-note {
+      text-align: center;
+      margin-top: 90px;
+      font-size: 14px;
+      font-style: italic;
+      letter-spacing: 1px;
+      color: rgba(122, 87, 87, 0.7);
+    }
+
+    #lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.88);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      padding: 24px;
+    }
+
+    #lightbox img {
+      max-width: 92vw;
+      max-height: 88vh;
+      object-fit: contain;
+      background: white;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+
+    .close-tip {
+      position: absolute;
+      top: 24px;
+      right: 28px;
+      color: rgba(255,255,255,0.84);
+      font-size: 14px;
+      letter-spacing: 1px;
+    }
+
+    @media (max-width: 1100px) {
+      .entry {
+        grid-template-columns: 1fr;
+        gap: 18px;
+      }
+
+      .entry-middle,
+      .entry-right {
+        padding-top: 0;
+      }
+
+      .intro {
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .timeline-side {
+        display: none;
+      }
+
+      .page {
+        padding: 24px 16px 60px;
+      }
+
+      .intro-title {
+        font-size: 28px;
+      }
+
+      .date-text {
+        font-size: 24px;
+      }
+
+      .thumb-row {
+        gap: 10px;
+      }
+
+      .thumb-row img {
+        width: calc(33.333% - 7px);
+        min-width: 88px;
+        height: 120px;
+      }
+
+      .entry-text {
+        font-size: 16px;
+      }
+
+      .tag {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div class="top-left">
+        <div class="site-note">A place to leave traces.</div>
+        <a href="home.html" class="back">← Back</a>
+      </div>
+     <a href="#" class="search-btn" aria-label="Search" id="search-icon">⌕</a>
+    </div>
+
+    <div class="main">
+      <div class="intro">
+        <div class="intro-left">
+          <div class="intro-title">Found Fragments</div>
+          落入凡间的碎片，被我藏在了这里，这就是我眼中的‘奇奇怪怪’与‘可可爱爱’。
+        </div>
+      </div>
+
+      <div class="entries" id="entries"></div>
+
+      <div class="footer-note">
+      “随便看，不用买票，但记得带走好心情。”
+      </div>
+    </div>
+  </div>
+
+  <div id="lightbox" onclick="closeLightbox()">
+    <div class="close-tip">tap anywhere to close</div>
+    <img id="lightbox-img" src="" alt="large preview">
+  </div>
+   <script>
+  async function loadEntries() {
+    const res = await fetch('/found-fragments.json');
+    const data = await res.json();
+    data.entries.sort((a, b) => { const da = (a.date||'').replace(/\./g,''); const db = (b.date||'').replace(/\./g,''); return db.localeCompare(da); });
+    const container = document.getElementById('entries');
+    data.entries.forEach(e => {
+      const photosHtml = (e.photos || []).map(p => `<img src="${p}" alt="" class="zoomable">`).join('');
+      const videosHtml = (e.videos || []).map(bvid => `<div class="video-thumb"><iframe src="//player.bilibili.com/player.html?bvid=${bvid}&autoplay=0" allowfullscreen></iframe></div>`).join('');
+      const tagsHtml = (e.tags || []).map(t => `<a href="tag.html?tag=${t}&page=found-fragments.html" class="tag">${t}</a>`).join('');
+      container.innerHTML += `
+        <div class="entry">
+          <div class="entry-left">
+            <div class="date-line"><div class="date-text">${e.date}</div></div>
+            <div class="thumb-row">${photosHtml}${videosHtml}</div>
+          </div>
+          <div class="entry-middle">
+            <div class="entry-text">${e.text || ''}</div>
+          </div>
+          <div class="entry-right">
+            <div class="tags">${tagsHtml}</div>
+          </div>
+        </div>`;
+    });
+    const lb = document.getElementById('lightbox');
+    const lbImg = document.getElementById('lightbox-img');
+    document.querySelectorAll('.zoomable').forEach(img => {
+      img.addEventListener('click', function(ev) { ev.stopPropagation(); lb.style.display='flex'; lbImg.src=this.src; lbImg.alt=this.alt||''; });
+    });
+  }
+  loadEntries();
+  function closeLightbox() { document.getElementById('lightbox').style.display='none'; document.getElementById('lightbox-img').src=''; }
+  document.addEventListener('keydown', e => { if(e.key==='Escape') closeLightbox(); });
+  </script>
+ <script data-goatcounter="https://kiara-mytrace.goatcounter.com/count"
+        async src="https://gc.zgo.at/count.js"></script>
+  <script src="/search.js"></script>
+</body>
+</html>

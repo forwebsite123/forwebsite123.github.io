@@ -1,0 +1,178 @@
+{
+  "markers": [
+    {
+      "lat": 23.1291,
+      "lng": 113.2644,
+      "title": "广州",
+      "page": "guangzhou.html"
+    },
+    {
+      "lat": 39.9042,
+      "lng": 116.4074,
+      "title": "北京",
+      "page": "beijing.html"
+    },
+    {
+      "lat": 30.2741,
+      "lng": 120.1551,
+      "title": "杭州",
+      "page": "hangzhou.html"
+    },
+    {
+      "lat": 30.0301,
+      "lng": 120.5800,
+      "title": "绍兴",
+      "page": "shaoxing.html"
+    },
+    {
+      "lat": 31.2989,
+      "lng": 120.5853,
+      "title": "苏州",
+      "page": "suzhou.html"
+    },
+    {
+      "lat": 26.8721,
+      "lng": 100.2299,
+      "title": "丽江",
+      "page": "lijiang.html"
+    },
+    {
+      "lat": 25.6065,
+      "lng": 100.2679,
+      "title": "大理",
+      "page": "dali.html"
+    },
+    {
+      "lat": 29.5630,
+      "lng": 106.5516,
+      "title": "重庆",
+      "page": "chongqing.html"
+    },
+    {
+      "lat": 23.6978,
+      "lng": 120.9605,
+      "title": "台湾",
+      "page": "taiwan.html"
+    },
+    {
+      "lat": 47.8429,
+      "lng": 88.1369,
+      "title": "阿勒泰",
+      "page": "altay.html"
+    },
+    {
+      "lat": 37.5665,
+      "lng": 126.978,
+      "title": "Korea",
+      "page": "korea.html"
+    },
+    {
+      "lat": 35.6762,
+      "lng": 139.6503,
+      "title": "Japan",
+      "page": "japan.html"
+    },
+    {
+      "lat": 13.7563,
+      "lng": 100.5018,
+      "title": "Thailand",
+      "page": "thailand.html"
+    },
+    {
+      "lat": 1.3521,
+      "lng": 103.8198,
+      "title": "Singapore",
+      "page": "singapore.html"
+    },
+    {
+      "lat": 30.0444,
+      "lng": 31.2357,
+      "title": "Egypt",
+      "page": "egypt.html"
+    },
+    {
+      "lat": -6.369,
+      "lng": 34.8888,
+      "title": "Tanzania",
+      "page": "tanzania.html"
+    },
+    {
+      "lat": -25.2744,
+      "lng": 133.7751,
+      "title": "Australia",
+      "page": "australia.html"
+    },
+    {
+      "lat": -14.235,
+      "lng": -51.9253,
+      "title": "Brazil",
+      "page": "brazil.html"
+    },
+    {
+      "lat": 56.1304,
+      "lng": -106.3468,
+      "title": "Canada",
+      "page": "canada.html"
+    },
+    {
+      "lat": 55.3781,
+      "lng": -3.436,
+      "title": "UK",
+      "page": "UK.html"
+    },
+    {
+      "lat": 48.8566,
+      "lng": 2.3522,
+      "title": "France",
+      "page": "france.html"
+    },
+    {
+      "lat": 38.9072,
+      "lng": -77.0369,
+      "title": "USA",
+      "page": "usa.html"
+    },
+    {
+      "lat": 41.8719,
+      "lng": 12.5674,
+      "title": "Italy",
+      "page": "italy.html"
+    },
+    {
+      "lat": 41.9029,
+      "lng": 12.4534,
+      "title": "Vatican",
+      "page": "vatican.html"
+    },
+    {
+      "lat": 46.8182,
+      "lng": 8.2275,
+      "title": "Switzerland",
+      "page": "switzerland.html"
+    },
+    {
+      "lat": 55.6761,
+      "lng": 12.5683,
+      "title": "Denmark",
+      "page": "denmark.html"
+    },
+    {
+      "lat": 48.2082,
+      "lng": 16.3738,
+      "title": "Austria",
+      "page": "austria.html"
+    },
+    {
+      "lat": 40.4168,
+      "lng": -3.7038,
+      "title": "Spain",
+      "page": "spain.html"
+    },
+    {
+      "lat": 44.8176,
+      "lng": 20.4569,
+      "title": "Serbia",
+      "page": "serbia.html"
+    }
+  ]
+}
