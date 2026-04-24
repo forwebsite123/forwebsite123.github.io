@@ -1178,6 +1178,17 @@ let currentPhotosJson = null;
 let currentActivityJson = null;
 let currentActivityType = '';
 
+// 线上站点现在从 repo 的 site/ 目录部署。
+// 上传工具继续保留在根目录，但所有真正写入/读取的网站数据都应落到 site/ 下。
+const SITE_ROOT = 'site';
+
+function repoPath(path) {
+  const clean = String(path || '').replace(/^\/+/, '');
+  if (!clean) return SITE_ROOT;
+  if (clean === SITE_ROOT || clean.startsWith(SITE_ROOT + '/')) return clean;
+  return `${SITE_ROOT}/${clean}`;
+}
+
 // 防止重复点击导致同一写操作被触发两次
 const activeOperationKeys = new Set();
 
@@ -3130,7 +3141,7 @@ async function batchCommit({ files = [], jsonUpdates = [], message = 'Batch uplo
       const blob = await res.json();
       log(`Blob uploaded: ${f.path}`, 'success');
       tick('blob');
-      return { path: f.path, mode: '100644', type: 'blob', sha: blob.sha };
+      return { path: repoPath(f.path), mode: '100644', type: 'blob', sha: blob.sha };
     });
 
     // blob 上传并发 4 (blob API 允许,且互不影响)
@@ -3154,7 +3165,7 @@ async function batchCommit({ files = [], jsonUpdates = [], message = 'Batch uplo
       const blob = await res.json();
       log(`JSON blob uploaded: ${u.path}`, 'success');
       tick('json');
-      return { path: u.path, mode: '100644', type: 'blob', sha: blob.sha };
+      return { path: repoPath(u.path), mode: '100644', type: 'blob', sha: blob.sha };
     });
     const jsonEntries = await runWithConcurrency(jsonBlobTasks, 4);
 
@@ -3203,7 +3214,7 @@ async function batchCommit({ files = [], jsonUpdates = [], message = 'Batch uplo
     // 8. 同步被更新 JSON 文件的 contents SHA，供后续 updateJsonFile/delete 流程继续使用
     for (const u of jsonUpdates) {
       try {
-        const latestRes = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${u.path}`);
+        const latestRes = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${repoPath(u.path)}`);
         if (latestRes.ok && u.data && typeof u.data === 'object') {
           const latest = await latestRes.json();
           u.data._sha = latest.sha;
@@ -3239,7 +3250,7 @@ async function batchCommit({ files = [], jsonUpdates = [], message = 'Batch uplo
 
 
 async function fetchJsonFile(filename) {
-  const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${filename}`);
+  const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${repoPath(filename)}`);
   if (!res.ok) {
     if (res.status === 404) return { items: [], entries: [] };
     throw new Error(`Failed to fetch ${filename}: ${res.status}`);
@@ -3260,7 +3271,7 @@ async function updateJsonFile(filename, data) {
   // 某些流程(batchCommit 成功后把 draft 赋回本地状态)会导致 _sha 丢失；
   // 这里自动补查一次，避免 422 "sha wasn't supplied"
   if (!sha) {
-    const latestRes = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${filename}`);
+    const latestRes = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${repoPath(filename)}`);
     if (!latestRes.ok) {
       throw new Error(`Failed to fetch latest SHA for ${filename}: ${latestRes.status}`);
     }
@@ -3328,7 +3339,7 @@ async function uploadFileToGitHub(path, uint8Array, retries = 2) {
       };
       if (sha) body.sha = sha;
 
-      const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${path}`, {
+      const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${repoPath(path)}`, {
         method: 'PUT',
         body: JSON.stringify(body)
       });
@@ -3342,7 +3353,7 @@ async function uploadFileToGitHub(path, uint8Array, retries = 2) {
 
       // 422/409: 文件已存在,需要 sha。补查一次然后重试。
       if ((res.status === 422 || res.status === 409) && !sha) {
-        const check = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${path}`);
+        const check = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${repoPath(path)}`);
         if (check.ok) {
           const existing = await check.json();
           sha = existing.sha;
@@ -3369,11 +3380,11 @@ async function uploadFileToGitHub(path, uint8Array, retries = 2) {
 
 async function deleteGitHubFile(path) {
   // Get current SHA
-  const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${path}`);
+  const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${repoPath(path)}`);
   if (!res.ok) throw new Error(`File not found: ${path}`);
   const data = await res.json();
 
-  const delRes = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${path}`, {
+  const delRes = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${repoPath(path)}`, {
     method: 'DELETE',
     body: JSON.stringify({
       message: `Delete ${path}`,
