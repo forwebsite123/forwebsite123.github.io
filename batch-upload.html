@@ -1231,13 +1231,30 @@ function sleep(ms) {
 }
 
 // ==================== INIT ====================
+function safeStorageGet(key) {
+  try {
+    return window.localStorage ? localStorage.getItem(key) : null;
+  } catch (e) {
+    console.warn('localStorage unavailable:', e && e.message ? e.message : e);
+    return null;
+  }
+}
+
+function safeStorageSet(key, value) {
+  try {
+    if (window.localStorage) localStorage.setItem(key, value);
+  } catch (e) {
+    console.warn('localStorage unavailable:', e && e.message ? e.message : e);
+  }
+}
+
 window.addEventListener('DOMContentLoaded', () => {
-  const saved = localStorage.getItem('gh_token');
+  const saved = safeStorageGet('gh_token');
   if (saved) {
     document.getElementById('tokenInput').value = saved;
   }
-  const savedOwner = localStorage.getItem('gh_owner');
-  const savedRepo = localStorage.getItem('gh_repo');
+  const savedOwner = safeStorageGet('gh_owner');
+  const savedRepo = safeStorageGet('gh_repo');
   if (savedOwner) document.getElementById('repoOwner').value = savedOwner;
   if (savedRepo) document.getElementById('repoName').value = savedRepo;
 
@@ -1275,9 +1292,9 @@ async function connectGitHub() {
     if (!res.ok) throw new Error('Cannot access repo');
     
     if (document.getElementById('rememberToken').checked) {
-      localStorage.setItem('gh_token', TOKEN);
-      localStorage.setItem('gh_owner', OWNER);
-      localStorage.setItem('gh_repo', REPO);
+      safeStorageSet('gh_token', TOKEN);
+      safeStorageSet('gh_owner', OWNER);
+      safeStorageSet('gh_repo', REPO);
     }
     
     showStatus('connectStatus', 'Connected to ' + OWNER + '/' + REPO, 'success');
