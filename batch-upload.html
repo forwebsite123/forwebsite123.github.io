@@ -1456,7 +1456,7 @@ function renderAlbumPhotos(photos, page) {
 
   const isFiltered = currentAlbumTagFilter !== null;
   const hintText = isFiltered
-    ? `筛选中: ${filtered.length} 张 · 清除筛选后才能拖动排序`
+    ? `筛选中: ${filtered.length} 张 · 拖动 ⋮⋮ 只在筛选结果之间换位, 其他照片位置不变`
     : `拖动 ⋮⋮ 可调整排序 · 改变顺序会自动保存`;
 
   list.innerHTML = `
@@ -1476,9 +1476,9 @@ function renderAlbumPhotos(photos, page) {
     const imageJsArg = jsStringForAttr(p.image);
     const pageJsArg = jsStringForAttr(page);
     return `
-    <div class="collapsed-card ${isFiltered ? '' : 'sortable-item'}" data-index="${originalIdx}" data-image="${escapeAttr(p.image)}">
+    <div class="collapsed-card sortable-item" data-index="${originalIdx}" data-image="${escapeAttr(p.image)}">
       <div class="collapsed-summary">
-        ${isFiltered ? '' : '<div class="drag-handle" title="拖动排序"></div>'}
+        <div class="drag-handle" title="拖动排序"></div>
         <div class="collapsed-meta">
           <div class="collapsed-title">${escapeAttr(displayTitle)}</div>
           <div class="collapsed-sub">${escapeAttr(p.image)}</div>
@@ -1512,15 +1512,14 @@ function renderAlbumPhotos(photos, page) {
     </div>`;
   }).join('');
 
-  // 仅在未筛选时启用拖拽排序
-  if (!isFiltered) {
-    makeSortable(list, {
-      itemSelector: '.sortable-item',
-      handleSelector: '.drag-handle',
-      horizontal: false,
-      onReorder: (fromIdx, toIdx) => reorderAlbumPhotos(page, fromIdx, toIdx)
-    });
-  }
+  // 启用拖拽排序 (筛选时也允许, 在筛选槽位内部重排)
+  const filteredOriginalIdxs = filtered.map(f => f.originalIdx);
+  makeSortable(list, {
+    itemSelector: '.sortable-item',
+    handleSelector: '.drag-handle',
+    horizontal: false,
+    onReorder: (fromIdx, toIdx) => reorderAlbumPhotos(page, fromIdx, toIdx, filteredOriginalIdxs)
+  });
 }
 
 // 切换 album tag 筛选
@@ -1530,31 +1529,48 @@ function setAlbumTagFilter(tag, page) {
   renderAlbumPhotos(pagePhotos, page);
 }
 
-// 相册内照片重排: 在整个 photos.json 里找到这两项,交换位置,保存
-async function reorderAlbumPhotos(page, fromIdx, toIdx) {
-  if (!currentPhotosJson) return;
+// 相册内照片重排:
+// - fromIdx / toIdx 是 DOM (筛选后) 的位置索引
+// - filteredOriginalIdxs: 筛选结果各项的 album-scoped 索引 (即 originalIdx)
+// 语义: 筛选中的照片在它们原本占用的 "album 槽位" 内部重排,
+//       未被筛选的照片位置完全不变
+async function reorderAlbumPhotos(page, fromIdx, toIdx, filteredOriginalIdxs) {
+  if (!currentPhotosJson || !filteredOriginalIdxs) return;
 
-  // 深拷贝一份来操作,不直接修改 currentPhotosJson
-  // 这样 commit 失败时本地状态不会错乱
+  // 深拷贝一份来操作,commit 失败时本地状态不会错乱
   const draft = JSON.parse(JSON.stringify(currentPhotosJson));
   delete draft._sha;
-
-  // 找当前相册在全局 items 里的索引列表
   const draftItems = draft.items;
-  const albumIndices = [];
+
+  // 当前相册在全局 items 里的所有位置 (升序)
+  const globalAlbumIndices = [];
   draftItems.forEach((item, i) => {
-    if (item.page === page) albumIndices.push(i);
+    if (item.page === page) globalAlbumIndices.push(i);
   });
 
-  const globalFrom = albumIndices[fromIdx];
-  const globalTo = albumIndices[toIdx];
-  if (globalFrom === undefined || globalTo === undefined) return;
+  // 相册快照: albumPhotos[albumIdx] = 相册第 albumIdx 张照片
+  const albumPhotos = globalAlbumIndices.map(gi => draftItems[gi]);
 
-  // 从数组里取出拖的项,插入到目标位置
-  const [moved] = draftItems.splice(globalFrom, 1);
-  // globalTo 是取出前的位置, 如果 globalFrom < globalTo, 取出后右侧前移 1, insertAt 减 1
-  const insertAt = globalFrom < globalTo ? globalTo - 1 : globalTo;
-  draftItems.splice(insertAt, 0, moved);
+  // 在 "筛选结果的 originalIdx 列表" 上模拟拖拽,得到重排后的新顺序
+  if (fromIdx < 0 || fromIdx >= filteredOriginalIdxs.length) return;
+  const newSequence = [...filteredOriginalIdxs];
+  const [moved] = newSequence.splice(fromIdx, 1);
+  const insertAt = Math.min(Math.max(toIdx, 0), newSequence.length);
+  newSequence.splice(insertAt, 0, moved);
+
+  // 筛选项当前占用的 album 槽位 (按 album 位置升序)
+  const filteredAlbumSlots = filteredOriginalIdxs.slice().sort((a, b) => a - b);
+
+  // 重建相册顺序: 未筛选项留原位,筛选项按 newSequence 填充它们原本的槽位
+  const newAlbumOrder = albumPhotos.slice();
+  newSequence.forEach((origAlbumIdx, i) => {
+    newAlbumOrder[filteredAlbumSlots[i]] = albumPhotos[origAlbumIdx];
+  });
+
+  // 写回到 draft
+  globalAlbumIndices.forEach((gi, albumIdx) => {
+    draftItems[gi] = newAlbumOrder[albumIdx];
+  });
 
   try {
     showProgress('Saving new order...');
