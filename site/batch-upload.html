@@ -2347,6 +2347,7 @@ async function submitEntryRecordAppend(entryIdx) {
 }
 
 async function deleteEntryRecordImage(entryIdx, recordIdx) {
+  if (!currentActivityJson || !currentActivityJson.entries[entryIdx]) return;
   const entry = currentActivityJson.entries[entryIdx];
   if (!entry || !entry.record_image) return;
   const records = Array.isArray(entry.record_image) ? entry.record_image : [entry.record_image];
@@ -2357,7 +2358,7 @@ async function deleteEntryRecordImage(entryIdx, recordIdx) {
   try {
     showProgress('Deleting record image...');
 
-    // Draft 模式: 先操作 draft, commit 成功后再应用到本地
+    // Save JSON first; then clean up the image file.
     const draft = JSON.parse(JSON.stringify(currentActivityJson));
     delete draft._sha;
     const draftEntry = draft.entries[entryIdx];
@@ -2366,24 +2367,21 @@ async function deleteEntryRecordImage(entryIdx, recordIdx) {
       : [draftEntry.record_image];
     draftRecords.splice(recordIdx, 1);
 
-    // 如果删完变成空数组,删掉这个字段(和 caption 保持一致更干净)
     if (draftRecords.length === 0) {
       delete draftEntry.record_image;
     } else {
       draftEntry.record_image = draftRecords;
     }
 
-    // 删除文件 (失败不阻塞主流程)
+    await updateJsonFile(currentActivityType + '.json', draft);
+    currentActivityJson = draft;
+
     try {
       const path = photo.startsWith('/') ? photo.slice(1) : photo;
       await deleteGitHubFile(path);
-      log(`Deleted ${path}`, 'success');
     } catch (e) {
       log(`Could not delete file: ${e.message}`, 'warn');
     }
-
-    await updateJsonFile(currentActivityType + '.json', draft);
-    currentActivityJson = draft;
 
     hideProgress();
     showStatus('uploadStatus', 'Record image deleted', 'success');
@@ -2395,98 +2393,88 @@ async function deleteEntryRecordImage(entryIdx, recordIdx) {
 }
 
 async function saveEditEntry(idx) {
-  const entry = currentActivityJson.entries[idx];
+  if (!currentActivityJson || !currentActivityJson.entries[idx]) return;
   const isFragments = currentActivityType === 'found-fragments';
   const hasRecordField = ['snowboarding', 'diving'].includes(currentActivityType);
 
-  try {
-    showProgress('Saving changes...');
+  return withOperationLock(`save-entry:${currentActivityType}:${idx}`, async () => {
+    try {
+      showProgress('Saving changes...');
 
-    entry.date = document.getElementById('editEntryDate-' + idx).value.trim();
+      const draft = JSON.parse(JSON.stringify(currentActivityJson));
+      delete draft._sha;
+      const entry = draft.entries[idx];
 
-    if (!isFragments) {
-      entry.location = document.getElementById('editEntryLocation-' + idx).value.trim();
-    }
+      entry.date = document.getElementById('editEntryDate-' + idx).value.trim();
 
-    if (hasRecordField) {
-      entry.record_caption = document.getElementById('editEntryRecordCaption-' + idx).value.trim();
-    }
-
-    if (isFragments) {
-      entry.text = document.getElementById('editEntryText-' + idx).value.trim();
-      entry.tags = document.getElementById('editEntryTags-' + idx).value.split(',').map(t => t.trim()).filter(Boolean);
-    } else {
-      entry.note = document.getElementById('editEntryNote-' + idx).value.trim();
-    }
-
-    // Re-sort by date after edit
-    // 排序前保存 ref→oldIdx 映射, 以便修正 entryAppendFiles 的 key
-    const oldEntryRefs = currentActivityJson.entries.map((e, i) => ({ ref: e, oldIdx: i }));
-    sortEntriesByDate(currentActivityJson.entries);
-
-    if (entryAppendFiles.size > 0) {
-      const newMap = new Map();
-      for (const [oldIdx, queue] of entryAppendFiles.entries()) {
-        const matchRef = oldEntryRefs.find(r => r.oldIdx === oldIdx);
-        const ref = matchRef ? matchRef.ref : null;
-        if (!ref) continue;
-        const newIdx = currentActivityJson.entries.indexOf(ref);
-        if (newIdx >= 0) newMap.set(newIdx, queue);
+      if (!isFragments) {
+        entry.location = document.getElementById('editEntryLocation-' + idx).value.trim();
       }
-      entryAppendFiles.clear();
-      for (const [k, v] of newMap.entries()) entryAppendFiles.set(k, v);
-    }
-    if (entryRecordAppendFiles.size > 0) {
-      const newMap = new Map();
-      for (const [oldIdx, queue] of entryRecordAppendFiles.entries()) {
-        const matchRef = oldEntryRefs.find(r => r.oldIdx === oldIdx);
-        const ref = matchRef ? matchRef.ref : null;
-        if (!ref) continue;
-        const newIdx = currentActivityJson.entries.indexOf(ref);
-        if (newIdx >= 0) newMap.set(newIdx, queue);
+
+      if (hasRecordField) {
+        entry.record_caption = document.getElementById('editEntryRecordCaption-' + idx).value.trim();
       }
-      entryRecordAppendFiles.clear();
-      for (const [k, v] of newMap.entries()) entryRecordAppendFiles.set(k, v);
+
+      if (isFragments) {
+        entry.text = document.getElementById('editEntryText-' + idx).value.trim();
+        entry.tags = document.getElementById('editEntryTags-' + idx).value.split(',').map(t => t.trim()).filter(Boolean);
+      } else {
+        entry.note = document.getElementById('editEntryNote-' + idx).value.trim();
+      }
+
+      // Sort after edit, but only remap queues after the save succeeds.
+      const oldEntryRefs = draft.entries.map((e, i) => ({ ref: e, oldIdx: i }));
+      sortEntriesByDate(draft.entries);
+
+      await updateJsonFile(currentActivityType + '.json', draft);
+      currentActivityJson = draft;
+
+      const remapQueue = (map) => {
+        if (map.size === 0) return;
+        const newMap = new Map();
+        for (const [oldIdx, queue] of map.entries()) {
+          const matchRef = oldEntryRefs.find(r => r.oldIdx === oldIdx);
+          const ref = matchRef ? matchRef.ref : null;
+          if (!ref) continue;
+          const newIdx = currentActivityJson.entries.indexOf(ref);
+          if (newIdx >= 0) newMap.set(newIdx, queue);
+        }
+        map.clear();
+        for (const [k, v] of newMap.entries()) map.set(k, v);
+      };
+      remapQueue(entryAppendFiles);
+      remapQueue(entryRecordAppendFiles);
+
+      hideProgress();
+      showStatus('uploadStatus', 'Entry updated!', 'success');
+      renderActivityEntries();
+    } catch (e) {
+      hideProgress();
+      showStatus('uploadStatus', 'Save failed: ' + e.message, 'error');
     }
-
-    await updateJsonFile(currentActivityType + '.json', currentActivityJson);
-
-    hideProgress();
-    showStatus('uploadStatus', 'Entry updated!', 'success');
-    renderActivityEntries();
-  } catch (e) {
-    hideProgress();
-    showStatus('uploadStatus', 'Save failed: ' + e.message, 'error');
-  }
+  }, { button: document.getElementById('entrySaveBtn-' + idx), busyText: 'Saving...' });
 }
 
 async function deleteActivityEntry(idx) {
+  if (!currentActivityJson || !currentActivityJson.entries[idx]) return;
   const entry = currentActivityJson.entries[idx];
   if (!await confirmAction(`Delete entry "${entry.date} ${entry.location || ''}"? This will also delete associated images.`)) return;
 
   try {
     showProgress('Deleting entry...');
 
-    // Delete associated image files
     const imagesToDelete = [...(entry.photos || [])];
     if (entry.record_image) {
       const records = Array.isArray(entry.record_image) ? entry.record_image : [entry.record_image];
       imagesToDelete.push(...records);
     }
 
-    for (const img of imagesToDelete) {
-      try {
-        const path = img.startsWith('/') ? img.slice(1) : img;
-        await deleteGitHubFile(path);
-        log(`Deleted ${path}`, 'success');
-      } catch (e) {
-        log(`Could not delete ${img}: ${e.message}`, 'warn');
-      }
-    }
-
-    // Remove entry from JSON
-    currentActivityJson.entries.splice(idx, 1);
-    await updateJsonFile(currentActivityType + '.json', currentActivityJson);
+    // Save JSON first so the page stops referencing the entry even if image cleanup fails.
+    const draft = JSON.parse(JSON.stringify(currentActivityJson));
+    delete draft._sha;
+    draft.entries.splice(idx, 1);
+    await updateJsonFile(currentActivityType + '.json', draft);
+    currentActivityJson = draft;
 
     // entry 被删后, 追加队列 Map 的 key 要做相应调整
     // 被删的 entry 自己的 queue 丢弃, 后面的 key 都减 1
@@ -2495,7 +2483,6 @@ async function deleteActivityEntry(idx) {
       const adjusted = new Map();
       for (const [k, v] of map.entries()) {
         if (k === idx) {
-          // 被删 entry 自己的队列: 释放 object URL 后丢弃
           for (const f of v) {
             if (f && f.dataUrl) {
               try { URL.revokeObjectURL(f.dataUrl); } catch (_) {}
@@ -2511,6 +2498,16 @@ async function deleteActivityEntry(idx) {
     adjustMapAfterDelete(entryAppendFiles);
     adjustMapAfterDelete(entryRecordAppendFiles);
 
+    // Delete associated image files after JSON update. Failure here only leaves harmless orphan files.
+    for (const img of imagesToDelete) {
+      try {
+        const path = img.startsWith('/') ? img.slice(1) : img;
+        await deleteGitHubFile(path);
+      } catch (e) {
+        log(`Could not delete ${img}: ${e.message}`, 'warn');
+      }
+    }
+
     hideProgress();
     showStatus('uploadStatus', 'Entry deleted', 'success');
     renderActivityEntries();
@@ -2521,24 +2518,28 @@ async function deleteActivityEntry(idx) {
 }
 
 async function deleteEntryPhoto(entryIdx, photoIdx) {
-  const photo = currentActivityJson.entries[entryIdx].photos[photoIdx];
+  if (!currentActivityJson || !currentActivityJson.entries[entryIdx]) return;
+  const photo = currentActivityJson.entries[entryIdx].photos && currentActivityJson.entries[entryIdx].photos[photoIdx];
+  if (!photo) return;
   if (!await confirmAction(`Delete this photo?`)) return;
 
   try {
     showProgress('Deleting photo...');
 
-    // Delete from GitHub
+    // Save JSON first, then clean up the file.
+    const draft = JSON.parse(JSON.stringify(currentActivityJson));
+    delete draft._sha;
+    if (!draft.entries[entryIdx].photos) draft.entries[entryIdx].photos = [];
+    draft.entries[entryIdx].photos.splice(photoIdx, 1);
+    await updateJsonFile(currentActivityType + '.json', draft);
+    currentActivityJson = draft;
+
     try {
       const path = photo.startsWith('/') ? photo.slice(1) : photo;
       await deleteGitHubFile(path);
-      log(`Deleted ${path}`, 'success');
     } catch (e) {
       log(`Could not delete file: ${e.message}`, 'warn');
     }
-
-    // Remove from JSON
-    currentActivityJson.entries[entryIdx].photos.splice(photoIdx, 1);
-    await updateJsonFile(currentActivityType + '.json', currentActivityJson);
 
     hideProgress();
     showStatus('uploadStatus', 'Photo deleted', 'success');
@@ -2750,6 +2751,7 @@ async function submitActivityEntry() {
         message: `Activity entry: ${date}`,
         onProgress: (ratio) => updateProgress(ratio)
       });
+      currentActivityJson._sha = jsonCopy._sha;
 
       // commit 成功后, 修正 entryAppendFiles / entryRecordAppendFiles 的 key
       // (sort 可能改变了 idx)
@@ -3276,46 +3278,19 @@ async function fetchJsonFile(filename) {
 }
 
 async function updateJsonFile(filename, data) {
-  let sha = data._sha;
-
-  // 某些流程(batchCommit 成功后把 draft 赋回本地状态)会导致 _sha 丢失；
-  // 这里自动补查一次，避免 422 "sha wasn't supplied"
-  if (!sha) {
-    const latestRes = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${repoPath(filename)}`);
-    if (!latestRes.ok) {
-      throw new Error(`Failed to fetch latest SHA for ${filename}: ${latestRes.status}`);
-    }
-    const latest = await latestRes.json();
-    sha = latest.sha;
-    data._sha = sha;
+  // Use the same Git Data API batch commit path as uploads.
+  // This avoids Contents API 409 SHA conflicts after another file/JSON commit has moved HEAD.
+  if (!data || typeof data !== 'object') {
+    throw new Error(`Invalid JSON data for ${filename}`);
   }
 
-  const cleanData = { ...data };
-  delete cleanData._sha;
-
-  const jsonStr = JSON.stringify(cleanData, null, 2);
-  // UTF-8 → base64,避免 deprecated 的 unescape
-  const utf8Bytes = new TextEncoder().encode(jsonStr);
-  const encoded = await uint8ToBase64(utf8Bytes);
-
-  const body = {
+  await batchCommit({
+    files: [],
+    jsonUpdates: [{ path: filename, data }],
     message: `Update ${filename}`,
-    content: encoded,
-    sha
-  };
-
-  const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${repoPath(filename)}`, {
-    method: 'PUT',
-    body: JSON.stringify(body)
+    maxRetries: 3
   });
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(`Failed to update ${filename}: ${res.status} ${err.message || ''}`);
-  }
-
-  const result = await res.json();
-  data._sha = result.content.sha; // Update SHA
   log(`Updated ${filename}`, 'success');
 }
 
@@ -3388,24 +3363,59 @@ async function uploadFileToGitHub(path, uint8Array, retries = 2) {
   }
 }
 
-async function deleteGitHubFile(path) {
-  // Get current SHA
-  const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${repoPath(path)}`);
-  if (!res.ok) throw new Error(`File not found: ${path}`);
-  const data = await res.json();
+async function deleteGitHubFile(path, retries = 2) {
+  const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+  let lastError = null;
 
-  const delRes = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${repoPath(path)}`, {
-    method: 'DELETE',
-    body: JSON.stringify({
-      message: `Delete ${path}`,
-      sha: data.sha
-    })
-  });
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${repoPath(cleanPath)}?t=${Date.now()}`);
+      if (!res.ok) {
+        if (res.status === 404) {
+          log(`File already gone: ${cleanPath}`, 'warn');
+          return;
+        }
+        throw new Error(`File not found: ${cleanPath} (${res.status})`);
+      }
+      const data = await res.json();
 
-  if (!delRes.ok) {
-    const err = await delRes.json().catch(() => ({}));
-    throw new Error(`Delete failed: ${delRes.status} ${err.message || ''}`);
+      const delRes = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${repoPath(cleanPath)}`, {
+        method: 'DELETE',
+        body: JSON.stringify({
+          message: `Delete ${cleanPath}`,
+          sha: data.sha
+        })
+      });
+
+      if (delRes.ok) {
+        log(`Deleted ${cleanPath}`, 'success');
+        return;
+      }
+
+      const err = await delRes.json().catch(() => ({}));
+      const msg = `Delete failed: ${delRes.status} ${err.message || ''}`;
+      lastError = new Error(msg);
+
+      // 409 can happen if HEAD moved between fetching file SHA and deleting it. Retry with fresh SHA.
+      if (delRes.status === 409 && attempt < retries) {
+        await sleep(350 * (attempt + 1));
+        continue;
+      }
+
+      // Missing file after a previous attempt is acceptable for cleanup.
+      if (delRes.status === 404) return;
+      throw lastError;
+    } catch (e) {
+      lastError = e;
+      if (attempt < retries) {
+        await sleep(350 * (attempt + 1));
+        continue;
+      }
+      throw lastError;
+    }
   }
+
+  throw lastError || new Error(`Delete failed for ${cleanPath}`);
 }
 
 // ==================== FILENAME GENERATION ====================
