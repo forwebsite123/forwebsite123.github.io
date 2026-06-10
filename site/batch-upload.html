@@ -3304,7 +3304,7 @@ async function updateJsonFile(filename, data) {
     sha
   };
 
-  const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${filename}`, {
+  const res = await ghFetch(`/repos/${OWNER}/${REPO}/contents/${repoPath(filename)}`, {
     method: 'PUT',
     body: JSON.stringify(body)
   });
