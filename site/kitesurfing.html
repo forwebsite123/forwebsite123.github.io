@@ -262,7 +262,7 @@
       const photosHtml = (e.photos || []).map(p => `<img src="${p}" class="zoomable">`).join('');
       const videosHtml = (e.videos || []).map(bvid => `<div class="video-cell"><iframe src="//player.bilibili.com/player.html?bvid=${bvid}&autoplay=0" allowfullscreen></iframe></div>`).join('');
       
-      container.innerHTML += `<div class="entry"><div class="entry-meta"><span class="dot">•</span>${e.date}${e.location?" + "+e.location:""}</div><div class="middle-col"><div class="photo-grid">${photosHtml}${videosHtml}</div></div><div class="right-col"><div class="entry-note">${e.note||""}</div></div></div>`;
+      container.innerHTML += `<div class="entry"><div class="entry-meta"><span class="dot">•</span>${e.date}${e.location?'<br><span class="entry-location">📍 '+e.location+'</span>':''}</div><div class="middle-col"><div class="photo-grid">${photosHtml}${videosHtml}</div></div><div class="right-col"><div class="entry-note">${e.note||""}</div></div></div>`;
     });
     const lb = document.getElementById('lightbox');
     const lbImg = document.getElementById('lightbox-img');
