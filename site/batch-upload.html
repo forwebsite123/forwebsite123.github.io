@@ -1664,18 +1664,15 @@ async function deleteAlbumPhoto(imagePath, page) {
   try {
     showProgress('Deleting photo...');
     
-    // Remove from photos.json
+    // Remove from photos.json and delete the image file in one commit.
     const jsonData = await fetchJsonFile('photos.json');
     jsonData.items = jsonData.items.filter(item => item.image !== imagePath);
-    await updateJsonFile('photos.json', jsonData);
-
-    // Optionally delete the image file from repo
-    try {
-      await deleteGitHubFile(imagePath.startsWith('/') ? imagePath.slice(1) : imagePath);
-      log('Image file deleted from repo', 'success');
-    } catch (e) {
-      log('Could not delete image file (may not exist): ' + e.message, 'warn');
-    }
+    await updateJsonAndDeleteFiles(
+      'photos.json',
+      jsonData,
+      [imagePath],
+      `Delete photo from ${page || 'album'}`
+    );
 
     hideProgress();
     showStatus('uploadStatus', 'Photo deleted successfully', 'success');
@@ -2373,15 +2370,13 @@ async function deleteEntryRecordImage(entryIdx, recordIdx) {
       draftEntry.record_image = draftRecords;
     }
 
-    await updateJsonFile(currentActivityType + '.json', draft);
+    await updateJsonAndDeleteFiles(
+      currentActivityType + '.json',
+      draft,
+      [photo],
+      `Delete record image from ${currentActivityType}`
+    );
     currentActivityJson = draft;
-
-    try {
-      const path = photo.startsWith('/') ? photo.slice(1) : photo;
-      await deleteGitHubFile(path);
-    } catch (e) {
-      log(`Could not delete file: ${e.message}`, 'warn');
-    }
 
     hideProgress();
     showStatus('uploadStatus', 'Record image deleted', 'success');
@@ -2473,7 +2468,12 @@ async function deleteActivityEntry(idx) {
     const draft = JSON.parse(JSON.stringify(currentActivityJson));
     delete draft._sha;
     draft.entries.splice(idx, 1);
-    await updateJsonFile(currentActivityType + '.json', draft);
+    await updateJsonAndDeleteFiles(
+      currentActivityType + '.json',
+      draft,
+      imagesToDelete,
+      `Delete entry from ${currentActivityType}`
+    );
     currentActivityJson = draft;
 
     // entry 被删后, 追加队列 Map 的 key 要做相应调整
@@ -2498,16 +2498,6 @@ async function deleteActivityEntry(idx) {
     adjustMapAfterDelete(entryAppendFiles);
     adjustMapAfterDelete(entryRecordAppendFiles);
 
-    // Delete associated image files after JSON update. Failure here only leaves harmless orphan files.
-    for (const img of imagesToDelete) {
-      try {
-        const path = img.startsWith('/') ? img.slice(1) : img;
-        await deleteGitHubFile(path);
-      } catch (e) {
-        log(`Could not delete ${img}: ${e.message}`, 'warn');
-      }
-    }
-
     hideProgress();
     showStatus('uploadStatus', 'Entry deleted', 'success');
     renderActivityEntries();
@@ -2531,15 +2521,13 @@ async function deleteEntryPhoto(entryIdx, photoIdx) {
     delete draft._sha;
     if (!draft.entries[entryIdx].photos) draft.entries[entryIdx].photos = [];
     draft.entries[entryIdx].photos.splice(photoIdx, 1);
-    await updateJsonFile(currentActivityType + '.json', draft);
+    await updateJsonAndDeleteFiles(
+      currentActivityType + '.json',
+      draft,
+      [photo],
+      `Delete photo from ${currentActivityType}`
+    );
     currentActivityJson = draft;
-
-    try {
-      const path = photo.startsWith('/') ? photo.slice(1) : photo;
-      await deleteGitHubFile(path);
-    } catch (e) {
-      log(`Could not delete file: ${e.message}`, 'warn');
-    }
 
     hideProgress();
     showStatus('uploadStatus', 'Photo deleted', 'success');
@@ -3096,15 +3084,15 @@ async function ghFetch(path, options = {}) {
 // jsonUpdates: [{ path, data }]  — data 是要写入的 JSON 对象 (会自动 stringify)
 // 返回新 commit 的 SHA
 // 优势: 一次 commit 一次性提交所有文件,blob 上传可以真并行,无 409 race
-async function batchCommit({ files = [], jsonUpdates = [], message = 'Batch upload', onProgress = null, maxRetries = 2 }) {
+async function batchCommit({ files = [], jsonUpdates = [], deletePaths = [], message = 'Batch upload', onProgress = null, maxRetries = 2 }) {
   // 防御:什么都没有就早退
-  if (files.length === 0 && jsonUpdates.length === 0) {
+  if (files.length === 0 && jsonUpdates.length === 0 && deletePaths.length === 0) {
     log('batchCommit called with nothing to commit, skipping', 'warn');
     return null;
   }
 
   const attemptCommit = async (attemptNo) => {
-    const totalSteps = files.length + jsonUpdates.length + 4; // blobs + json + (ref + commit + tree + patch)
+    const totalSteps = files.length + jsonUpdates.length + deletePaths.length + 4; // blobs + json + deletes + (ref + commit + tree + patch)
     let completed = 0;
     const tick = (label) => {
       completed++;
@@ -3181,12 +3169,19 @@ async function batchCommit({ files = [], jsonUpdates = [], message = 'Batch uplo
     });
     const jsonEntries = await runWithConcurrency(jsonBlobTasks, 4);
 
-    // 5. 创建新 tree (基于 base tree + 新/改的文件)
+    // 5. 创建新 tree (基于 base tree + 新/改/删除的文件)
+    // deletePaths 用 sha:null 放进同一个 tree，可避免“先改 JSON 再逐张删图”的慢速多次 commit。
+    const deleteEntries = deletePaths.map(p => {
+      const clean = String(p || '').replace(/^\/+/, '');
+      tick('delete');
+      return { path: repoPath(clean), mode: '100644', type: 'blob', sha: null };
+    });
+
     const treeRes = await ghFetch(`/repos/${OWNER}/${REPO}/git/trees`, {
       method: 'POST',
       body: JSON.stringify({
         base_tree: baseTreeSha,
-        tree: [...blobEntries, ...jsonEntries]
+        tree: [...blobEntries, ...jsonEntries, ...deleteEntries]
       })
     });
     if (!treeRes.ok) {
@@ -3292,6 +3287,43 @@ async function updateJsonFile(filename, data) {
   });
 
   log(`Updated ${filename}`, 'success');
+}
+
+
+async function updateJsonAndDeleteFiles(filename, data, deletePaths = [], message = '') {
+  const cleanDeletePaths = [...new Set((deletePaths || [])
+    .filter(Boolean)
+    .map(p => String(p).replace(/^\/+/, ''))
+    .filter(Boolean)
+  )];
+
+  if (!data || typeof data !== 'object') {
+    throw new Error(`Invalid JSON data for ${filename}`);
+  }
+
+  if (cleanDeletePaths.length === 0) {
+    await updateJsonFile(filename, data);
+    return;
+  }
+
+  try {
+    await batchCommit({
+      files: [],
+      jsonUpdates: [{ path: filename, data }],
+      deletePaths: cleanDeletePaths,
+      message: message || `Update ${filename} and delete ${cleanDeletePaths.length} file(s)`,
+      maxRetries: 3
+    });
+    log(`Updated ${filename} and deleted ${cleanDeletePaths.length} file(s) in one commit`, 'success');
+  } catch (e) {
+    // If a physical image file was already gone, don't block the important JSON change.
+    // Save the JSON first, then try to clean up files in the background.
+    log(`Combined delete failed; saving JSON first and cleaning files in background: ${e.message}`, 'warn');
+    await updateJsonFile(filename, data);
+    cleanDeletePaths.forEach(p => {
+      deleteGitHubFile(p).catch(err => log(`Background cleanup failed for ${p}: ${err.message}`, 'warn'));
+    });
+  }
 }
 
 async function uint8ToBase64(uint8Array) {
@@ -3439,6 +3471,12 @@ function showStatus(id, msg, type) {
 }
 
 function showProgress(title) {
+  // Clear stale error/success messages from previous operations.
+  const status = document.getElementById('uploadStatus');
+  if (status) {
+    status.textContent = '';
+    status.className = 'status';
+  }
   document.getElementById('progressSection').classList.remove('hidden');
   document.getElementById('progressTitle').textContent = title;
   updateProgress(0);
