@@ -361,7 +361,7 @@
       const videosHtml = (e.videos || []).map(bvid => `<div class="video-cell"><iframe src="//player.bilibili.com/player.html?bvid=${bvid}&autoplay=0" allowfullscreen></iframe></div>`).join('');
       const recordImgs = e.record_image ? (Array.isArray(e.record_image) ? e.record_image : [e.record_image]) : [];
       const recordHtml = recordImgs.length ? `<div class="record-grid">${recordImgs.map(ri => `<div class="record-card"><img src="${ri}" class="zoomable"></div>`).join('')}</div><div class="record-caption">${e.record_caption||''}</div>` : '';
-      container.innerHTML += `<div class="entry"><div class="left-col"><div class="entry-meta"><span class="dot">•</span>${e.date}${e.location?" + "+e.location:""}</div>${recordHtml}</div><div class="middle-col"><div class="photo-grid">${photosHtml}${videosHtml}</div></div><div class="right-col"><div class="entry-note">${e.note||""}</div></div></div>`;
+      container.innerHTML += `<div class="entry"><div class="left-col"><div class="entry-meta"><span class="dot">•</span>${e.date}${e.location?" 📍 "+e.location:""}</div>${recordHtml}</div><div class="middle-col"><div class="photo-grid">${photosHtml}${videosHtml}</div></div><div class="right-col"><div class="entry-note">${e.note||""}</div></div></div>`;
     });
     const lb = document.getElementById('lightbox');
     const lbImg = document.getElementById('lightbox-img');
