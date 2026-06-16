@@ -150,6 +150,7 @@
     }
 
     .entry {
+      scroll-margin-top: 24px;
       display: grid;
       grid-template-columns: 360px 1fr 180px;
       gap: 34px;
@@ -377,6 +378,16 @@
     <img id="lightbox-img" src="" alt="large preview">
   </div>
    <script>
+
+  function entryAnchor(entry) {
+    const normalized = String(entry.date || '').trim().replace(/\//g, '.');
+    const match = normalized.match(/^(\d{4})\.(\d{1,2})\.(\d{1,2})$/);
+    if (!match) return '';
+    const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+    if (Number.isNaN(date.getTime())) return '';
+    return `entry-${date.toISOString().slice(0, 10)}`;
+  }
+
   async function loadEntries() {
     const res = await fetch('/found-fragments.json');
     const data = await res.json();
@@ -387,7 +398,7 @@
       const videosHtml = (e.videos || []).map(bvid => `<div class="video-thumb"><iframe src="//player.bilibili.com/player.html?bvid=${bvid}&autoplay=0" allowfullscreen></iframe></div>`).join('');
       const tagsHtml = (e.tags || []).map(t => `<a href="tag.html?tag=${t}&page=found-fragments.html" class="tag">${t}</a>`).join('');
       container.innerHTML += `
-        <div class="entry">
+        <div class="entry"${entryAnchor(e) ? ` id="${entryAnchor(e)}"` : ''}>
           <div class="entry-left">
             <div class="date-line"><div class="date-text">${e.date}</div></div>
             <div class="thumb-row">${photosHtml}${videosHtml}</div>

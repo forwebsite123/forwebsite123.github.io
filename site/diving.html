@@ -116,6 +116,7 @@
     }
 
     .entry {
+      scroll-margin-top: 24px;
       display: grid;
       grid-template-columns: 280px auto 220px;
       gap: 44px;
@@ -353,6 +354,38 @@
     <img id="lightbox-img" src="" alt="large preview">
   </div>
     <script>
+
+  function parseEntryDate(value) {
+    if (!value) return null;
+    const parts = String(value).trim().split(/\s*-\s*/);
+    const start = parseDatePart(parts[0]);
+    if (!start) return null;
+    return parts.length > 1 ? (parseDatePart(parts[parts.length - 1], start) || start) : start;
+  }
+
+  function parseDatePart(value, base) {
+    const normalized = String(value || '').trim().replace(/\//g, '.');
+    const full = normalized.match(/^(\d{4})\.(\d{1,2})\.(\d{1,2})$/);
+    if (full) return new Date(Date.UTC(Number(full[1]), Number(full[2]) - 1, Number(full[3])));
+    const partial = normalized.match(/^(\d{1,2})\.(\d{1,2})$/);
+    if (partial && base) return new Date(Date.UTC(base.getUTCFullYear(), Number(partial[1]) - 1, Number(partial[2])));
+    return null;
+  }
+
+  function entryAnchor(entry) {
+    const date = parseEntryDate(entry.date);
+    if (!date || Number.isNaN(date.getTime())) return '';
+    const day = date.toISOString().slice(0, 10);
+    const slug = String(entry.location || '')
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 36);
+    return slug ? `entry-${day}-${slug}` : `entry-${day}`;
+  }
+
   async function loadEntries() {
     const res = await fetch('/diving.json');
     const data = await res.json();
@@ -363,7 +396,8 @@
       const videosHtml = (e.videos || []).map(bvid => `<div class="video-cell"><iframe src="//player.bilibili.com/player.html?bvid=${bvid}&autoplay=0" allowfullscreen></iframe></div>`).join('');
       const recordImgs = e.record_image ? (Array.isArray(e.record_image) ? e.record_image : [e.record_image]) : [];
       const recordHtml = recordImgs.length ? `<div class="record-grid">${recordImgs.map(ri => `<div class="record-card"><img src="${ri}" class="zoomable"></div>`).join('')}</div><div class="record-caption">${e.record_caption||''}</div>` : '';
-      container.innerHTML += `<div class="entry"><div class="left-col"><div class="entry-meta"><span class="dot">•</span>${e.date}${e.location?'<br><span class="entry-location">📍 '+e.location+'</span>':''}</div>${recordHtml}</div><div class="middle-col"><div class="photo-grid">${photosHtml}${videosHtml}</div></div><div class="right-col"><div class="entry-note">${e.note||""}</div></div></div>`;
+      const id = entryAnchor(e);
+      container.innerHTML += `<div class="entry"${id ? ` id="${id}"` : ''}><div class="left-col"><div class="entry-meta"><span class="dot">•</span>${e.date}${e.location?'<br><span class="entry-location">📍 '+e.location+'</span>':''}</div>${recordHtml}</div><div class="middle-col"><div class="photo-grid">${photosHtml}${videosHtml}</div></div><div class="right-col"><div class="entry-note">${e.note||""}</div></div></div>`;
     });
     const lb = document.getElementById('lightbox');
     const lbImg = document.getElementById('lightbox-img');
