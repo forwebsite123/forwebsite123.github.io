@@ -9,18 +9,23 @@
   // Supported type values:
   // - "activity": generic entries[] adapter using date, location, record_caption, note.
   // - "fragments": entries[] adapter using date, text, and tags.
+  // - "photos": photos.json adapter grouped by album/page.
+  // Latest uses contentUpdatedAt only for display and sorting; original date
+  // fields remain only for activity/fragment deep-link anchor generation.
   // Keep this list explicit; static sites cannot safely auto-scan directories.
   const UPDATE_SOURCES = [
     { file: 'diving.json', page: 'diving.html', icon: '🫧', label: 'Diving', type: 'activity' },
     { file: 'found-fragments.json', page: 'found-fragments.html', icon: '✦', label: 'Fragments', type: 'fragments' },
     { file: 'snowboarding.json', page: 'snowboarding.html', icon: '🏂', label: 'Snow', type: 'activity' },
     { file: 'horse-riding.json', page: 'horse-riding.html', icon: '🐎', label: 'Riding', type: 'activity' },
-    { file: 'kitesurfing.json', page: 'kitesurfing.html', icon: '🪁', label: 'Kite', type: 'activity' }
+    { file: 'kitesurfing.json', page: 'kitesurfing.html', icon: '🪁', label: 'Kite', type: 'activity' },
+    { file: 'photos.json', icon: '📷', label: 'Drift', type: 'photos' }
   ];
 
   const ADAPTERS = {
     activity: collectActivityEntries,
-    fragments: collectFoundFragments
+    fragments: collectFoundFragments,
+    photos: collectPhotoAlbumUpdates
   };
 
   function parseDateRange(value) {
@@ -97,16 +102,17 @@
   function collectActivityEntries(data, source) {
     const entries = Array.isArray(data && data.entries) ? data.entries : [];
     return entries.map((entry) => {
-      const date = parseDateRange(entry.date);
-      if (!date) return null;
+      const updatedDate = parseContentUpdatedAt(entry.contentUpdatedAt);
+      if (!updatedDate) return null;
+      const anchorDate = parseDateRange(entry.date);
       const title = compactText(entry.record_caption || entry.note || entry.location, 'new trace');
       const location = entry.location ? ` · ${entry.location}` : '';
       return {
         icon: source.icon,
         label: source.label,
         title: `${title}${location}`,
-        date,
-        href: `${source.page}#${anchorFrom(date, entry.location || source.label)}`
+        date: updatedDate,
+        href: anchorDate ? `${source.page}#${anchorFrom(anchorDate, entry.location || source.label)}` : source.page
       };
     }).filter(Boolean);
   }
@@ -114,16 +120,50 @@
   function collectFoundFragments(data, source) {
     const entries = Array.isArray(data && data.entries) ? data.entries : [];
     return entries.map((entry) => {
-      const date = parseDateRange(entry.date);
-      if (!date) return null;
+      const updatedDate = parseContentUpdatedAt(entry.contentUpdatedAt);
+      if (!updatedDate) return null;
+      const anchorDate = parseDateRange(entry.date);
       return {
         icon: source.icon,
         label: source.label,
         title: compactText(entry.text || (entry.tags || []).join(', '), 'a found fragment'),
-        date,
-        href: `${source.page}#${anchorFrom(date)}`
+        date: updatedDate,
+        href: anchorDate ? `${source.page}#${anchorFrom(anchorDate)}` : source.page
       };
     }).filter(Boolean);
+  }
+
+  function collectPhotoAlbumUpdates(data, source) {
+    const items = Array.isArray(data && data.items) ? data.items : [];
+    const byPage = new Map();
+
+    items.forEach((item) => {
+      if (!item || !item.page) return;
+      const updatedDate = parseContentUpdatedAt(item.contentUpdatedAt);
+      if (!updatedDate) return;
+
+      const existing = byPage.get(item.page);
+      if (existing && existing.date >= updatedDate) return;
+
+      const label = compactText(item.pageLabel || item.page.replace(/\.html$/i, ''), 'Album');
+      byPage.set(item.page, {
+        icon: source.icon,
+        label: source.label,
+        title: `${label} photos updated`,
+        date: updatedDate,
+        href: item.page
+      });
+    });
+
+    return [...byPage.values()];
+  }
+
+  function parseContentUpdatedAt(value) {
+    if (!value || typeof value !== 'string') return null;
+    const trimmed = value.trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return null;
+    const date = makeDate(trimmed.slice(0, 4), trimmed.slice(5, 7), trimmed.slice(8, 10));
+    return date && formatMachineDate(date) === trimmed ? date : null;
   }
 
   function render(updates) {
