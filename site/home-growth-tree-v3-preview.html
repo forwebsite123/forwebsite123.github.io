@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Growth Tree Preview</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#fcfbf8;color:#7a5757;font-family:"Times New Roman",Georgia,"Songti SC",serif;overflow-x:hidden}main{min-height:100vh;padding:38px 5vw 24px;background:radial-gradient(circle at 55% 45%,#fff 0,#fffaf4 55%,#fcfbf8 88%)}.top{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:5}.title{font-size:17px;color:#9b7373}.search{border:0;background:transparent;color:#7a5757;font-size:30px;cursor:pointer}.layout{display:grid;grid-template-columns:minmax(260px,31vw) minmax(430px,1fr) minmax(230px,18vw);gap:3vw;align-items:center;min-height:calc(100vh - 110px)}.cards{display:grid;gap:28px;padding-left:4vw}.card{height:128px;border:1.4px solid rgba(190,143,128,.38);border-radius:19px;background:rgba(255,252,248,.66);box-shadow:0 14px 30px rgba(134,92,82,.07);display:flex;align-items:center;justify-content:center;text-align:center;text-decoration:none;color:#7a5757;transition:.25s}.card:hover{transform:translateY(-4px);background:rgba(255,252,248,.86)}.cn{font-size:42px;margin-bottom:10px;line-height:1.1}.en{font-size:21px;font-style:italic}.treezone{position:relative;min-height:780px;display:flex;align-items:flex-end;justify-content:center}.tree{width:min(48vw,690px);max-height:86vh;object-fit:contain;filter:drop-shadow(0 18px 28px rgba(107,82,65,.13));animation:breath 7s ease-in-out infinite}@keyframes breath{50%{transform:translateY(-2px) scale(1.003)}}.node{position:absolute;z-index:4;display:block;min-width:145px;padding:9px 15px;border:1.1px solid rgba(178,137,105,.46);border-radius:15px;background:rgba(255,251,245,.84);box-shadow:0 10px 24px rgba(108,78,66,.09);text-align:center;text-decoration:none;color:#6f4a47;backdrop-filter:blur(3px);transition:.25s}.node:hover{transform:translateY(-4px);background:rgba(255,253,250,.94)}.tag{display:block;font-size:15px}.school{display:block;margin-top:5px;font-size:13px;font-family:"Songti SC","STSong",serif}.k{left:38%;bottom:11%}.p{left:52%;bottom:27%}.j{left:37%;bottom:43%}.s{left:56%;bottom:56%}.u{left:43%;top:8%}.sign{position:absolute;z-index:5;right:0;bottom:32%;width:190px;padding:14px 16px;border:1.2px solid rgba(184,137,82,.55);border-radius:12px;background:rgba(255,252,246,.87);text-align:center;box-shadow:0 12px 24px rgba(113,76,61,.08);animation:swing 4.6s ease-in-out infinite;transform-origin:50% -20px}@keyframes swing{0%,100%{transform:rotate(-1.5deg)}50%{transform:rotate(1.8deg)}}.gt{font-size:21px;font-weight:600}.gs,.gen{font-size:11px;opacity:.75}.gcn{font-size:13px;margin-top:10px}.right{display:flex;flex-direction:column;align-items:center;gap:48px;align-self:start;padding-top:78px}.panel{width:250px;border:1.3px solid rgba(190,143,128,.28);border-radius:14px;padding:22px 24px 28px;background:rgba(255,252,248,.6);box-shadow:0 12px 28px rgba(122,87,87,.06)}.plabel{text-align:center;font-size:21px;margin-bottom:16px}.updates{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:11px}.update-empty{font-size:13px;color:rgba(95,65,63,.62)}.jm{font-size:31px;letter-spacing:.18em;color:transparent;-webkit-text-stroke:.8px rgba(156,115,115,.46);text-decoration:none;display:block;text-align:center}.about{font-size:18px;font-style:italic;color:rgba(156,115,115,.62);text-decoration:none;display:block;text-align:center;margin-top:10px}.petal{position:fixed;top:-30px;width:14px;height:9px;border-radius:80% 20% 70% 30%;background:rgba(232,157,147,.36);animation:fall linear infinite;z-index:1}.petal:nth-child(1){left:35%;animation-duration:13s}.petal:nth-child(2){left:50%;animation-duration:17s;animation-delay:-6s}.petal:nth-child(3){left:70%;animation-duration:15s;animation-delay:-3s}@keyframes fall{0%{transform:translateY(-8vh) rotate(0);opacity:0}12%{opacity:.75}100%{transform:translate(-70px,108vh) rotate(260deg);opacity:0}}.foot{text-align:center;font-size:16px;font-style:italic;color:rgba(122,87,87,.66);position:relative;z-index:4}@media(max-width:980px){.layout{grid-template-columns:1fr;gap:24px}.right{order:1;padding-top:0}.treezone{order:2;min-height:620px}.cards{order:3;padding-left:0}.tree{width:min(92vw,560px)}}@media(max-width:640px){main{padding:26px 18px}.treezone{min-height:540px}.tree{width:112vw}.node{transform:scale(.86);min-width:126px}.sign{transform:scale(.82);right:-6%;width:155px}.cn{font-size:31px}.en{font-size:17px}}
+</style>
+</head>
+<body>
+<div class="petal"></div><div class="petal"></div><div class="petal"></div>
+<main>
+<header class="top"><div class="title">A place to leave traces.</div><button class="search" id="search-icon" aria-label="Search">⌕</button></header>
+<section class="layout">
+<nav class="cards">
+<a class="card" href="Drift-coordinates.html"><div><div class="cn">漂流坐标</div><div class="en">Drift Coordinates</div></div></a>
+<a class="card" href="dopamine-receipts.html"><div><div class="cn">多巴胺账本</div><div class="en">Dopamine Receipts</div></div></a>
+<a class="card" href="found-fragments.html"><div><div class="cn">人间拾遗</div><div class="en">Found Fragments</div></div></a>
+<a class="card" href="into-the-wild.html"><div><div class="cn">沉浸体验</div><div class="en">Into the Wild</div></div></a>
+</nav>
+<div class="treezone">
+<img class="tree" src="assets/home-growth-tree/growth-tree-main.png" alt="Growth Tree">
+<span class="node k"><span class="tag">Kindergarten</span><span class="school">广东省军区幼儿园</span></span>
+<a class="node p" target="_blank" rel="noopener noreferrer" href="https://baike.baidu.com/item/%E5%B9%BF%E5%B7%9E%E5%B8%82%E5%8D%8E%E9%98%B3%E5%B0%8F%E5%AD%A6"><span class="tag">Primary School</span><span class="school">广州市华阳小学</span></a>
+<a class="node j" target="_blank" rel="noopener noreferrer" href="https://www.guangzhouzx.cn/"><span class="tag">Junior High School</span><span class="school">广州中学</span></a>
+<a class="node s" target="_blank" rel="noopener noreferrer" href="https://www.guangzhouzx.cn/"><span class="tag">Senior High School</span><span class="school">广州中学</span></a>
+<a class="node u" target="_blank" rel="noopener noreferrer" href="https://www.durham.ac.uk/"><span class="tag">University</span><span class="school">Durham University<br>杜伦大学</span></a>
+<div class="sign"><div class="gt">Growth Rings</div><div class="gs">Academic Roots</div><div class="gcn">始于羊城，葳蕤世界。</div><div class="gen">Where my roots learned to grow.</div></div>
+</div>
+<aside class="right">
+<div class="panel"><div class="plabel">Latest</div><ul class="updates" id="latest-updates-list"><li class="update-empty">正在拾起最近留下的痕迹…</li></ul></div>
+<div><a href="jianmu.html" class="jm">「 见木 」</a><a href="about.html" class="about">Behind the pixels</a></div>
+</aside>
+</section>
+<div class="foot">"做一颗独立的树 而不是攀附在树上的藤 然后长出新的枝桠和漂亮的花💐"</div>
+</main>
+<script src="/latest-updates.js"></script><script src="/search.js"></script>
+</body>
+</html>
