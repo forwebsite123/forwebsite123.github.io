@@ -108,10 +108,11 @@
 
     .entry {
       display: grid;
-      grid-template-columns: max-content 230px;
-      gap: 38px;
+      grid-template-columns: max-content 240px;
+      column-gap: 86px;
+      row-gap: 0;
       align-items: start;
-      width: fit-content;
+      width: min(100%, 960px);
       margin-left: auto;
       margin-right: auto;
     }
@@ -226,6 +227,7 @@
         width: 100%;
         margin-left: 0;
         margin-right: 0;
+        row-gap: 16px;
       }
       .entry-meta { grid-column: span 1; }
       .photo-grid {
