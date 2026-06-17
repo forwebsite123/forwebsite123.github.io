@@ -7,9 +7,7 @@
   <title>Snowboarding</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -46,9 +44,7 @@
       line-height: 1;
     }
 
-    .title-wrap {
-      margin-bottom: 30px;
-    }
+    .title-wrap { margin-bottom: 30px; }
 
     .page-title {
       margin: 0;
@@ -101,13 +97,8 @@
       letter-spacing: 2px;
     }
 
-    .timeline-top {
-      top: 0;
-    }
-
-    .timeline-bottom {
-      bottom: 0;
-    }
+    .timeline-top { top: 0; }
+    .timeline-bottom { bottom: 0; }
 
     .entries {
       display: flex;
@@ -119,13 +110,12 @@
       scroll-margin-top: 24px;
       display: grid;
       grid-template-columns: 280px auto 220px;
-      gap: 44px;
+      gap: 38px;
       align-items: start;
     }
 
-    .left-col {
-      min-width: 0;
-    }
+    .left-col,
+    .middle-col { min-width: 0; }
 
     .entry-meta {
       font-size: 30px;
@@ -182,10 +172,6 @@
       max-width: 250px;
     }
 
-    .middle-col {
-      min-width: 0;
-    }
-
     .photo-grid {
       display: flex;
       gap: 20px;
@@ -213,22 +199,25 @@
       position: relative;
       flex-shrink: 0;
     }
+
     .video-cell iframe {
       position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       border: none;
     }
 
-    .right-col {
-      padding-top: 52px;
-    }
+    .right-col { padding-top: 52px; }
 
     .entry-note {
       font-size: 15px;
       line-height: 1.95;
       color: rgba(122, 87, 87, 0.75);
-      max-width: 180px;
+      max-width: 220px;
+      padding: 4px 0 4px 22px;
+      border-left: 1px solid rgba(122, 87, 87, 0.22);
     }
 
     .page-footer {
@@ -242,7 +231,6 @@
       color: rgba(122, 87, 87, 0.7);
     }
 
-    /* 放大层 */
     #lightbox {
       position: fixed;
       inset: 0;
@@ -277,31 +265,19 @@
         gap: 24px;
       }
 
-      .right-col {
-        padding-top: 0;
-      }
+      .right-col { padding-top: 0; }
 
       .entry-note {
         max-width: none;
+        padding-left: 18px;
       }
     }
 
     @media (max-width: 760px) {
-      .layout {
-        grid-template-columns: 1fr;
-      }
-
-      .timeline-side {
-        display: none;
-      }
-
-      .page-title {
-        font-size: 42px;
-      }
-
-      .entry-meta {
-        font-size: 24px;
-      }
+      .layout { grid-template-columns: 1fr; }
+      .timeline-side { display: none; }
+      .page-title { font-size: 42px; }
+      .entry-meta { font-size: 24px; }
 
       .photo-grid img {
         width: calc(33.333% - 14px);
@@ -314,9 +290,7 @@
         max-width: none;
       }
 
-      .record-card {
-        width: 96px;
-      }
+      .record-card { width: 96px; }
     }
   </style>
 </head>
@@ -324,7 +298,7 @@
   <div class="page">
     <div class="topline">
       <div class="site-note">A place to leave traces.</div>
-     <a href="#" class="search-btn" aria-label="Search" id="search-icon">⌕</a>
+      <a href="#" class="search-btn" aria-label="Search" id="search-icon">⌕</a>
     </div>
 
     <div class="title-wrap">
@@ -341,13 +315,11 @@
       </div>
 
       <div class="entries" id="entries"></div>
-
-      </div>
     </div>
+  </div>
 
-    <div class="page-footer">
-     "Carve your own path and let the snow tell your story."
-    </div>
+  <div class="page-footer">
+    "Carve your own path and let the snow tell your story."
   </div>
 
   <div id="lightbox" onclick="closeLightbox()">
@@ -355,65 +327,70 @@
     <img id="lightbox-img" src="" alt="large preview">
   </div>
 
-  
-   <script>
+  <script>
+    function parseEntryDate(value) {
+      if (!value) return null;
+      const parts = String(value).trim().split(/\s*-\s*/);
+      const start = parseDatePart(parts[0]);
+      if (!start) return null;
+      return parts.length > 1 ? (parseDatePart(parts[parts.length - 1], start) || start) : start;
+    }
 
-  function parseEntryDate(value) {
-    if (!value) return null;
-    const parts = String(value).trim().split(/\s*-\s*/);
-    const start = parseDatePart(parts[0]);
-    if (!start) return null;
-    return parts.length > 1 ? (parseDatePart(parts[parts.length - 1], start) || start) : start;
-  }
+    function parseDatePart(value, base) {
+      const normalized = String(value || '').trim().replace(/\//g, '.');
+      const full = normalized.match(/^(\d{4})\.(\d{1,2})\.(\d{1,2})$/);
+      if (full) return new Date(Date.UTC(Number(full[1]), Number(full[2]) - 1, Number(full[3])));
+      const partial = normalized.match(/^(\d{1,2})\.(\d{1,2})$/);
+      if (partial && base) return new Date(Date.UTC(base.getUTCFullYear(), Number(partial[1]) - 1, Number(partial[2])));
+      return null;
+    }
 
-  function parseDatePart(value, base) {
-    const normalized = String(value || '').trim().replace(/\//g, '.');
-    const full = normalized.match(/^(\d{4})\.(\d{1,2})\.(\d{1,2})$/);
-    if (full) return new Date(Date.UTC(Number(full[1]), Number(full[2]) - 1, Number(full[3])));
-    const partial = normalized.match(/^(\d{1,2})\.(\d{1,2})$/);
-    if (partial && base) return new Date(Date.UTC(base.getUTCFullYear(), Number(partial[1]) - 1, Number(partial[2])));
-    return null;
-  }
+    function entryAnchor(entry) {
+      const date = parseEntryDate(entry.date);
+      if (!date || Number.isNaN(date.getTime())) return '';
+      const day = date.toISOString().slice(0, 10);
+      const slug = String(entry.location || '')
+        .normalize('NFKD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 36);
+      return slug ? `entry-${day}-${slug}` : `entry-${day}`;
+    }
 
-  function entryAnchor(entry) {
-    const date = parseEntryDate(entry.date);
-    if (!date || Number.isNaN(date.getTime())) return '';
-    const day = date.toISOString().slice(0, 10);
-    const slug = String(entry.location || '')
-      .normalize('NFKD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-      .slice(0, 36);
-    return slug ? `entry-${day}-${slug}` : `entry-${day}`;
-  }
-
-  async function loadEntries() {
-    const res = await fetch('/snowboarding.json');
-    const data = await res.json();
-    data.entries.sort((a, b) => { const da = (a.date||'').replace(/\./g,''); const db = (b.date||'').replace(/\./g,''); return db.localeCompare(da); });
-    const container = document.getElementById('entries');
-    data.entries.forEach(e => {
-      const photosHtml = (e.photos || []).map(p => `<img src="${p}" class="zoomable">`).join('');
-      const videosHtml = (e.videos || []).map(bvid => `<div class="video-cell"><iframe src="//player.bilibili.com/player.html?bvid=${bvid}&autoplay=0" allowfullscreen></iframe></div>`).join('');
-      const recordImgs = e.record_image ? (Array.isArray(e.record_image) ? e.record_image : [e.record_image]) : [];
-      const recordHtml = recordImgs.length ? `<div class="record-grid">${recordImgs.map(ri => `<div class="record-card"><img src="${ri}" alt="record" class="zoomable"></div>`).join('')}</div><div class="record-caption">${e.record_caption || ''}</div>` : '';
-      const id = entryAnchor(e);
-      container.innerHTML += `<div class="entry"${id ? ` id="${id}"` : ''}><div class="left-col"><div class="entry-meta"><span class="dot">•</span>${e.date}${e.location?'<br><span class="entry-location">📍 '+e.location+'</span>':''}</div>${recordHtml}</div><div class="middle-col"><div class="photo-grid">${photosHtml}${videosHtml}</div></div><div class="right-col"><div class="entry-note">${e.note || ''}</div></div></div>`;
-    });
-    const lb = document.getElementById('lightbox');
-    const lbImg = document.getElementById('lightbox-img');
-    document.querySelectorAll('.zoomable').forEach(img => {
-      img.addEventListener('click', function(ev) { ev.stopPropagation(); lb.style.display='flex'; lbImg.src=this.src; lbImg.alt=this.alt||''; });
-    });
-  }
-  loadEntries();
-  function closeLightbox() { document.getElementById('lightbox').style.display='none'; document.getElementById('lightbox-img').src=''; }
-  document.addEventListener('keydown', e => { if(e.key==='Escape') closeLightbox(); });
+    async function loadEntries() {
+      const res = await fetch('/snowboarding.json');
+      const data = await res.json();
+      data.entries.sort((a, b) => {
+        const da = (a.date || '').replace(/\./g, '');
+        const db = (b.date || '').replace(/\./g, '');
+        return db.localeCompare(da);
+      });
+      const container = document.getElementById('entries');
+      data.entries.forEach(e => {
+        const photosHtml = (e.photos || []).map(p => `<img src="${p}" class="zoomable">`).join('');
+        const videosHtml = (e.videos || []).map(bvid => `<div class="video-cell"><iframe src="//player.bilibili.com/player.html?bvid=${bvid}&autoplay=0" allowfullscreen></iframe></div>`).join('');
+        const recordImgs = e.record_image ? (Array.isArray(e.record_image) ? e.record_image : [e.record_image]) : [];
+        const recordHtml = recordImgs.length ? `<div class="record-grid">${recordImgs.map(ri => `<div class="record-card"><img src="${ri}" alt="record" class="zoomable"></div>`).join('')}</div><div class="record-caption">${e.record_caption || ''}</div>` : '';
+        const id = entryAnchor(e);
+        container.innerHTML += `<div class="entry"${id ? ` id="${id}"` : ''}><div class="left-col"><div class="entry-meta"><span class="dot">•</span>${e.date}${e.location ? '<br><span class="entry-location">📍 ' + e.location + '</span>' : ''}</div>${recordHtml}</div><div class="middle-col"><div class="photo-grid">${photosHtml}${videosHtml}</div></div><div class="right-col"><div class="entry-note">${e.note || ""}</div></div></div>`;
+      });
+      const lb = document.getElementById('lightbox');
+      const lbImg = document.getElementById('lightbox-img');
+      document.querySelectorAll('.zoomable').forEach(img => {
+        img.addEventListener('click', function(ev) {
+          ev.stopPropagation();
+          lb.style.display = 'flex';
+          lbImg.src = this.src;
+        });
+      });
+    }
+    loadEntries();
+    function closeLightbox() { document.getElementById('lightbox').style.display = 'none'; }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
   </script>
- <script data-goatcounter="https://kiara-mytrace.goatcounter.com/count"
-        async src="https://gc.zgo.at/count.js"></script>
+  <script data-goatcounter="https://kiara-mytrace.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
   <script src="/search.js"></script>
 </body>
 </html>
