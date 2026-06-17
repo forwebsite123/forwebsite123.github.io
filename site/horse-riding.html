@@ -111,6 +111,9 @@
       grid-template-columns: max-content 230px;
       gap: 38px;
       align-items: start;
+      width: fit-content;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .entry-meta {
@@ -218,7 +221,12 @@
     @media (max-width: 760px) {
       .layout { grid-template-columns: 1fr; }
       .timeline-side { display: none; }
-      .entry { grid-template-columns: 1fr; }
+      .entry {
+        grid-template-columns: 1fr;
+        width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+      }
       .entry-meta { grid-column: span 1; }
       .photo-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
