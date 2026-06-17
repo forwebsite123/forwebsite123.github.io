@@ -1590,6 +1590,8 @@ async function reorderAlbumPhotos(page, fromIdx, toIdx, filteredOriginalIdxs) {
     draftItems[gi] = newAlbumOrder[albumIdx];
   });
 
+  markAlbumContentUpdated(draft, page);
+
   try {
     showProgress('Saving new order...');
     await batchCommit({
@@ -1646,6 +1648,8 @@ async function saveEditPhoto(imagePath, displayIdx) {
       delete item.video;
     }
 
+    markAlbumContentUpdated(jsonData, item.page);
+
     await updateJsonFile('photos.json', jsonData);
     currentPhotosJson = jsonData;
 
@@ -1667,6 +1671,7 @@ async function deleteAlbumPhoto(imagePath, page) {
     // Remove from photos.json and delete the image file in one commit.
     const jsonData = await fetchJsonFile('photos.json');
     jsonData.items = jsonData.items.filter(item => item.image !== imagePath);
+    markAlbumContentUpdated(jsonData, page);
     await updateJsonAndDeleteFiles(
       'photos.json',
       jsonData,
@@ -1768,9 +1773,12 @@ async function submitAlbumPhotos() {
           ...(video ? { video } : {}),
           tags: tags,
           page: page,
-          pageLabel: pageLabel
+          pageLabel: pageLabel,
+          contentUpdatedAt: todayContentUpdateDate()
         });
       }
+
+      markAlbumContentUpdated(jsonData, page);
 
       // 一次性 commit 所有照片 + 更新后的 photos.json
       await batchCommit({
@@ -1863,6 +1871,26 @@ function sortEntriesByDate(entries) {
     const da = (a.date || '').replace(/\./g, '');
     const db = (b.date || '').replace(/\./g, '');
     return db.localeCompare(da); // Descending
+  });
+}
+
+function todayContentUpdateDate() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function markEntryContentUpdated(entry) {
+  if (entry) entry.contentUpdatedAt = todayContentUpdateDate();
+}
+
+function markAlbumContentUpdated(jsonData, page) {
+  if (!jsonData || !Array.isArray(jsonData.items) || !page) return;
+  const updatedAt = todayContentUpdateDate();
+  jsonData.items.forEach(item => {
+    if (item && item.page === page) item.contentUpdatedAt = updatedAt;
   });
 }
 
@@ -2064,6 +2092,8 @@ async function reorderEntryPhotos(entryIdx, fromPi, toPi) {
   const insertAt = fromPi < toPi ? toPi - 1 : toPi;
   entry.photos.splice(insertAt, 0, moved);
 
+  markEntryContentUpdated(entry);
+
   try {
     showProgress('Saving new photo order...');
     await batchCommit({
@@ -2195,6 +2225,8 @@ async function submitEntryAppend(entryIdx) {
         entry.photos.push('/' + path);
       }
 
+      markEntryContentUpdated(entry);
+
       await batchCommit({
         files,
         jsonUpdates: [{ path: currentActivityType + '.json', data: draft }],
@@ -2323,6 +2355,8 @@ async function submitEntryRecordAppend(entryIdx) {
       }
       entry.record_image = records;
 
+      markEntryContentUpdated(entry);
+
       await batchCommit({
         files,
         jsonUpdates: [{ path: currentActivityType + '.json', data: draft }],
@@ -2370,6 +2404,8 @@ async function deleteEntryRecordImage(entryIdx, recordIdx) {
       draftEntry.record_image = draftRecords;
     }
 
+    markEntryContentUpdated(draftEntry);
+
     await updateJsonAndDeleteFiles(
       currentActivityType + '.json',
       draft,
@@ -2416,6 +2452,8 @@ async function saveEditEntry(idx) {
       } else {
         entry.note = document.getElementById('editEntryNote-' + idx).value.trim();
       }
+
+      markEntryContentUpdated(entry);
 
       // Sort after edit, but only remap queues after the save succeeds.
       const oldEntryRefs = draft.entries.map((e, i) => ({ ref: e, oldIdx: i }));
@@ -2521,6 +2559,7 @@ async function deleteEntryPhoto(entryIdx, photoIdx) {
     delete draft._sha;
     if (!draft.entries[entryIdx].photos) draft.entries[entryIdx].photos = [];
     draft.entries[entryIdx].photos.splice(photoIdx, 1);
+    markEntryContentUpdated(draft.entries[entryIdx]);
     await updateJsonAndDeleteFiles(
       currentActivityType + '.json',
       draft,
@@ -2722,6 +2761,8 @@ async function submitActivityEntry() {
       } else {
         entry.note = document.getElementById('entryNote').value.trim();
       }
+
+      markEntryContentUpdated(entry);
 
       // Add entry and sort
       currentActivityJson.entries.push(entry);
