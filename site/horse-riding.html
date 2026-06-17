@@ -108,13 +108,10 @@
 
     .entry {
       display: grid;
-      grid-template-columns: max-content 240px;
-      column-gap: 86px;
+      grid-template-columns: 280px max-content 220px;
+      column-gap: 38px;
       row-gap: 0;
       align-items: start;
-      width: min(100%, 960px);
-      margin-left: auto;
-      margin-right: auto;
     }
 
     .entry-meta {
@@ -122,7 +119,6 @@
       color: #9a6666;
       margin-bottom: 18px;
       line-height: 1.2;
-      grid-column: span 2;
     }
 
     .entry-meta .dot {
@@ -169,7 +165,10 @@
       border: none;
     }
 
-    .right-col { padding-top: 10px; }
+    .right-col {
+      padding-top: 52px;
+      margin-left: 48px;
+    }
 
     .entry-note {
       font-size: 15px;
@@ -224,10 +223,12 @@
       .timeline-side { display: none; }
       .entry {
         grid-template-columns: 1fr;
-        width: 100%;
-        margin-left: 0;
-        margin-right: 0;
         row-gap: 16px;
+      }
+
+      .right-col {
+        padding-top: 0;
+        margin-left: 0;
       }
       .entry-meta { grid-column: span 1; }
       .photo-grid {
