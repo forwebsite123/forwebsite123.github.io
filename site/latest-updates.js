@@ -81,7 +81,7 @@
         .left-column {
           padding-top: 0 !important;
           gap: clamp(13px, 2vh, 21px) !important;
-          translate: 0 -18px !important;
+          translate: 0 -58px !important;
         }
 
         .card,
@@ -102,8 +102,8 @@
         }
 
         .tree-area {
-          scale: .93 !important;
-          translate: 0 -18px !important;
+          scale: .88 !important;
+          translate: 0 -72px !important;
           transform-origin: center center !important;
         }
 
@@ -128,7 +128,7 @@
         .side-links,
         .behind-wrap,
         .behind-pixels {
-          transform: translate(-16px, -42px) !important;
+          transform: translate(-16px, -96px) !important;
         }
 
         .footer-text,
