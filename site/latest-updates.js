@@ -42,27 +42,34 @@
       html { min-height: 100%; overflow-x: hidden; }
       body { min-height: 100svh; overflow-x: hidden; }
 
-      /* Desktop: keep horizontal proportions, but trim the vertical canvas instead of shrinking the whole page. */
+      /* Desktop: keep width/proportions, trim the vertical canvas, and avoid a full-page scroll. */
       @media (min-width: 901px) {
+        html,
         body {
-          min-height: 100svh;
-          overflow-x: hidden;
-          overflow-y: auto;
+          height: 100svh;
+          max-height: 100svh;
+          overflow-x: hidden !important;
+          overflow-y: hidden !important;
         }
 
         .page,
         main,
         .home-stage {
-          min-height: 100svh !important;
-          padding-top: clamp(20px, 3.2vh, 42px) !important;
-          padding-bottom: clamp(6px, 1.1vh, 14px) !important;
+          height: 100svh !important;
+          min-height: 0 !important;
+          max-height: 100svh !important;
+          padding-top: clamp(32px, 4.2vh, 52px) !important;
+          padding-bottom: clamp(0px, .6vh, 6px) !important;
+          box-sizing: border-box !important;
+          overflow: hidden !important;
         }
 
         .layout,
         .home-layout,
         .home-feature-layout {
-          min-height: calc(100svh - 76px) !important;
-          margin-top: clamp(10px, 2vh, 24px) !important;
+          height: calc(100svh - clamp(56px, 7vh, 82px)) !important;
+          min-height: 0 !important;
+          margin-top: 0 !important;
           margin-bottom: 0 !important;
           align-items: center !important;
         }
@@ -72,7 +79,14 @@
         .left-side,
         .left-col,
         .left-column {
-          padding-top: clamp(52px, 7.2vh, 94px) !important;
+          padding-top: clamp(28px, 4.4vh, 54px) !important;
+          gap: clamp(14px, 2.2vh, 22px) !important;
+        }
+
+        .card,
+        .entry-card,
+        .portal-card {
+          min-height: clamp(116px, 15.8vh, 148px) !important;
         }
 
         .tree-area,
@@ -81,8 +95,19 @@
         .center-stage,
         .center-col,
         .center-column {
-          min-height: clamp(620px, 78svh, 880px) !important;
+          min-height: clamp(540px, 76svh, 780px) !important;
+          height: clamp(540px, 76svh, 780px) !important;
+          margin-top: 0 !important;
           margin-bottom: 0 !important;
+        }
+
+        .tree-main,
+        .main-tree,
+        .growth-tree-main,
+        .tree-image,
+        .tree-art {
+          max-height: 76svh !important;
+          object-fit: contain !important;
         }
 
         .right-side,
@@ -90,19 +115,36 @@
         .right-column,
         .latest-area,
         .latest-panel-wrap {
-          padding-top: clamp(86px, 10.5vh, 128px) !important;
+          padding-top: clamp(68px, 8.8vh, 106px) !important;
         }
 
         .footer-text,
         .site-quote,
         .home-quote,
         footer {
-          margin-top: clamp(0px, .8vh, 8px) !important;
-          margin-bottom: 0 !important;
+          position: fixed !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: clamp(4px, .8vh, 10px) !important;
+          z-index: 5 !important;
+          margin: 0 !important;
+          text-align: center !important;
+          pointer-events: none !important;
+        }
+
+        img[src*="home-corner-bl"],
+        img[src*="corner-bl"],
+        img[src*="bottom-left"],
+        .corner-bl,
+        .home-corner-bl,
+        .corner-bottom-left,
+        .floral-bottom-left,
+        .botanical-bottom-left {
+          transform: translateY(10px) !important;
         }
       }
 
-      /* Mobile: use a real phone layout; no desktop three-column squeezing. */
+      /* Mobile: separate phone composition instead of squeezing the desktop canvas. */
       @media (max-width: 900px) {
         body {
           min-height: 100svh;
@@ -121,7 +163,7 @@
           min-height: auto !important;
           height: auto !important;
           margin: 0 auto !important;
-          padding: clamp(16px, 5vw, 26px) clamp(15px, 4.8vw, 24px) 44px !important;
+          padding: clamp(18px, 5vw, 28px) clamp(15px, 4.8vw, 24px) 44px !important;
           transform: none !important;
           display: flex !important;
           flex-direction: column !important;
@@ -153,8 +195,8 @@
           order: 1 !important;
           width: 100% !important;
           max-width: 100% !important;
-          min-height: clamp(520px, 136vw, 700px) !important;
-          height: clamp(520px, 136vw, 700px) !important;
+          min-height: clamp(500px, 140vw, 690px) !important;
+          height: clamp(500px, 140vw, 690px) !important;
           margin: 0 auto !important;
           transform: none !important;
           overflow: visible !important;
@@ -173,14 +215,14 @@
         .node,
         .school-node,
         .milestone-node {
-          transform: translateX(-50%) scale(.72) !important;
+          transform: translateX(-50%) scale(.68) !important;
           transform-origin: center center !important;
         }
 
         .growth-wrap,
         .growth-ring-wrap,
         .growth-sign-wrap {
-          transform: scale(.70) !important;
+          transform: scale(.66) !important;
           transform-origin: top center !important;
         }
 
@@ -273,20 +315,20 @@
         .center-stage,
         .center-col,
         .center-column {
-          min-height: clamp(480px, 146vw, 640px) !important;
-          height: clamp(480px, 146vw, 640px) !important;
+          min-height: clamp(470px, 148vw, 630px) !important;
+          height: clamp(470px, 148vw, 630px) !important;
         }
 
         .node,
         .school-node,
         .milestone-node {
-          transform: translateX(-50%) scale(.62) !important;
+          transform: translateX(-50%) scale(.58) !important;
         }
 
         .growth-wrap,
         .growth-ring-wrap,
         .growth-sign-wrap {
-          transform: scale(.60) !important;
+          transform: scale(.56) !important;
         }
       }
     `;
