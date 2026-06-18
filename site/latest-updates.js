@@ -42,7 +42,7 @@
       html { min-height: 100%; overflow-x: hidden; }
       body { min-height: 100svh; overflow-x: hidden; }
 
-      /* Desktop: keep width/proportions, trim the vertical canvas, and avoid a full-page scroll. */
+      /* Desktop: only trim the canvas/vertical spacing. Do not resize the tree artwork itself. */
       @media (min-width: 901px) {
         html,
         body {
@@ -58,8 +58,8 @@
           height: 100svh !important;
           min-height: 0 !important;
           max-height: 100svh !important;
-          padding-top: clamp(32px, 4.2vh, 52px) !important;
-          padding-bottom: clamp(0px, .6vh, 6px) !important;
+          padding-top: clamp(30px, 3.8vh, 48px) !important;
+          padding-bottom: 0 !important;
           box-sizing: border-box !important;
           overflow: hidden !important;
         }
@@ -67,7 +67,7 @@
         .layout,
         .home-layout,
         .home-feature-layout {
-          height: calc(100svh - clamp(56px, 7vh, 82px)) !important;
+          height: calc(100svh - clamp(48px, 6vh, 72px)) !important;
           min-height: 0 !important;
           margin-top: 0 !important;
           margin-bottom: 0 !important;
@@ -79,8 +79,8 @@
         .left-side,
         .left-col,
         .left-column {
-          padding-top: clamp(28px, 4.4vh, 54px) !important;
-          gap: clamp(14px, 2.2vh, 22px) !important;
+          padding-top: clamp(6px, 2vh, 26px) !important;
+          gap: clamp(14px, 2.1vh, 22px) !important;
         }
 
         .card,
@@ -95,10 +95,9 @@
         .center-stage,
         .center-col,
         .center-column {
-          min-height: clamp(540px, 76svh, 780px) !important;
-          height: clamp(540px, 76svh, 780px) !important;
           margin-top: 0 !important;
           margin-bottom: 0 !important;
+          overflow: visible !important;
         }
 
         .tree-main,
@@ -106,7 +105,8 @@
         .growth-tree-main,
         .tree-image,
         .tree-art {
-          max-height: 76svh !important;
+          max-height: none !important;
+          height: auto !important;
           object-fit: contain !important;
         }
 
@@ -115,7 +115,13 @@
         .right-column,
         .latest-area,
         .latest-panel-wrap {
-          padding-top: clamp(68px, 8.8vh, 106px) !important;
+          padding-top: clamp(58px, 7.6vh, 92px) !important;
+        }
+
+        .side-links,
+        .behind-wrap,
+        .behind-pixels {
+          transform: translateY(-34px) !important;
         }
 
         .footer-text,
