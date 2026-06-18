@@ -4,16 +4,8 @@
 
   const MAX_UPDATES = 5;
   injectGrowthTreePreviewStyles();
+  injectHomeResponsivePatch();
 
-  // Add future public JSON sources here. For activity-style files shaped like
-  // { "entries": [...] }, one config line is enough: file, page, icon, label, type.
-  // Supported type values:
-  // - "activity": generic entries[] adapter using date, location, record_caption, note.
-  // - "fragments": entries[] adapter using date, text, and tags.
-  // - "photos": photos.json adapter grouped by album/page.
-  // Latest uses contentUpdatedAt only for display and sorting; original date
-  // fields remain only for activity/fragment deep-link anchor generation.
-  // Keep this list explicit; static sites cannot safely auto-scan directories.
   const UPDATE_SOURCES = [
     { file: 'diving.json', page: 'diving.html', icon: '🫧', label: 'Diving', type: 'activity' },
     { file: 'found-fragments.json', page: 'found-fragments.html', icon: '✦', label: 'Fragments', type: 'fragments' },
@@ -28,6 +20,203 @@
     fragments: collectFoundFragments,
     photos: collectPhotoAlbumUpdates
   };
+
+  function isHomeLikePage() {
+    const path = window.location.pathname.toLowerCase().replace(/\/$/, '');
+    return path === '' || path === '/' || path === '/home' || path === '/home.html' ||
+      path === '/index' || path === '/index.html' || /home-growth-tree-preview/i.test(path) ||
+      /a place to leave traces/i.test(document.title || '');
+  }
+
+  function injectHomeResponsivePatch() {
+    if (!isHomeLikePage() || document.getElementById('home-responsive-fit-patch')) return;
+
+    const style = document.createElement('style');
+    style.id = 'home-responsive-fit-patch';
+    style.textContent = `
+      html {
+        min-height: 100%;
+        overflow-x: hidden;
+      }
+
+      body {
+        min-height: 100svh;
+        overflow-x: hidden;
+      }
+
+      /* Desktop: keep the carefully designed homepage composition visible in one screen when the browser is short. */
+      @media (min-width: 901px) {
+        body.home-fit-active {
+          height: 100svh;
+          overflow-y: hidden;
+        }
+
+        body.home-fit-active .page,
+        body.home-fit-active main,
+        body.home-fit-active .home-stage,
+        body.home-fit-active .home-layout,
+        body.home-fit-active .layout,
+        body.home-fit-active .home-feature-layout {
+          transform: scale(var(--home-fit-scale, 1));
+          transform-origin: top center;
+        }
+      }
+
+      /* Phone/tablet: do not force the desktop three-column composition into a tiny screen. */
+      @media (max-width: 900px) {
+        body {
+          min-height: 100svh;
+          overflow-y: auto;
+        }
+
+        .page,
+        main,
+        .home-stage,
+        .home-layout,
+        .layout,
+        .home-feature-layout {
+          width: 100% !important;
+          max-width: 100% !important;
+          min-height: auto !important;
+          height: auto !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
+          padding-left: clamp(16px, 5vw, 28px) !important;
+          padding-right: clamp(16px, 5vw, 28px) !important;
+          transform: none !important;
+          display: flex !important;
+          flex-direction: column !important;
+          gap: clamp(18px, 5vw, 30px) !important;
+          overflow-x: hidden !important;
+        }
+
+        .cards,
+        .grid,
+        .left-side,
+        .left-col,
+        .left-column {
+          order: 2 !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          transform: none !important;
+          padding-top: 0 !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
+          display: grid !important;
+          grid-template-columns: 1fr !important;
+          gap: clamp(16px, 4.5vw, 24px) !important;
+        }
+
+        .tree-area,
+        .tree-stage,
+        .tree-wrap,
+        .tree-shell,
+        .center-stage,
+        .center-col,
+        .center-column {
+          order: 1 !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          min-height: auto !important;
+          transform: none !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
+          overflow: visible !important;
+        }
+
+        .right-side,
+        .right-col,
+        .right-column,
+        .bottom-panels,
+        .latest-area,
+        .latest-panel-wrap {
+          order: 3 !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          transform: none !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
+        }
+
+        .card,
+        .entry-card,
+        .portal-card {
+          width: 100% !important;
+          max-width: 100% !important;
+          min-height: clamp(118px, 31vw, 158px) !important;
+          padding: clamp(18px, 5vw, 26px) !important;
+        }
+
+        .cn {
+          font-size: clamp(30px, 11vw, 46px) !important;
+        }
+
+        .en {
+          font-size: clamp(18px, 5.8vw, 24px) !important;
+        }
+
+        #latest-updates-list .update-item {
+          grid-template-columns: minmax(0, 1fr) !important;
+          row-gap: 4px !important;
+        }
+
+        #latest-updates-list .update-date {
+          justify-self: start !important;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+
+    const fitSelectors = ['.page', 'main', '.home-stage', '.home-layout', '.layout', '.home-feature-layout'];
+
+    function findFitRoot() {
+      for (const selector of fitSelectors) {
+        const el = document.querySelector(selector);
+        if (el && el.scrollHeight > 0) return el;
+      }
+      return null;
+    }
+
+    function applyDesktopFit() {
+      if (window.innerWidth <= 900) {
+        document.body.classList.remove('home-fit-active');
+        document.documentElement.style.removeProperty('--home-fit-scale');
+        return;
+      }
+
+      const root = findFitRoot();
+      if (!root) return;
+
+      document.body.classList.remove('home-fit-active');
+      document.documentElement.style.setProperty('--home-fit-scale', '1');
+
+      window.requestAnimationFrame(() => {
+        const rect = root.getBoundingClientRect();
+        const availableHeight = Math.max(560, window.innerHeight - 6);
+        const availableWidth = Math.max(920, window.innerWidth - 6);
+        const heightScale = rect.height > 0 ? availableHeight / rect.height : 1;
+        const widthScale = rect.width > 0 ? availableWidth / rect.width : 1;
+        const scale = Math.min(1, Math.max(0.76, heightScale, Math.min(heightScale, widthScale)));
+
+        if (scale < 0.985) {
+          document.documentElement.style.setProperty('--home-fit-scale', String(scale));
+          document.body.classList.add('home-fit-active');
+        }
+      });
+    }
+
+    let resizeTimer;
+    function scheduleFit() {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(applyDesktopFit, 80);
+    }
+
+    window.addEventListener('load', scheduleFit, { once: true });
+    window.addEventListener('resize', scheduleFit);
+    window.addEventListener('orientationchange', scheduleFit);
+    setTimeout(scheduleFit, 250);
+    setTimeout(scheduleFit, 900);
+  }
 
   function injectGrowthTreePreviewStyles() {
     const isGrowthTreePreview = /home-growth-tree-preview\.html?$/i.test(window.location.pathname)
