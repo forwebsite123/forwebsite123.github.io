@@ -1,11 +1,13 @@
 (function () {
+  'use strict';
+
+  injectHomeFavicon();
+  injectHomeResponsivePatch();
+
   const list = document.getElementById('latest-updates-list');
   if (!list) return;
 
   const MAX_UPDATES = 5;
-  injectGrowthTreePreviewStyles();
-  injectHomeResponsivePatch();
-
   const UPDATE_SOURCES = [
     { file: 'diving.json', page: 'diving.html', icon: '🫧', label: 'Diving', type: 'activity' },
     { file: 'found-fragments.json', page: 'found-fragments.html', icon: '✦', label: 'Fragments', type: 'fragments' },
@@ -15,17 +17,20 @@
     { file: 'photos.json', icon: '📷', label: 'Drift', type: 'photos' }
   ];
 
-  const ADAPTERS = {
-    activity: collectActivityEntries,
-    fragments: collectFoundFragments,
-    photos: collectPhotoAlbumUpdates
-  };
-
   function isHomeLikePage() {
     const path = window.location.pathname.toLowerCase().replace(/\/$/, '');
     return path === '' || path === '/' || path === '/home' || path === '/home.html' ||
       path === '/index' || path === '/index.html' || /home-growth-tree-preview/i.test(path) ||
       /a place to leave traces/i.test(document.title || '');
+  }
+
+  function injectHomeFavicon() {
+    if (!isHomeLikePage()) return;
+    if (document.querySelector('link[rel~="icon"]')) return;
+    const icon = document.createElement('link');
+    icon.rel = 'icon';
+    icon.href = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🌿%3C/text%3E%3C/svg%3E";
+    document.head.appendChild(icon);
   }
 
   function injectHomeResponsivePatch() {
@@ -34,21 +39,14 @@
     const style = document.createElement('style');
     style.id = 'home-responsive-fit-patch';
     style.textContent = `
-      html {
-        min-height: 100%;
-        overflow-x: hidden;
-      }
+      html { min-height: 100%; overflow-x: hidden; }
+      body { min-height: 100svh; overflow-x: hidden; }
 
-      body {
-        min-height: 100svh;
-        overflow-x: hidden;
-      }
-
-      /* Desktop: keep the carefully designed homepage composition visible in one screen when the browser is short. */
       @media (min-width: 901px) {
         body.home-fit-active {
-          height: 100svh;
-          overflow-y: hidden;
+          min-height: 100svh;
+          overflow-x: hidden;
+          overflow-y: auto;
         }
 
         body.home-fit-active .page,
@@ -62,12 +60,8 @@
         }
       }
 
-      /* Phone/tablet: do not force the desktop three-column composition into a tiny screen. */
       @media (max-width: 900px) {
-        body {
-          min-height: 100svh;
-          overflow-y: auto;
-        }
+        body { min-height: 100svh; overflow-y: auto; }
 
         .page,
         main,
@@ -147,22 +141,14 @@
           padding: clamp(18px, 5vw, 26px) !important;
         }
 
-        .cn {
-          font-size: clamp(30px, 11vw, 46px) !important;
-        }
-
-        .en {
-          font-size: clamp(18px, 5.8vw, 24px) !important;
-        }
+        .cn { font-size: clamp(30px, 11vw, 46px) !important; }
+        .en { font-size: clamp(18px, 5.8vw, 24px) !important; }
 
         #latest-updates-list .update-item {
           grid-template-columns: minmax(0, 1fr) !important;
           row-gap: 4px !important;
         }
-
-        #latest-updates-list .update-date {
-          justify-self: start !important;
-        }
+        #latest-updates-list .update-date { justify-self: start !important; }
       }
     `;
     document.head.appendChild(style);
@@ -192,11 +178,11 @@
 
       window.requestAnimationFrame(() => {
         const rect = root.getBoundingClientRect();
-        const availableHeight = Math.max(560, window.innerHeight - 6);
-        const availableWidth = Math.max(920, window.innerWidth - 6);
+        const availableHeight = Math.max(600, window.innerHeight - 4);
+        const availableWidth = Math.max(920, window.innerWidth - 4);
         const heightScale = rect.height > 0 ? availableHeight / rect.height : 1;
         const widthScale = rect.width > 0 ? availableWidth / rect.width : 1;
-        const scale = Math.min(1, Math.max(0.76, heightScale, Math.min(heightScale, widthScale)));
+        const scale = Math.min(1, Math.max(0.90, Math.min(heightScale, widthScale)));
 
         if (scale < 0.985) {
           document.documentElement.style.setProperty('--home-fit-scale', String(scale));
@@ -218,125 +204,38 @@
     setTimeout(scheduleFit, 900);
   }
 
-  function injectGrowthTreePreviewStyles() {
-    const isGrowthTreePreview = /home-growth-tree-preview\.html?$/i.test(window.location.pathname)
-      || /home-growth-tree-preview/i.test(window.location.pathname)
-      || /Growth Tree Preview/i.test(document.title || '');
+  function safeJson(url) {
+    return fetch(url, { cache: 'no-store' })
+      .then((response) => response.ok ? response.json() : null)
+      .catch(() => null);
+  }
 
-    if (!isGrowthTreePreview || document.getElementById('growth-tree-latest-styles')) return;
-
-    const style = document.createElement('style');
-    style.id = 'growth-tree-latest-styles';
-    style.textContent = `
-      #latest-updates-list {
-        list-style: none !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 8px !important;
-      }
-
-      #latest-updates-list .update-item {
-        display: grid !important;
-        grid-template-columns: minmax(0, 1fr) auto !important;
-        align-items: start !important;
-        column-gap: 9px !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        color: rgba(111, 78, 70, .72) !important;
-        font-size: 11.8px !important;
-        line-height: 1.32 !important;
-      }
-
-      #latest-updates-list .update-link {
-        min-width: 0 !important;
-        display: flex !important;
-        align-items: flex-start !important;
-        gap: 5px !important;
-        color: inherit !important;
-        text-decoration: none !important;
-      }
-
-      #latest-updates-list .update-icon {
-        flex: 0 0 auto !important;
-        opacity: .82 !important;
-        line-height: 1.25 !important;
-      }
-
-      #latest-updates-list .update-text {
-        min-width: 0 !important;
-        display: block !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        white-space: nowrap !important;
-      }
-
-      #latest-updates-list .update-category {
-        margin-right: 5px !important;
-        color: rgba(132, 91, 87, .76) !important;
-        font-style: italic !important;
-        letter-spacing: .02em !important;
-      }
-
-      #latest-updates-list .update-date {
-        white-space: nowrap !important;
-        color: rgba(132, 91, 87, .50) !important;
-        font-size: 10.2px !important;
-        line-height: 1.32 !important;
-      }
-
-      #latest-updates-list .update-empty {
-        margin: 0 !important;
-        color: rgba(107, 78, 70, .62) !important;
-        font-size: 12px !important;
-        line-height: 1.45 !important;
-      }
-    `;
-    document.head.appendChild(style);
+  function parseContentUpdatedAt(value) {
+    if (!value || typeof value !== 'string') return null;
+    const trimmed = value.trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return null;
+    const date = new Date(`${trimmed}T00:00:00Z`);
+    return Number.isNaN(date.getTime()) ? null : date;
   }
 
   function parseDateRange(value) {
     if (!value || typeof value !== 'string') return null;
-    const trimmed = value.trim();
-    const parts = trimmed.split(/\s*-\s*/);
-    const start = parseDatePart(parts[0]);
-    if (!start) return null;
-
-    if (parts.length === 1) return start;
-
-    const endRaw = parts[parts.length - 1];
-    const end = parseDatePart(endRaw, start);
-    return end || start;
+    const first = value.trim().split(/\s*-\s*/)[0].replace(/\//g, '.');
+    let date = null;
+    if (/^\d{4}-\d{2}-\d{2}/.test(first)) date = new Date(first);
+    const full = first.match(/^(\d{4})\.(\d{1,2})\.(\d{1,2})$/);
+    if (full) date = new Date(Date.UTC(Number(full[1]), Number(full[2]) - 1, Number(full[3])));
+    return date && !Number.isNaN(date.getTime()) ? date : null;
   }
 
-  function parseDatePart(value, base) {
-    if (!value || typeof value !== 'string') return null;
-    const normalized = value.trim().replace(/\//g, '.');
-
-    if (/^\d{4}-\d{2}-\d{2}/.test(normalized)) {
-      const date = new Date(normalized);
-      return Number.isNaN(date.getTime()) ? null : date;
-    }
-
-    const full = normalized.match(/^(\d{4})\.(\d{1,2})\.(\d{1,2})$/);
-    if (full) return makeDate(full[1], full[2], full[3]);
-
-    const partial = normalized.match(/^(\d{1,2})\.(\d{1,2})$/);
-    if (partial && base) return makeDate(base.getUTCFullYear(), partial[1], partial[2]);
-
-    return null;
+  function formatMachineDate(date) {
+    return date.toISOString().slice(0, 10);
   }
 
-  function makeDate(year, month, day) {
-    const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
-    return Number.isNaN(date.getTime()) ? null : date;
-  }
-
-  function anchorFrom(date, extra) {
-    const day = formatMachineDate(date);
-    const slug = slugify(extra || '');
-    return slug ? `entry-${day}-${slug}` : `entry-${day}`;
+  function formatDisplayDate(date) {
+    return date.toLocaleDateString('en-CA', {
+      timeZone: 'UTC', year: 'numeric', month: '2-digit', day: '2-digit'
+    });
   }
 
   function slugify(value) {
@@ -349,17 +248,9 @@
       .slice(0, 36);
   }
 
-  function formatMachineDate(date) {
-    return date.toISOString().slice(0, 10);
-  }
-
-  function formatDisplayDate(date) {
-    return date.toLocaleDateString('en-CA', {
-      timeZone: 'UTC',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    });
+  function anchorFrom(date, extra) {
+    const slug = slugify(extra || '');
+    return slug ? `entry-${formatMachineDate(date)}-${slug}` : `entry-${formatMachineDate(date)}`;
   }
 
   function compactText(value, fallback) {
@@ -409,10 +300,8 @@
       if (!item || !item.page) return;
       const updatedDate = parseContentUpdatedAt(item.contentUpdatedAt);
       if (!updatedDate) return;
-
       const existing = byPage.get(item.page);
       if (existing && existing.date >= updatedDate) return;
-
       const label = compactText(item.pageLabel || item.page.replace(/\.html$/i, ''), 'Album');
       byPage.set(item.page, {
         icon: source.icon,
@@ -426,12 +315,19 @@
     return [...byPage.values()];
   }
 
-  function parseContentUpdatedAt(value) {
-    if (!value || typeof value !== 'string') return null;
-    const trimmed = value.trim();
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return null;
-    const date = makeDate(trimmed.slice(0, 4), trimmed.slice(5, 7), trimmed.slice(8, 10));
-    return date && formatMachineDate(date) === trimmed ? date : null;
+  function collectUpdates(data, source) {
+    if (source.type === 'activity') return collectActivityEntries(data, source);
+    if (source.type === 'fragments') return collectFoundFragments(data, source);
+    if (source.type === 'photos') return collectPhotoAlbumUpdates(data, source);
+    return [];
+  }
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[char]));
+  }
+
+  function escapeAttribute(value) {
+    return escapeHtml(value).replace(/'/g, '&#39;');
   }
 
   function render(updates) {
@@ -451,24 +347,9 @@
     `).join('');
   }
 
-  function escapeHtml(value) {
-    return String(value).replace(/[&<>"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[char]));
-  }
-
-  function escapeAttribute(value) {
-    return escapeHtml(value).replace(/'/g, '&#39;');
-  }
-
-  Promise.allSettled(UPDATE_SOURCES.map((source) => {
-    const adapter = ADAPTERS[source.type] || collectActivityEntries;
-
-    return fetch(source.file, { cache: 'no-store' })
-      .then((response) => {
-        if (!response.ok) throw new Error(`Could not load ${source.file}`);
-        return response.json();
-      })
-      .then((data) => adapter(data, source));
-  }))
+  Promise.allSettled(UPDATE_SOURCES.map((source) =>
+    safeJson(source.file).then((data) => collectUpdates(data, source))
+  ))
     .then((results) => {
       const updates = results
         .filter((result) => result.status === 'fulfilled')
