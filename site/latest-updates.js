@@ -3,6 +3,7 @@
   if (!list) return;
 
   const MAX_UPDATES = 5;
+  injectGrowthTreePreviewStyles();
 
   // Add future public JSON sources here. For activity-style files shaped like
   // { "entries": [...] }, one config line is enough: file, page, icon, label, type.
@@ -27,6 +28,84 @@
     fragments: collectFoundFragments,
     photos: collectPhotoAlbumUpdates
   };
+
+  function injectGrowthTreePreviewStyles() {
+    const isGrowthTreePreview = /home-growth-tree-preview\.html?$/i.test(window.location.pathname)
+      || /home-growth-tree-preview/i.test(window.location.pathname)
+      || /Growth Tree Preview/i.test(document.title || '');
+
+    if (!isGrowthTreePreview || document.getElementById('growth-tree-latest-styles')) return;
+
+    const style = document.createElement('style');
+    style.id = 'growth-tree-latest-styles';
+    style.textContent = `
+      #latest-updates-list {
+        list-style: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+      }
+
+      #latest-updates-list .update-item {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto !important;
+        align-items: start !important;
+        column-gap: 9px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        color: rgba(111, 78, 70, .72) !important;
+        font-size: 11.8px !important;
+        line-height: 1.32 !important;
+      }
+
+      #latest-updates-list .update-link {
+        min-width: 0 !important;
+        display: flex !important;
+        align-items: flex-start !important;
+        gap: 5px !important;
+        color: inherit !important;
+        text-decoration: none !important;
+      }
+
+      #latest-updates-list .update-icon {
+        flex: 0 0 auto !important;
+        opacity: .82 !important;
+        line-height: 1.25 !important;
+      }
+
+      #latest-updates-list .update-text {
+        min-width: 0 !important;
+        display: block !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+      }
+
+      #latest-updates-list .update-category {
+        margin-right: 5px !important;
+        color: rgba(132, 91, 87, .76) !important;
+        font-style: italic !important;
+        letter-spacing: .02em !important;
+      }
+
+      #latest-updates-list .update-date {
+        white-space: nowrap !important;
+        color: rgba(132, 91, 87, .50) !important;
+        font-size: 10.2px !important;
+        line-height: 1.32 !important;
+      }
+
+      #latest-updates-list .update-empty {
+        margin: 0 !important;
+        color: rgba(107, 78, 70, .62) !important;
+        font-size: 12px !important;
+        line-height: 1.45 !important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
 
   function parseDateRange(value) {
     if (!value || typeof value !== 'string') return null;
@@ -184,7 +263,7 @@
   }
 
   function escapeHtml(value) {
-    return String(value).replace(/[&<>\"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[char]));
+    return String(value).replace(/[&<>"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[char]));
   }
 
   function escapeAttribute(value) {
