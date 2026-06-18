@@ -2,7 +2,7 @@
   'use strict';
 
   injectHomeFavicon();
-  injectHomeResponsivePatch();
+  injectHomeCanvasPatch();
 
   const list = document.getElementById('latest-updates-list');
   if (!list) return;
@@ -33,35 +33,82 @@
     document.head.appendChild(icon);
   }
 
-  function injectHomeResponsivePatch() {
-    if (!isHomeLikePage() || document.getElementById('home-responsive-fit-patch')) return;
+  function injectHomeCanvasPatch() {
+    if (!isHomeLikePage() || document.getElementById('home-canvas-mobile-patch')) return;
 
     const style = document.createElement('style');
-    style.id = 'home-responsive-fit-patch';
+    style.id = 'home-canvas-mobile-patch';
     style.textContent = `
       html { min-height: 100%; overflow-x: hidden; }
       body { min-height: 100svh; overflow-x: hidden; }
 
+      /* Desktop: keep horizontal proportions, but trim the vertical canvas instead of shrinking the whole page. */
       @media (min-width: 901px) {
-        body.home-fit-active {
+        body {
           min-height: 100svh;
           overflow-x: hidden;
           overflow-y: auto;
         }
 
-        body.home-fit-active .page,
-        body.home-fit-active main,
-        body.home-fit-active .home-stage,
-        body.home-fit-active .home-layout,
-        body.home-fit-active .layout,
-        body.home-fit-active .home-feature-layout {
-          transform: scale(var(--home-fit-scale, 1));
-          transform-origin: top center;
+        .page,
+        main,
+        .home-stage {
+          min-height: 100svh !important;
+          padding-top: clamp(20px, 3.2vh, 42px) !important;
+          padding-bottom: clamp(6px, 1.1vh, 14px) !important;
+        }
+
+        .layout,
+        .home-layout,
+        .home-feature-layout {
+          min-height: calc(100svh - 76px) !important;
+          margin-top: clamp(10px, 2vh, 24px) !important;
+          margin-bottom: 0 !important;
+          align-items: center !important;
+        }
+
+        .cards,
+        .grid,
+        .left-side,
+        .left-col,
+        .left-column {
+          padding-top: clamp(52px, 7.2vh, 94px) !important;
+        }
+
+        .tree-area,
+        .tree-stage,
+        .tree-shell,
+        .center-stage,
+        .center-col,
+        .center-column {
+          min-height: clamp(620px, 78svh, 880px) !important;
+          margin-bottom: 0 !important;
+        }
+
+        .right-side,
+        .right-col,
+        .right-column,
+        .latest-area,
+        .latest-panel-wrap {
+          padding-top: clamp(86px, 10.5vh, 128px) !important;
+        }
+
+        .footer-text,
+        .site-quote,
+        .home-quote,
+        footer {
+          margin-top: clamp(0px, .8vh, 8px) !important;
+          margin-bottom: 0 !important;
         }
       }
 
+      /* Mobile: use a real phone layout; no desktop three-column squeezing. */
       @media (max-width: 900px) {
-        body { min-height: 100svh; overflow-y: auto; }
+        body {
+          min-height: 100svh;
+          overflow-x: hidden !important;
+          overflow-y: auto !important;
+        }
 
         .page,
         main,
@@ -73,37 +120,32 @@
           max-width: 100% !important;
           min-height: auto !important;
           height: auto !important;
-          margin-left: auto !important;
-          margin-right: auto !important;
-          padding-left: clamp(16px, 5vw, 28px) !important;
-          padding-right: clamp(16px, 5vw, 28px) !important;
+          margin: 0 auto !important;
+          padding: clamp(16px, 5vw, 26px) clamp(15px, 4.8vw, 24px) 44px !important;
           transform: none !important;
           display: flex !important;
           flex-direction: column !important;
-          gap: clamp(18px, 5vw, 30px) !important;
+          align-items: stretch !important;
+          gap: clamp(18px, 5vw, 28px) !important;
           overflow-x: hidden !important;
         }
 
-        .cards,
-        .grid,
-        .left-side,
-        .left-col,
-        .left-column {
-          order: 2 !important;
-          width: 100% !important;
-          max-width: 100% !important;
+        .site-note,
+        .topline,
+        .tagline {
+          max-width: calc(100vw - 76px) !important;
+        }
+
+        #search-icon,
+        .search-btn,
+        .search-icon {
           transform: none !important;
-          padding-top: 0 !important;
-          margin-left: auto !important;
-          margin-right: auto !important;
-          display: grid !important;
-          grid-template-columns: 1fr !important;
-          gap: clamp(16px, 4.5vw, 24px) !important;
+          font-size: clamp(22px, 6vw, 30px) !important;
+          z-index: 20 !important;
         }
 
         .tree-area,
         .tree-stage,
-        .tree-wrap,
         .tree-shell,
         .center-stage,
         .center-col,
@@ -111,25 +153,87 @@
           order: 1 !important;
           width: 100% !important;
           max-width: 100% !important;
-          min-height: auto !important;
+          min-height: clamp(520px, 136vw, 700px) !important;
+          height: clamp(520px, 136vw, 700px) !important;
+          margin: 0 auto !important;
           transform: none !important;
-          margin-left: auto !important;
-          margin-right: auto !important;
           overflow: visible !important;
+        }
+
+        .tree-main,
+        .main-tree,
+        .growth-tree-main,
+        .tree-image,
+        .tree-art {
+          max-width: none !important;
+          width: min(118vw, 560px) !important;
+          height: auto !important;
+        }
+
+        .node,
+        .school-node,
+        .milestone-node {
+          transform: translateX(-50%) scale(.72) !important;
+          transform-origin: center center !important;
+        }
+
+        .growth-wrap,
+        .growth-ring-wrap,
+        .growth-sign-wrap {
+          transform: scale(.70) !important;
+          transform-origin: top center !important;
         }
 
         .right-side,
         .right-col,
         .right-column,
-        .bottom-panels,
         .latest-area,
-        .latest-panel-wrap {
+        .latest-panel-wrap,
+        .bottom-panels {
+          order: 2 !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          margin: 0 auto !important;
+          padding-top: 0 !important;
+          transform: none !important;
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: stretch !important;
+          gap: 18px !important;
+        }
+
+        .latest-card,
+        .latest-panel,
+        .panel-card,
+        .updates-card {
+          width: 100% !important;
+          max-width: 100% !important;
+          min-height: auto !important;
+          padding: 22px 20px !important;
+          box-sizing: border-box !important;
+        }
+
+        .side-links,
+        .behind-wrap,
+        .behind-pixels {
+          margin-top: 4px !important;
+          transform: none !important;
+        }
+
+        .cards,
+        .grid,
+        .left-side,
+        .left-col,
+        .left-column {
           order: 3 !important;
           width: 100% !important;
           max-width: 100% !important;
+          margin: 0 auto !important;
+          padding-top: 0 !important;
           transform: none !important;
-          margin-left: auto !important;
-          margin-right: auto !important;
+          display: grid !important;
+          grid-template-columns: 1fr !important;
+          gap: clamp(15px, 4.5vw, 22px) !important;
         }
 
         .card,
@@ -137,71 +241,56 @@
         .portal-card {
           width: 100% !important;
           max-width: 100% !important;
-          min-height: clamp(118px, 31vw, 158px) !important;
+          min-height: clamp(112px, 30vw, 148px) !important;
           padding: clamp(18px, 5vw, 26px) !important;
+          box-sizing: border-box !important;
         }
 
-        .cn { font-size: clamp(30px, 11vw, 46px) !important; }
-        .en { font-size: clamp(18px, 5.8vw, 24px) !important; }
+        .cn { font-size: clamp(30px, 10.8vw, 46px) !important; }
+        .en { font-size: clamp(18px, 5.6vw, 24px) !important; }
 
         #latest-updates-list .update-item {
           grid-template-columns: minmax(0, 1fr) !important;
           row-gap: 4px !important;
         }
+
         #latest-updates-list .update-date { justify-self: start !important; }
+
+        .footer-text,
+        .site-quote,
+        .home-quote,
+        footer {
+          order: 4 !important;
+          margin-top: 4px !important;
+          text-align: center !important;
+        }
+      }
+
+      @media (max-width: 520px) {
+        .tree-area,
+        .tree-stage,
+        .tree-shell,
+        .center-stage,
+        .center-col,
+        .center-column {
+          min-height: clamp(480px, 146vw, 640px) !important;
+          height: clamp(480px, 146vw, 640px) !important;
+        }
+
+        .node,
+        .school-node,
+        .milestone-node {
+          transform: translateX(-50%) scale(.62) !important;
+        }
+
+        .growth-wrap,
+        .growth-ring-wrap,
+        .growth-sign-wrap {
+          transform: scale(.60) !important;
+        }
       }
     `;
     document.head.appendChild(style);
-
-    const fitSelectors = ['.page', 'main', '.home-stage', '.home-layout', '.layout', '.home-feature-layout'];
-
-    function findFitRoot() {
-      for (const selector of fitSelectors) {
-        const el = document.querySelector(selector);
-        if (el && el.scrollHeight > 0) return el;
-      }
-      return null;
-    }
-
-    function applyDesktopFit() {
-      if (window.innerWidth <= 900) {
-        document.body.classList.remove('home-fit-active');
-        document.documentElement.style.removeProperty('--home-fit-scale');
-        return;
-      }
-
-      const root = findFitRoot();
-      if (!root) return;
-
-      document.body.classList.remove('home-fit-active');
-      document.documentElement.style.setProperty('--home-fit-scale', '1');
-
-      window.requestAnimationFrame(() => {
-        const rect = root.getBoundingClientRect();
-        const availableHeight = Math.max(600, window.innerHeight - 4);
-        const availableWidth = Math.max(920, window.innerWidth - 4);
-        const heightScale = rect.height > 0 ? availableHeight / rect.height : 1;
-        const widthScale = rect.width > 0 ? availableWidth / rect.width : 1;
-        const scale = Math.min(1, Math.max(0.90, Math.min(heightScale, widthScale)));
-
-        if (scale < 0.985) {
-          document.documentElement.style.setProperty('--home-fit-scale', String(scale));
-          document.body.classList.add('home-fit-active');
-        }
-      });
-    }
-
-    let resizeTimer;
-    function scheduleFit() {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(applyDesktopFit, 80);
-    }
-
-    window.addEventListener('load', scheduleFit, { once: true });
-    window.addEventListener('resize', scheduleFit);
-    window.addEventListener('orientationchange', scheduleFit);
-    setTimeout(scheduleFit, 250);
-    setTimeout(scheduleFit, 900);
   }
 
   function safeJson(url) {
