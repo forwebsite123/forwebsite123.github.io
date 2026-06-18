@@ -42,7 +42,7 @@
       html { min-height: 100%; overflow-x: hidden; }
       body { min-height: 100svh; overflow-x: hidden; }
 
-      /* Desktop: only trim the canvas/vertical spacing. Do not resize the tree artwork itself. */
+      /* Desktop: keep the composition, but make it fit by shrinking only the tree group a little. */
       @media (min-width: 901px) {
         html,
         body {
@@ -58,7 +58,7 @@
           height: 100svh !important;
           min-height: 0 !important;
           max-height: 100svh !important;
-          padding-top: clamp(30px, 3.8vh, 48px) !important;
+          padding-top: clamp(24px, 3.2vh, 42px) !important;
           padding-bottom: 0 !important;
           box-sizing: border-box !important;
           overflow: hidden !important;
@@ -67,7 +67,7 @@
         .layout,
         .home-layout,
         .home-feature-layout {
-          height: calc(100svh - clamp(48px, 6vh, 72px)) !important;
+          height: calc(100svh - clamp(42px, 5.4vh, 66px)) !important;
           min-height: 0 !important;
           margin-top: 0 !important;
           margin-bottom: 0 !important;
@@ -79,14 +79,15 @@
         .left-side,
         .left-col,
         .left-column {
-          padding-top: clamp(6px, 2vh, 26px) !important;
-          gap: clamp(14px, 2.1vh, 22px) !important;
+          padding-top: 0 !important;
+          gap: clamp(13px, 2vh, 21px) !important;
+          translate: 0 -18px !important;
         }
 
         .card,
         .entry-card,
         .portal-card {
-          min-height: clamp(116px, 15.8vh, 148px) !important;
+          min-height: clamp(114px, 15.2vh, 146px) !important;
         }
 
         .tree-area,
@@ -98,6 +99,12 @@
           margin-top: 0 !important;
           margin-bottom: 0 !important;
           overflow: visible !important;
+        }
+
+        .tree-area {
+          scale: .93 !important;
+          translate: 0 -18px !important;
+          transform-origin: center center !important;
         }
 
         .tree-main,
@@ -115,13 +122,13 @@
         .right-column,
         .latest-area,
         .latest-panel-wrap {
-          padding-top: clamp(58px, 7.6vh, 92px) !important;
+          padding-top: clamp(30px, 4.5vh, 60px) !important;
         }
 
         .side-links,
         .behind-wrap,
         .behind-pixels {
-          transform: translateY(-34px) !important;
+          transform: translate(-16px, -42px) !important;
         }
 
         .footer-text,
@@ -131,8 +138,8 @@
           position: fixed !important;
           left: 0 !important;
           right: 0 !important;
-          bottom: clamp(4px, .8vh, 10px) !important;
-          z-index: 5 !important;
+          bottom: clamp(3px, .7vh, 8px) !important;
+          z-index: 2 !important;
           margin: 0 !important;
           text-align: center !important;
           pointer-events: none !important;
