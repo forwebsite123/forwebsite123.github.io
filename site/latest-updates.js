@@ -134,17 +134,17 @@
         .latest-panel,
         .panel-card,
         .updates-card {
-          min-height: clamp(230px, 29vh, 310px) !important;
+          min-height: clamp(260px, 33vh, 350px) !important;
           padding: clamp(20px, 2.5vh, 28px) clamp(22px, 2.8vw, 32px) !important;
           box-sizing: border-box !important;
         }
 
         #latest-updates-list {
-          gap: clamp(8px, 1.1vh, 13px) !important;
+          gap: clamp(9px, 1.15vh, 14px) !important;
         }
 
         #latest-updates-list .update-item {
-          font-size: clamp(10.5px, .72vw, 12.2px) !important;
+          font-size: clamp(10.2px, .70vw, 12px) !important;
           line-height: 1.35 !important;
           column-gap: 10px !important;
         }
@@ -162,7 +162,7 @@
         }
 
         #latest-updates-list .update-date {
-          font-size: clamp(9.2px, .62vw, 10.6px) !important;
+          font-size: clamp(9px, .60vw, 10.4px) !important;
           white-space: nowrap !important;
         }
 
@@ -386,6 +386,43 @@
       }
     `;
     document.head.appendChild(style);
+
+    scheduleHomeLabelNudges();
+  }
+
+  function scheduleHomeLabelNudges() {
+    if (!isHomeLikePage()) return;
+    const run = () => {
+      if (window.innerWidth <= 900) return;
+      nudgeElementByText(/Kindergarten|幼儿园/, 10, 0, { minWidth: 90, minHeight: 36, maxWidth: 260, maxHeight: 130 });
+      nudgeElementByText(/Growth\s*Rings/, 12, -10, { minWidth: 180, minHeight: 90, maxWidth: 420, maxHeight: 260 });
+    };
+    window.addEventListener('load', run, { once: true });
+    setTimeout(run, 250);
+    setTimeout(run, 900);
+  }
+
+  function nudgeElementByText(pattern, dx, dy, limits) {
+    const all = Array.from(document.querySelectorAll('body *'));
+    const textNode = all.find((element) => {
+      const text = (element.textContent || '').replace(/\s+/g, ' ').trim();
+      if (!pattern.test(text)) return false;
+      const rect = element.getBoundingClientRect();
+      return rect.width > 0 && rect.height > 0;
+    });
+    if (!textNode) return;
+
+    let target = textNode;
+    while (target && target !== document.body) {
+      const rect = target.getBoundingClientRect();
+      const fitsMin = rect.width >= limits.minWidth && rect.height >= limits.minHeight;
+      const fitsMax = rect.width <= limits.maxWidth && rect.height <= limits.maxHeight;
+      if (fitsMin && fitsMax) break;
+      target = target.parentElement;
+    }
+
+    if (!target || target === document.body) target = textNode;
+    target.style.translate = `${dx}px ${dy}px`;
   }
 
   function safeJson(url) {
