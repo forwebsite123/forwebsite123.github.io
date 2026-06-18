@@ -42,7 +42,6 @@
       html { min-height: 100%; overflow-x: hidden; }
       body { min-height: 100svh; overflow-x: hidden; }
 
-      /* Desktop: keep the composition, but make it fit by shrinking only the tree group a little. */
       @media (min-width: 901px) {
         html,
         body {
@@ -81,13 +80,19 @@
         .left-column {
           padding-top: 0 !important;
           gap: clamp(13px, 2vh, 21px) !important;
-          translate: 0 -58px !important;
+          translate: 0 -66px !important;
         }
 
         .card,
         .entry-card,
         .portal-card {
+          width: 92% !important;
+          max-width: 92% !important;
           min-height: clamp(114px, 15.2vh, 146px) !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
+          box-sizing: border-box !important;
+          text-align: center !important;
         }
 
         .tree-area,
@@ -122,7 +127,43 @@
         .right-column,
         .latest-area,
         .latest-panel-wrap {
-          padding-top: clamp(30px, 4.5vh, 60px) !important;
+          padding-top: clamp(22px, 3.6vh, 48px) !important;
+        }
+
+        .latest-card,
+        .latest-panel,
+        .panel-card,
+        .updates-card {
+          min-height: clamp(230px, 29vh, 310px) !important;
+          padding: clamp(20px, 2.5vh, 28px) clamp(22px, 2.8vw, 32px) !important;
+          box-sizing: border-box !important;
+        }
+
+        #latest-updates-list {
+          gap: clamp(8px, 1.1vh, 13px) !important;
+        }
+
+        #latest-updates-list .update-item {
+          font-size: clamp(10.5px, .72vw, 12.2px) !important;
+          line-height: 1.35 !important;
+          column-gap: 10px !important;
+        }
+
+        #latest-updates-list .update-link {
+          min-width: 0 !important;
+        }
+
+        #latest-updates-list .update-text {
+          white-space: normal !important;
+          overflow: hidden !important;
+          display: -webkit-box !important;
+          -webkit-line-clamp: 2 !important;
+          -webkit-box-orient: vertical !important;
+        }
+
+        #latest-updates-list .update-date {
+          font-size: clamp(9.2px, .62vw, 10.6px) !important;
+          white-space: nowrap !important;
         }
 
         .side-links,
@@ -157,7 +198,6 @@
         }
       }
 
-      /* Mobile: separate phone composition instead of squeezing the desktop canvas. */
       @media (max-width: 900px) {
         body {
           min-height: 100svh;
