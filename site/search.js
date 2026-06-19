@@ -395,10 +395,11 @@
         .growth-tree-main,
         .tree-image,
         .tree-art {
-          width: min(104vw, 610px) !important;
+          width: min(100vw, 590px) !important;
           max-height: 820px !important;
-          margin-left: 0 !important;
-          margin-right: 0 !important;
+          display: block !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
           object-fit: contain !important;
           object-position: center bottom !important;
           border-radius: 40px !important;
@@ -443,9 +444,32 @@
           text-align: center !important;
           justify-content: center !important;
           align-items: center !important;
-          transform: translateX(2vw) !important;
+          transform: none !important;
           align-self: center !important;
           box-sizing: border-box !important;
+        }
+
+        .cards .card img,
+        .cards .entry-card img,
+        .cards .portal-card img,
+        .grid .card img,
+        .grid .entry-card img,
+        .grid .portal-card img,
+        .left-side .card img,
+        .left-side .entry-card img,
+        .left-side .portal-card img,
+        .left-col .card img,
+        .left-col .entry-card img,
+        .left-col .portal-card img,
+        .left-column .card img,
+        .left-column .entry-card img,
+        .left-column .portal-card img {
+          max-width: 36% !important;
+          width: clamp(86px, 24vw, 128px) !important;
+          height: auto !important;
+          transform: translateX(-6px) scale(.84) !important;
+          transform-origin: left center !important;
+          opacity: .68 !important;
         }
 
         .node,
@@ -528,12 +552,33 @@
         .growth-tree-main,
         .tree-image,
         .tree-art {
-          width: min(106vw, 580px) !important;
+          width: min(100vw, 560px) !important;
           max-height: 760px !important;
-          margin-left: -1vw !important;
-          margin-right: 0 !important;
+          display: block !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
           -webkit-mask-image: radial-gradient(ellipse 80% 92% at 50% 52%, #000 48%, rgba(0,0,0,.72) 74%, rgba(0,0,0,0) 100%) !important;
           mask-image: radial-gradient(ellipse 80% 92% at 50% 52%, #000 48%, rgba(0,0,0,.72) 74%, rgba(0,0,0,0) 100%) !important;
+        }
+
+        .cards .card img,
+        .cards .entry-card img,
+        .cards .portal-card img,
+        .grid .card img,
+        .grid .entry-card img,
+        .grid .portal-card img,
+        .left-side .card img,
+        .left-side .entry-card img,
+        .left-side .portal-card img,
+        .left-col .card img,
+        .left-col .entry-card img,
+        .left-col .portal-card img,
+        .left-column .card img,
+        .left-column .entry-card img,
+        .left-column .portal-card img {
+          max-width: 32% !important;
+          width: clamp(76px, 21vw, 112px) !important;
+          transform: translateX(-5px) scale(.78) !important;
         }
 
         .node,
