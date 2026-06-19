@@ -53,12 +53,12 @@
         --home-vh: 100dvh;
         --home-tree-scale: .86;
         --home-shared-x: -20px;
-        --home-tree-x: -96px;
+        --home-tree-x: -102px;
         --home-tree-y: -100px;
         --home-cards-y: -84px;
         --home-latest-x: -12px;
         --home-latest-y: 16px;
-        --home-behind-x: 5px;
+        --home-behind-x: 3px;
         --home-behind-y: -212px;
       }
 
@@ -221,7 +221,9 @@
           pointer-events: none !important;
         }
 
-        /* Keep top-left flora owned by home.html (.flora-tl). Do not transform its inner img here. */
+        .flora-tl {
+          top: 0 !important;
+        }
 
         img[src*="home-corner-bl"],
         img[src*="corner-bl"],
@@ -461,12 +463,12 @@
 
     root.style.setProperty('--home-tree-scale', String(treeScale));
     root.style.setProperty('--home-shared-x', '-20px');
-    root.style.setProperty('--home-tree-x', '-96px');
+    root.style.setProperty('--home-tree-x', '-102px');
     root.style.setProperty('--home-tree-y', `${treeY}px`);
     root.style.setProperty('--home-cards-y', `${cardsY}px`);
     root.style.setProperty('--home-latest-x', '-12px');
     root.style.setProperty('--home-latest-y', `${latestY}px`);
-    root.style.setProperty('--home-behind-x', '5px');
+    root.style.setProperty('--home-behind-x', '3px');
     root.style.setProperty('--home-behind-y', `${behindY}px`);
   }
 
