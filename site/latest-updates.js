@@ -55,7 +55,7 @@
         --home-tree-x: -54px;
         --home-tree-y: -100px;
         --home-cards-y: -66px;
-        --home-latest-x: -34px;
+        --home-latest-x: -12px;
         --home-latest-y: -4px;
         --home-behind-x: -34px;
         --home-behind-y: -96px;
@@ -116,6 +116,17 @@
           margin-right: auto !important;
           box-sizing: border-box !important;
           text-align: center !important;
+        }
+
+        .card img,
+        .entry-card img,
+        .portal-card img {
+          transform: translateX(14px) !important;
+          translate: none !important;
+          z-index: 1 !important;
+          opacity: .72 !important;
+          pointer-events: none !important;
+          clip-path: none !important;
         }
 
         .tree-area,
@@ -218,7 +229,7 @@
         .corner-top-left,
         .floral-top-left,
         .botanical-top-left {
-          transform: translateX(-24px) !important;
+          transform: translate(-16px, -8px) !important;
           translate: none !important;
         }
 
@@ -230,7 +241,7 @@
         .corner-bottom-left,
         .floral-bottom-left,
         .botanical-bottom-left {
-          transform: translate(-24px, 20px) !important;
+          transform: translate(-28px, -8px) !important;
           translate: none !important;
         }
       }
@@ -425,7 +436,7 @@
     root.style.setProperty('--home-tree-x', '-56px');
     root.style.setProperty('--home-tree-y', `${treeY}px`);
     root.style.setProperty('--home-cards-y', `${cardsY}px`);
-    root.style.setProperty('--home-latest-x', '-34px');
+    root.style.setProperty('--home-latest-x', '-12px');
     root.style.setProperty('--home-latest-y', `${latestY}px`);
     root.style.setProperty('--home-behind-x', '-34px');
     root.style.setProperty('--home-behind-y', `${behindY}px`);
@@ -442,6 +453,7 @@
       moveTreeGroupDirectly();
       moveLatestPanelDirectly();
       moveCornerImagesDirectly();
+      fixLeftCardIllustrationsDirectly();
     };
     window.addEventListener('load', run, { once: true });
     setTimeout(run, 120);
@@ -514,16 +526,43 @@
     const imgs = Array.from(document.images || []);
     const vh = (window.visualViewport && window.visualViewport.height) || window.innerHeight || 820;
     imgs.forEach((img) => {
+      if (isInsidePortalCard(img)) return;
       const rect = img.getBoundingClientRect();
-      if (rect.width < 40 || rect.height < 40) return;
-      if (rect.left < window.innerWidth * 0.22 && rect.top < 180) {
-        img.style.transform = 'translateX(-24px)';
+      if (rect.width < 90 || rect.height < 90) return;
+      if (rect.left < window.innerWidth * 0.18 && rect.top < 190) {
+        img.style.transform = 'translate(-16px, -8px)';
         img.style.translate = 'none';
       }
-      if (rect.left < window.innerWidth * 0.22 && rect.bottom > vh - 260) {
-        img.style.transform = 'translate(-24px, 20px)';
+      if (rect.left < window.innerWidth * 0.18 && rect.bottom > vh - 260) {
+        img.style.transform = 'translate(-28px, -8px)';
         img.style.translate = 'none';
       }
+    });
+  }
+
+  function isInsidePortalCard(element) {
+    return Boolean(element.closest('.card, .entry-card, .portal-card'));
+  }
+
+  function fixLeftCardIllustrationsDirectly() {
+    const labels = [/Drift Coordinates|漂流坐标/, /Dopamine Receipts|多巴胺账本/, /Found Fragments|人间拾遗/, /Into the Wild|沉浸体验/];
+    labels.forEach((pattern) => {
+      const textNode = findSmallestElementByText(pattern);
+      const card = textNode && findReasonablePlaque(textNode, { minWidth: 180, minHeight: 70, maxWidth: 760, maxHeight: 260 });
+      if (!card) return;
+      card.style.overflow = 'hidden';
+      const rect = card.getBoundingClientRect();
+      Array.from(document.images || []).forEach((img) => {
+        const imgRect = img.getBoundingClientRect();
+        const intersects = imgRect.right > rect.left - 24 && imgRect.left < rect.right && imgRect.bottom > rect.top && imgRect.top < rect.bottom;
+        if (!intersects || imgRect.width > 240 || imgRect.height > 240) return;
+        img.style.transform = 'translateX(14px)';
+        img.style.translate = 'none';
+        img.style.zIndex = '1';
+        img.style.opacity = '.72';
+        img.style.pointerEvents = 'none';
+        img.style.clipPath = 'none';
+      });
     });
   }
 
