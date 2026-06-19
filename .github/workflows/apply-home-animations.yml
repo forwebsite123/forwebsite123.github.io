@@ -1,0 +1,287 @@
+name: Apply first round home animations
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/apply-home-animations.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Add lightweight home animation CSS
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          home = Path('site/home.html')
+          text = home.read_text(encoding='utf-8')
+
+          link = '<link rel="stylesheet" href="home-animations.css">'
+          if link not in text:
+              marker = '<title>A place to leave traces.</title>'
+              if marker not in text:
+                  raise SystemExit('Could not find title marker; refusing to edit home.html.')
+              text = text.replace(marker, marker + '\n' + link, 1)
+
+          text = text.replace(
+              '<!-- v5: all tree/corner images are embedded as data URIs, so sandbox preview will not lose them -->',
+              '<!-- home images are externalized; animation layer is kept separate in home-animations.css -->'
+          )
+
+          required = [
+              'latest-updates.js',
+              'search.js',
+              'src="/images/home/home-growth-tree-main.png"',
+              'src="/images/home/home-card-ornament.png"',
+              'treeBreath',
+              '@keyframes swing',
+              '@keyframes fall',
+              '--home-tree-x',
+              'width: calc(100% + 14px)',
+              'margin-left: -14px'
+          ]
+          for needle in required:
+              if needle not in text and needle not in Path('site/latest-updates.js').read_text(encoding='utf-8'):
+                  raise SystemExit(f'Missing preserved marker: {needle}')
+
+          home.write_text(text, encoding='utf-8')
+
+          css = r'''/* Ink Breath / 纸上生长
+   Lightweight home-only animation layer.
+   It avoids changing layout dimensions, colors, fonts, or tuned placement values. */
+
+:root {
+  --ink-anim-ease: cubic-bezier(.18, .72, .22, 1);
+  --ink-soft-shadow: 0 16px 34px rgba(122, 87, 87, .075);
+  --ink-paper-light: rgba(255, 252, 247, .68);
+  --ink-paper-line: rgba(177, 135, 126, .18);
+}
+
+@keyframes inkPaperAppear {
+  0% {
+    opacity: 0;
+    filter: blur(3px) saturate(.96);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0) saturate(1);
+  }
+}
+
+@keyframes floraBreathSoft {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 1.5px -1px; }
+}
+
+.tree-area {
+  opacity: 0;
+  filter: blur(2.5px) saturate(.98);
+  animation: inkPaperAppear 1.2s var(--ink-anim-ease) .04s both;
+}
+
+.panel-card {
+  opacity: 0;
+  filter: blur(2px) saturate(.98);
+  animation: inkPaperAppear .92s var(--ink-anim-ease) .24s both;
+}
+
+.side-links {
+  opacity: 0;
+  filter: blur(2px) saturate(.98);
+  animation: inkPaperAppear .9s var(--ink-anim-ease) .38s both;
+}
+
+.cards .card {
+  opacity: 0;
+  filter: blur(2.5px) saturate(.98);
+  animation: inkPaperAppear .86s var(--ink-anim-ease) both;
+}
+
+.cards .card:nth-child(1) { animation-delay: .42s; }
+.cards .card:nth-child(2) { animation-delay: .50s; }
+.cards .card:nth-child(3) { animation-delay: .58s; }
+.cards .card:nth-child(4) { animation-delay: .66s; }
+
+.footer-text {
+  opacity: 0;
+  filter: blur(1.5px);
+  animation: inkPaperAppear .85s var(--ink-anim-ease) .78s both;
+}
+
+/* Water-ripple memory touch for the four home entrance cards. */
+.card::after {
+  content: "" !important;
+  position: absolute;
+  inset: -36%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    radial-gradient(circle at 18% 76%, rgba(255, 255, 255, .42) 0 2%, transparent 12%),
+    radial-gradient(circle at 18% 76%, rgba(177, 135, 126, .13) 0 10%, transparent 30%),
+    radial-gradient(circle at 18% 76%, rgba(188, 150, 104, .09) 0 18%, transparent 45%);
+  transform: scale(.72);
+  transition: opacity .52s ease, transform .78s var(--ink-anim-ease);
+}
+
+.card:hover::after,
+.card:focus-visible::after {
+  opacity: 1;
+  transform: scale(1.02);
+}
+
+.card:hover {
+  box-shadow: var(--ink-soft-shadow);
+}
+
+.card:focus-visible,
+.update-link:focus-visible,
+.about-link:focus-visible {
+  outline: 1px solid rgba(177, 135, 126, .42);
+  outline-offset: 4px;
+}
+
+/* Latest Updates as soft paper slips, not a water effect. */
+#latest-updates-list .update-item {
+  position: relative !important;
+  border-radius: 10px !important;
+  transition: background-color .34s ease, box-shadow .34s ease !important;
+}
+
+#latest-updates-list .update-item::before {
+  content: "";
+  position: absolute;
+  inset: -5px -7px 6px -7px;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  border-radius: 12px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, .52), rgba(255, 250, 244, .28));
+  box-shadow: inset 0 0 0 1px var(--ink-paper-line);
+  transition: opacity .34s ease;
+}
+
+#latest-updates-list .update-item:hover::before,
+#latest-updates-list .update-item:focus-within::before {
+  opacity: 1;
+}
+
+#latest-updates-list .update-item:hover .update-link,
+#latest-updates-list .update-item:focus-within .update-link {
+  transform: translateX(2px);
+}
+
+/* A hidden path feeling for Behind the pixels. */
+.about-link {
+  position: relative;
+}
+
+.about-link::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  right: 50%;
+  bottom: -6px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(177, 144, 144, .46), transparent);
+  transition: left .45s var(--ink-anim-ease), right .45s var(--ink-anim-ease), opacity .35s ease;
+  opacity: 0;
+}
+
+.about-link:hover::after,
+.about-link:focus-visible::after {
+  left: 4%;
+  right: 4%;
+  opacity: 1;
+}
+
+@media (min-width: 901px) {
+  .flora-tl,
+  .flora-tr,
+  .flora-br {
+    animation: floraBreathSoft 11s ease-in-out infinite;
+  }
+
+  .flora-tr { animation-delay: -3.4s; }
+  .flora-br { animation-delay: -6.2s; }
+}
+
+@media (max-width: 900px) {
+  .tree-area,
+  .panel-card,
+  .side-links,
+  .cards .card,
+  .footer-text {
+    animation-duration: .72s;
+  }
+
+  .cards .card:active {
+    transform: translateY(1px) scale(.997);
+  }
+
+  .card:hover::after,
+  .card:focus-visible::after {
+    opacity: .42;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tree-area,
+  .panel-card,
+  .side-links,
+  .cards .card,
+  .footer-text,
+  .flora-tl,
+  .flora-tr,
+  .flora-br {
+    opacity: 1 !important;
+    filter: none !important;
+    animation: none !important;
+    translate: none !important;
+  }
+
+  .tree-main,
+  .growth-sign,
+  .petal {
+    animation: none !important;
+  }
+
+  .card::after,
+  #latest-updates-list .update-item::before,
+  .about-link::after {
+    transition: none !important;
+  }
+
+  #latest-updates-list .update-item:hover .update-link,
+  #latest-updates-list .update-item:focus-within .update-link,
+  .cards .card:active {
+    transform: none !important;
+  }
+}
+'''
+          Path('site/home-animations.css').write_text(css, encoding='utf-8')
+
+          Path('.github/workflows/apply-home-animations.yml').unlink(missing_ok=True)
+          PY
+
+      - name: Commit animation layer
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A site/home.html site/home-animations.css .github/workflows/apply-home-animations.yml
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Add first round home animations"
+            git push
+          fi
