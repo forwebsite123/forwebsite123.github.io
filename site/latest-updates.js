@@ -5,7 +5,7 @@
 
   injectHomeFavicon();
   injectHomeCanvasPatch();
-  scheduleHomeLabelNudges();
+  scheduleHomeDirectAdjustments();
 
   const list = document.getElementById('latest-updates-list');
   if (!list) return;
@@ -51,13 +51,13 @@
     style.textContent = `
       :root {
         --home-vh: 100dvh;
-        --home-tree-scale: .88;
-        --home-tree-x: -18px;
-        --home-tree-y: -72px;
+        --home-tree-scale: .86;
+        --home-tree-x: -54px;
+        --home-tree-y: -100px;
         --home-cards-y: -66px;
-        --home-latest-x: -22px;
+        --home-latest-x: -34px;
         --home-latest-y: -4px;
-        --home-behind-x: -28px;
+        --home-behind-x: -34px;
         --home-behind-y: -96px;
       }
 
@@ -129,7 +129,12 @@
           overflow: visible !important;
         }
 
-        .tree-area {
+        .tree-area,
+        .tree-stage,
+        .tree-shell,
+        .center-stage,
+        .center-col,
+        .center-column {
           transform: translate(var(--home-tree-x), var(--home-tree-y)) scale(var(--home-tree-scale)) !important;
           transform-origin: center center !important;
           scale: none !important;
@@ -213,7 +218,8 @@
         .corner-top-left,
         .floral-top-left,
         .botanical-top-left {
-          translate: -12px 0 !important;
+          transform: translateX(-24px) !important;
+          translate: none !important;
         }
 
         img[src*="home-corner-bl"],
@@ -224,7 +230,8 @@
         .corner-bottom-left,
         .floral-bottom-left,
         .botanical-bottom-left {
-          translate: -12px 12px !important;
+          transform: translate(-24px, 20px) !important;
+          translate: none !important;
         }
       }
 
@@ -386,92 +393,173 @@
     const height = Math.round((window.visualViewport && window.visualViewport.height) || window.innerHeight || 820);
     root.style.setProperty('--home-vh', `${height}px`);
 
-    let treeScale = .88;
-    let treeY = -72;
+    let treeScale = .86;
+    let treeY = -100;
     let cardsY = -66;
     let behindY = -96;
     let latestY = -4;
 
-    if (height < 820) {
-      treeScale = .86;
-      treeY = -88;
+    if (height < 850) {
+      treeScale = .83;
+      treeY = -124;
       cardsY = -74;
       behindY = -112;
       latestY = -10;
     }
-    if (height < 760) {
-      treeScale = .83;
-      treeY = -108;
+    if (height < 780) {
+      treeScale = .80;
+      treeY = -150;
       cardsY = -84;
       behindY = -128;
       latestY = -16;
     }
-    if (height < 700) {
-      treeScale = .80;
-      treeY = -126;
+    if (height < 720) {
+      treeScale = .77;
+      treeY = -172;
       cardsY = -92;
       behindY = -140;
       latestY = -22;
     }
 
     root.style.setProperty('--home-tree-scale', String(treeScale));
-    root.style.setProperty('--home-tree-x', '-22px');
+    root.style.setProperty('--home-tree-x', '-56px');
     root.style.setProperty('--home-tree-y', `${treeY}px`);
     root.style.setProperty('--home-cards-y', `${cardsY}px`);
-    root.style.setProperty('--home-latest-x', '-26px');
+    root.style.setProperty('--home-latest-x', '-34px');
     root.style.setProperty('--home-latest-y', `${latestY}px`);
     root.style.setProperty('--home-behind-x', '-34px');
     root.style.setProperty('--home-behind-y', `${behindY}px`);
   }
 
-  function scheduleHomeLabelNudges() {
+  function scheduleHomeDirectAdjustments() {
     if (!isHomeLikePage()) return;
     const run = () => {
+      setHomeViewportVars();
       setKindergartenLink();
       if (window.innerWidth <= 900) return;
-      nudgeElementByText(/Kindergarten|幼儿园/, 10, 0, { minWidth: 90, minHeight: 36, maxWidth: 260, maxHeight: 130 });
-      nudgeElementByText(/Growth\s*Rings/, 12, -10, { minWidth: 180, minHeight: 90, maxWidth: 420, maxHeight: 260 });
+      nudgeElementByText(/Kindergarten|幼儿园/, 10, 0, { minWidth: 80, minHeight: 28, maxWidth: 280, maxHeight: 140 });
+      nudgeElementByText(/Growth\s*Rings/, 12, -10, { minWidth: 160, minHeight: 70, maxWidth: 440, maxHeight: 280 });
+      moveTreeGroupDirectly();
+      moveLatestPanelDirectly();
+      moveCornerImagesDirectly();
     };
     window.addEventListener('load', run, { once: true });
-    setTimeout(run, 250);
-    setTimeout(run, 900);
+    setTimeout(run, 120);
+    setTimeout(run, 450);
+    setTimeout(run, 1200);
     window.addEventListener('resize', run, { passive: true });
+    if (window.visualViewport) window.visualViewport.addEventListener('resize', run, { passive: true });
   }
 
   function setKindergartenLink() {
-    const element = findElementByText(/Kindergarten|幼儿园/);
-    if (!element) return;
-    const anchor = element.closest('a');
-    if (!anchor) return;
-    anchor.href = KINDERGARTEN_URL;
-    anchor.target = '_blank';
-    anchor.rel = 'noopener noreferrer';
+    const target = findSmallestElementByText(/Kindergarten|幼儿园/);
+    if (!target) return;
+    const plaque = findReasonablePlaque(target, { minWidth: 80, minHeight: 28, maxWidth: 280, maxHeight: 140 });
+    const anchor = (plaque && plaque.closest('a')) || target.closest('a');
+    const clickable = anchor || plaque || target;
+    if (anchor) {
+      anchor.href = KINDERGARTEN_URL;
+      anchor.target = '_blank';
+      anchor.rel = 'noopener noreferrer';
+    } else {
+      clickable.style.cursor = 'pointer';
+      clickable.setAttribute('role', 'link');
+      clickable.setAttribute('tabindex', '0');
+      clickable.onclick = () => window.open(KINDERGARTEN_URL, '_blank', 'noopener,noreferrer');
+      clickable.onkeydown = (event) => {
+        if (event.key === 'Enter' || event.key === ' ') window.open(KINDERGARTEN_URL, '_blank', 'noopener,noreferrer');
+      };
+    }
   }
 
-  function findElementByText(pattern) {
-    return Array.from(document.querySelectorAll('body *')).find((element) => {
-      const text = (element.textContent || '').replace(/\s+/g, ' ').trim();
-      if (!pattern.test(text)) return false;
+  function moveTreeGroupDirectly() {
+    const tree = findTreeGroupElement();
+    if (!tree) return;
+    tree.style.transform = `translate(var(--home-tree-x), var(--home-tree-y)) scale(var(--home-tree-scale))`;
+    tree.style.transformOrigin = 'center center';
+    tree.style.translate = 'none';
+    tree.style.scale = 'none';
+  }
+
+  function findTreeGroupElement() {
+    const candidates = Array.from(document.querySelectorAll('body *')).filter((element) => {
+      const text = (element.textContent || '').replace(/\s+/g, ' ');
+      if (!/Durham University/.test(text) || !/Growth\s*Rings/.test(text)) return false;
       const rect = element.getBoundingClientRect();
-      return rect.width > 0 && rect.height > 0;
+      if (rect.width < 260 || rect.height < 360) return false;
+      if (rect.width > window.innerWidth * 0.72 || rect.height > window.innerHeight * 1.2) return false;
+      if (rect.left < window.innerWidth * 0.18 || rect.right > window.innerWidth * 0.88) return false;
+      return true;
+    });
+    return candidates.sort((a, b) => area(a) - area(b))[0] || null;
+  }
+
+  function moveLatestPanelDirectly() {
+    const list = document.getElementById('latest-updates-list');
+    if (!list) return;
+    let panel = list;
+    while (panel.parentElement && panel.parentElement !== document.body) {
+      const rect = panel.parentElement.getBoundingClientRect();
+      if (rect.width >= 180 && rect.height >= 120 && rect.width <= 560 && rect.height <= 520) {
+        panel = panel.parentElement;
+      }
+      if (/latest|panel|card|updates/i.test(panel.className || '')) break;
+      panel = panel.parentElement;
+    }
+    panel.style.transform = `translate(var(--home-latest-x), var(--home-latest-y))`;
+    panel.style.translate = 'none';
+  }
+
+  function moveCornerImagesDirectly() {
+    const imgs = Array.from(document.images || []);
+    const vh = (window.visualViewport && window.visualViewport.height) || window.innerHeight || 820;
+    imgs.forEach((img) => {
+      const rect = img.getBoundingClientRect();
+      if (rect.width < 40 || rect.height < 40) return;
+      if (rect.left < window.innerWidth * 0.22 && rect.top < 180) {
+        img.style.transform = 'translateX(-24px)';
+        img.style.translate = 'none';
+      }
+      if (rect.left < window.innerWidth * 0.22 && rect.bottom > vh - 260) {
+        img.style.transform = 'translate(-24px, 20px)';
+        img.style.translate = 'none';
+      }
     });
   }
 
-  function nudgeElementByText(pattern, dx, dy, limits) {
-    const textNode = findElementByText(pattern);
-    if (!textNode) return;
+  function findSmallestElementByText(pattern) {
+    return Array.from(document.querySelectorAll('body *'))
+      .filter((element) => {
+        const text = (element.textContent || '').replace(/\s+/g, ' ').trim();
+        if (!pattern.test(text)) return false;
+        const rect = element.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0;
+      })
+      .sort((a, b) => area(a) - area(b))[0] || null;
+  }
 
-    let target = textNode;
+  function findReasonablePlaque(start, limits) {
+    let target = start;
     while (target && target !== document.body) {
       const rect = target.getBoundingClientRect();
       const fitsMin = rect.width >= limits.minWidth && rect.height >= limits.minHeight;
       const fitsMax = rect.width <= limits.maxWidth && rect.height <= limits.maxHeight;
-      if (fitsMin && fitsMax) break;
+      if (fitsMin && fitsMax) return target;
       target = target.parentElement;
     }
+    return start;
+  }
 
-    if (!target || target === document.body) target = textNode;
+  function nudgeElementByText(pattern, dx, dy, limits) {
+    const textNode = findSmallestElementByText(pattern);
+    if (!textNode) return;
+    const target = findReasonablePlaque(textNode, limits);
     target.style.translate = `${dx}px ${dy}px`;
+  }
+
+  function area(element) {
+    const rect = element.getBoundingClientRect();
+    return rect.width * rect.height;
   }
 
   function safeJson(url) {
