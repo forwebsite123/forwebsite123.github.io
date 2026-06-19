@@ -53,12 +53,12 @@
         --home-vh: 100dvh;
         --home-tree-scale: .86;
         --home-shared-x: -20px;
-        --home-tree-x: -86px;
+        --home-tree-x: -96px;
         --home-tree-y: -100px;
         --home-cards-y: -84px;
         --home-latest-x: -12px;
         --home-latest-y: 16px;
-        --home-behind-x: 12px;
+        --home-behind-x: 8px;
         --home-behind-y: -212px;
       }
 
@@ -232,6 +232,8 @@
         img[src*="home-corner-tl"],
         img[src*="corner-tl"],
         img[src*="top-left"],
+        img.flora-tl,
+        .flora-tl img,
         .corner-tl,
         .home-corner-tl,
         .corner-top-left,
@@ -481,12 +483,12 @@
 
     root.style.setProperty('--home-tree-scale', String(treeScale));
     root.style.setProperty('--home-shared-x', '-20px');
-    root.style.setProperty('--home-tree-x', '-86px');
+    root.style.setProperty('--home-tree-x', '-96px');
     root.style.setProperty('--home-tree-y', `${treeY}px`);
     root.style.setProperty('--home-cards-y', `${cardsY}px`);
     root.style.setProperty('--home-latest-x', '-12px');
     root.style.setProperty('--home-latest-y', `${latestY}px`);
-    root.style.setProperty('--home-behind-x', '12px');
+    root.style.setProperty('--home-behind-x', '8px');
     root.style.setProperty('--home-behind-y', `${behindY}px`);
   }
 
@@ -586,6 +588,14 @@
       topLeft.img.style.translate = 'none';
       topLeft.img.style.opacity = '.86';
       topLeft.img.style.filter = 'saturate(1.12) contrast(1.04)';
+    }
+
+    const floraTlImg = document.querySelector('img.flora-tl, .flora-tl img');
+    if (floraTlImg) {
+      floraTlImg.style.transform = 'translate(-36px, -40px)';
+      floraTlImg.style.translate = 'none';
+      floraTlImg.style.opacity = '.86';
+      floraTlImg.style.filter = 'saturate(1.12) contrast(1.04)';
     }
 
     const floraBlImg = document.querySelector('.flora-bl img');
