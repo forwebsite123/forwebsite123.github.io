@@ -20,6 +20,7 @@
       --rose-muted: #8a6b6b;
       --rose-dark: #6b4f4f;
       --cream: #f7f3f0;
+      --index-ease: cubic-bezier(.18, .72, .22, 1);
     }
 
     * { box-sizing: border-box; }
@@ -45,6 +46,12 @@
       background-size: cover;
       background-position: center;
       position: relative;
+      opacity: 0;
+      filter: blur(4px) saturate(.96) brightness(1.04);
+      transform-origin: center center;
+      animation:
+        indexImageReveal 1.15s var(--index-ease) both,
+        indexImageBreath 18s ease-in-out 1.15s infinite alternate;
     }
 
     .hero-image::after {
@@ -74,6 +81,10 @@
       letter-spacing: 0.02em;
       margin: 52px 0 28px;
       color: var(--rose-dark);
+      opacity: 0;
+      filter: blur(2px);
+      transform: translateY(9px);
+      animation: indexInkAppear .9s var(--index-ease) .38s both;
     }
 
     /* ── 镂空描边按钮 ── */
@@ -92,13 +103,18 @@
       letter-spacing: 0.18em;
       text-transform: uppercase;
       overflow: visible;
-      transition: color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+      opacity: 0;
+      filter: blur(1.5px);
+      transform: translateY(7px);
+      animation: indexInkAppear .86s var(--index-ease) .58s both;
+      transition: color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
     }
 
     .enter-btn:hover {
       color: var(--rose-dark);
       border-color: var(--rose-dark);
       box-shadow: 0 0 0 4px rgba(138, 107, 107, 0.08);
+      transform: translateY(-1px);
     }
 
     /* 点击时的向外扩散光环 */
@@ -118,6 +134,21 @@
 
     .enter-btn.clicked {
       animation: btn-pulse 0.6s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
+    }
+
+    @keyframes indexImageReveal {
+      0%   { opacity: 0; filter: blur(4px) saturate(.96) brightness(1.04); }
+      100% { opacity: 1; filter: blur(0) saturate(1) brightness(1); }
+    }
+
+    @keyframes indexImageBreath {
+      0%   { transform: scale(1.006); }
+      100% { transform: scale(1.024); }
+    }
+
+    @keyframes indexInkAppear {
+      0%   { opacity: 0; filter: blur(2px); transform: translateY(9px); }
+      100% { opacity: 1; filter: blur(0); transform: translateY(0); }
     }
 
     @keyframes ring-expand {
@@ -149,6 +180,21 @@
       .content { bottom: 10vh; }
       .content h1 { font-size: 30px; margin-top: 20px; }
       .corner-note { bottom: 4px; right: 16px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .hero-image,
+      .content h1,
+      .enter-btn {
+        opacity: 1 !important;
+        filter: none !important;
+        animation: none !important;
+        transform: none !important;
+      }
+
+      .enter-btn:hover {
+        transform: none !important;
+      }
     }
   </style>
 </head>
