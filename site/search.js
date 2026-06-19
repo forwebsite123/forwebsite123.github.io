@@ -384,8 +384,8 @@
         .center-stage,
         .center-col,
         .center-column {
-          min-height: clamp(560px, 142vw, 690px) !important;
-          height: clamp(560px, 142vw, 690px) !important;
+          min-height: clamp(548px, 139vw, 672px) !important;
+          height: clamp(548px, 139vw, 672px) !important;
           margin: 0 auto !important;
           overflow: visible !important;
         }
@@ -489,7 +489,7 @@
 
         .growth-sign {
           width: clamp(78px, 22vw, 98px) !important;
-          right: -6.5% !important;
+          right: -5% !important;
           top: 59.8% !important;
           padding: clamp(9px, 2.6vw, 13px) clamp(5px, 1.6vw, 7px) clamp(7px, 2vw, 9px) !important;
           text-align: center !important;
@@ -539,8 +539,8 @@
         .site-quote,
         .home-quote,
         footer {
-          margin-top: -18px !important;
-          transform: translateY(-18px) !important;
+          margin-top: -22px !important;
+          transform: translateY(-22px) !important;
         }
       }
 
@@ -551,8 +551,8 @@
         .center-stage,
         .center-col,
         .center-column {
-          min-height: clamp(520px, 148vw, 640px) !important;
-          height: clamp(520px, 148vw, 640px) !important;
+          min-height: clamp(508px, 145vw, 625px) !important;
+          height: clamp(508px, 145vw, 625px) !important;
         }
 
         .tree-main,
@@ -598,7 +598,7 @@
 
         .growth-sign {
           width: clamp(72px, 23vw, 92px) !important;
-          right: -8% !important;
+          right: -6.5% !important;
           top: 61.2% !important;
           padding: clamp(8px, 2.4vw, 11px) clamp(4px, 1.4vw, 6px) clamp(6px, 1.8vw, 8px) !important;
         }
@@ -631,7 +631,7 @@
 
     const sign = document.querySelector('.growth-sign');
     if (sign) {
-      sign.style.right = window.innerWidth <= 520 ? '-8%' : (window.innerWidth <= 900 ? '-6.5%' : '0.8%');
+      sign.style.right = window.innerWidth <= 520 ? '-6.5%' : (window.innerWidth <= 900 ? '-5%' : '0.8%');
       sign.style.top = window.innerWidth <= 520 ? '61.2%' : (window.innerWidth <= 900 ? '59.8%' : '61.4%');
       sign.style.textAlign = 'center';
       sign.style.alignItems = 'center';
