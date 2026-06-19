@@ -384,8 +384,8 @@
         .center-stage,
         .center-col,
         .center-column {
-          min-height: clamp(690px, 170vw, 860px) !important;
-          height: clamp(690px, 170vw, 860px) !important;
+          min-height: clamp(560px, 142vw, 690px) !important;
+          height: clamp(560px, 142vw, 690px) !important;
           margin: 0 auto !important;
           overflow: visible !important;
         }
@@ -401,7 +401,7 @@
           margin-left: auto !important;
           margin-right: auto !important;
           object-fit: contain !important;
-          object-position: center bottom !important;
+          object-position: center top !important;
           border-radius: 40px !important;
           -webkit-mask-image: radial-gradient(ellipse 82% 92% at 50% 52%, #000 50%, rgba(0,0,0,.76) 76%, rgba(0,0,0,0) 100%) !important;
           mask-image: radial-gradient(ellipse 82% 92% at 50% 52%, #000 50%, rgba(0,0,0,.76) 76%, rgba(0,0,0,0) 100%) !important;
@@ -481,16 +481,16 @@
           transform-origin: center center !important;
         }
 
-        .node-u { top: 39.2% !important; left: 72.8% !important; }
-        .node-s { top: 54.5% !important; left: 45.7% !important; }
-        .node-j { top: 66.0% !important; left: 44.6% !important; }
-        .node-p { top: 74.4% !important; left: 50.2% !important; }
-        .node-k { top: 84.8% !important; left: 65.0% !important; }
+        .node-u { top: 34.8% !important; left: 72.8% !important; }
+        .node-s { top: 49.4% !important; left: 45.7% !important; }
+        .node-j { top: 61.2% !important; left: 44.6% !important; }
+        .node-p { top: 70.0% !important; left: 50.2% !important; }
+        .node-k { top: 80.6% !important; left: 65.0% !important; }
 
         .growth-sign {
           width: clamp(78px, 22vw, 98px) !important;
           right: -9.5% !important;
-          top: 64.0% !important;
+          top: 59.8% !important;
           padding: clamp(9px, 2.6vw, 13px) clamp(5px, 1.6vw, 7px) clamp(7px, 2vw, 9px) !important;
           text-align: center !important;
           align-items: center !important;
@@ -543,8 +543,8 @@
         .center-stage,
         .center-col,
         .center-column {
-          min-height: clamp(640px, 178vw, 770px) !important;
-          height: clamp(640px, 178vw, 770px) !important;
+          min-height: clamp(520px, 148vw, 640px) !important;
+          height: clamp(520px, 148vw, 640px) !important;
         }
 
         .tree-main,
@@ -557,6 +557,7 @@
           display: block !important;
           margin-left: auto !important;
           margin-right: auto !important;
+          object-position: center top !important;
           -webkit-mask-image: radial-gradient(ellipse 80% 92% at 50% 52%, #000 48%, rgba(0,0,0,.72) 74%, rgba(0,0,0,0) 100%) !important;
           mask-image: radial-gradient(ellipse 80% 92% at 50% 52%, #000 48%, rgba(0,0,0,.72) 74%, rgba(0,0,0,0) 100%) !important;
         }
@@ -590,7 +591,7 @@
         .growth-sign {
           width: clamp(72px, 23vw, 92px) !important;
           right: -11% !important;
-          top: 65.2% !important;
+          top: 61.2% !important;
           padding: clamp(8px, 2.4vw, 11px) clamp(4px, 1.4vw, 6px) clamp(6px, 1.8vw, 8px) !important;
         }
 
@@ -623,7 +624,7 @@
     const sign = document.querySelector('.growth-sign');
     if (sign) {
       sign.style.right = window.innerWidth <= 520 ? '-11%' : (window.innerWidth <= 900 ? '-9.5%' : '0.8%');
-      sign.style.top = window.innerWidth <= 520 ? '65.2%' : (window.innerWidth <= 900 ? '64.0%' : '61.4%');
+      sign.style.top = window.innerWidth <= 520 ? '61.2%' : (window.innerWidth <= 900 ? '59.8%' : '61.4%');
       sign.style.textAlign = 'center';
       sign.style.alignItems = 'center';
       if (window.innerWidth <= 900) sign.style.overflow = 'visible';
