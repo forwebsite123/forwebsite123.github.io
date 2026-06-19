@@ -249,10 +249,10 @@
           left: 0 !important;
           right: auto !important;
           top: auto !important;
-          bottom: clamp(18px, 2.2vh, 28px) !important;
+          bottom: clamp(4px, .8vh, 12px) !important;
           display: block !important;
           visibility: visible !important;
-          width: clamp(170px, 15vw, 260px) !important;
+          width: clamp(150px, 13.5vw, 230px) !important;
           height: auto !important;
           transform: translate(-12px, 0) rotate(-90deg) !important;
           transform-origin: center center !important;
@@ -585,10 +585,10 @@
       floraBlImg.style.left = '0';
       floraBlImg.style.right = 'auto';
       floraBlImg.style.top = 'auto';
-      floraBlImg.style.bottom = 'clamp(18px, 2.2vh, 28px)';
+      floraBlImg.style.bottom = 'clamp(4px, .8vh, 12px)';
       floraBlImg.style.display = 'block';
       floraBlImg.style.visibility = 'visible';
-      floraBlImg.style.width = 'clamp(170px, 15vw, 260px)';
+      floraBlImg.style.width = 'clamp(150px, 13.5vw, 230px)';
       floraBlImg.style.height = 'auto';
       floraBlImg.style.transform = 'translate(-12px, 0) rotate(-90deg)';
       floraBlImg.style.transformOrigin = 'center center';
