@@ -505,8 +505,8 @@
 
         .growth-sign {
           width: clamp(78px, 22vw, 98px) !important;
-          right: -5% !important;
-          top: 59.8% !important;
+          right: -2.5% !important;
+          top: 61.4% !important;
           padding: clamp(9px, 2.6vw, 13px) clamp(5px, 1.6vw, 7px) clamp(7px, 2vw, 9px) !important;
           text-align: center !important;
           align-items: center !important;
@@ -614,8 +614,8 @@
 
         .growth-sign {
           width: clamp(72px, 23vw, 92px) !important;
-          right: -6.5% !important;
-          top: 61.2% !important;
+          right: -4% !important;
+          top: 62.8% !important;
           padding: clamp(8px, 2.4vw, 11px) clamp(4px, 1.4vw, 6px) clamp(6px, 1.8vw, 8px) !important;
         }
 
@@ -647,8 +647,8 @@
 
     const sign = document.querySelector('.growth-sign');
     if (sign) {
-      sign.style.right = window.innerWidth <= 520 ? '-6.5%' : (window.innerWidth <= 900 ? '-5%' : '0.8%');
-      sign.style.top = window.innerWidth <= 520 ? '61.2%' : (window.innerWidth <= 900 ? '59.8%' : '61.4%');
+      sign.style.right = window.innerWidth <= 520 ? '-4%' : (window.innerWidth <= 900 ? '-2.5%' : '0.8%');
+      sign.style.top = window.innerWidth <= 520 ? '62.8%' : (window.innerWidth <= 900 ? '61.4%' : '61.4%');
       sign.style.textAlign = 'center';
       sign.style.alignItems = 'center';
       if (window.innerWidth <= 900) sign.style.overflow = 'visible';
