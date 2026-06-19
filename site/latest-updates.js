@@ -64,7 +64,6 @@
 
       html { min-height: 100%; overflow-x: hidden; }
       body { min-height: 100dvh; overflow-x: hidden; }
-      #home-bottom-left-corner-rescue { display: none !important; visibility: hidden !important; }
 
       @media (min-width: 901px) {
         html,
@@ -473,7 +472,6 @@
       setHomeViewportVars();
       setKindergartenLink();
       moveCornerImagesDirectly();
-      removeBottomLeftRescue();
       if (window.innerWidth <= 900) return;
       nudgeElementByText(/Kindergarten|幼儿园/, 10, 0, { minWidth: 80, minHeight: 28, maxWidth: 280, maxHeight: 140 });
       nudgeElementByText(/Growth\s*Rings/, 12, -10, { minWidth: 160, minHeight: 70, maxWidth: 440, maxHeight: 280 });
@@ -487,11 +485,6 @@
     setTimeout(run, 1200);
     window.addEventListener('resize', run, { passive: true });
     if (window.visualViewport) window.visualViewport.addEventListener('resize', run, { passive: true });
-  }
-
-  function removeBottomLeftRescue() {
-    const rescue = document.getElementById('home-bottom-left-corner-rescue');
-    if (rescue) rescue.remove();
   }
 
   function setKindergartenLink() {
