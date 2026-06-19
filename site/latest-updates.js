@@ -472,12 +472,12 @@
     const run = () => {
       setHomeViewportVars();
       setKindergartenLink();
+      moveCornerImagesDirectly();
       if (window.innerWidth <= 900) return;
       nudgeElementByText(/Kindergarten|幼儿园/, 10, 0, { minWidth: 80, minHeight: 28, maxWidth: 280, maxHeight: 140 });
       nudgeElementByText(/Growth\s*Rings/, 12, -10, { minWidth: 160, minHeight: 70, maxWidth: 440, maxHeight: 280 });
       moveTreeGroupDirectly();
       moveLatestPanelDirectly();
-      moveCornerImagesDirectly();
       fixLeftCardIllustrationsDirectly();
     };
     window.addEventListener('load', run, { once: true });
@@ -606,7 +606,6 @@
     const preferred = artworkSourceFromElement(preferredElement);
     if (preferred) return preferred;
 
-    const vw = window.innerWidth || 1200;
     const vh = (window.visualViewport && window.visualViewport.height) || window.innerHeight || 820;
     const elements = Array.from(document.querySelectorAll('body *'));
     const elementSources = elements.map((element) => {
