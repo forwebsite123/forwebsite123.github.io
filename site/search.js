@@ -452,6 +452,8 @@
           max-height: 740px !important;
           object-fit: contain !important;
           object-position: center bottom !important;
+          -webkit-mask-image: radial-gradient(ellipse 84% 90% at 50% 52%, #000 68%, rgba(0,0,0,.88) 82%, rgba(0,0,0,0) 100%) !important;
+          mask-image: radial-gradient(ellipse 84% 90% at 50% 52%, #000 68%, rgba(0,0,0,.88) 82%, rgba(0,0,0,0) 100%) !important;
         }
 
         .node,
@@ -466,14 +468,14 @@
         .node-u { top: 34.2% !important; left: 72.8% !important; }
         .node-s { top: 49.2% !important; left: 45.7% !important; }
         .node-j { top: 63.2% !important; left: 44.6% !important; }
-        .node-p { top: 73.9% !important; left: 50.2% !important; }
-        .node-k { top: 82.2% !important; left: 59.0% !important; }
+        .node-p { top: 71.8% !important; left: 50.2% !important; }
+        .node-k { top: 82.2% !important; left: 65.0% !important; }
 
         .growth-sign {
-          width: clamp(148px, 42vw, 180px) !important;
-          right: 1% !important;
-          top: 62.5% !important;
-          padding: clamp(20px, 5.4vw, 28px) clamp(10px, 3vw, 14px) clamp(16px, 4vw, 18px) !important;
+          width: clamp(126px, 35vw, 152px) !important;
+          right: -1% !important;
+          top: 60.7% !important;
+          padding: clamp(17px, 4.6vw, 23px) clamp(9px, 2.7vw, 12px) clamp(13px, 3.6vw, 16px) !important;
           text-align: center !important;
           align-items: center !important;
         }
@@ -485,9 +487,9 @@
         .growth-sign .chain,
         .chain {
           left: 50% !important;
-          width: clamp(112px, 34vw, 138px) !important;
-          height: clamp(78px, 22vw, 92px) !important;
-          top: clamp(-92px, -22vw, -78px) !important;
+          width: clamp(96px, 28vw, 118px) !important;
+          height: clamp(66px, 18vw, 78px) !important;
+          top: clamp(-78px, -18vw, -66px) !important;
           transform: translateX(-50%) !important;
         }
       }
@@ -510,6 +512,8 @@
         .tree-art {
           width: min(120vw, 590px) !important;
           max-height: 660px !important;
+          -webkit-mask-image: radial-gradient(ellipse 84% 90% at 50% 52%, #000 66%, rgba(0,0,0,.86) 81%, rgba(0,0,0,0) 100%) !important;
+          mask-image: radial-gradient(ellipse 84% 90% at 50% 52%, #000 66%, rgba(0,0,0,.86) 81%, rgba(0,0,0,0) 100%) !important;
         }
 
         .node,
@@ -519,8 +523,9 @@
         }
 
         .growth-sign {
-          width: clamp(136px, 42vw, 166px) !important;
-          top: 63.4% !important;
+          width: clamp(118px, 36vw, 148px) !important;
+          right: -1.5% !important;
+          top: 61.7% !important;
         }
       }
     `;
@@ -534,8 +539,8 @@
 
     const sign = document.querySelector('.growth-sign');
     if (sign) {
-      sign.style.right = window.innerWidth <= 900 ? '1%' : '0.8%';
-      sign.style.top = window.innerWidth <= 520 ? '63.4%' : (window.innerWidth <= 900 ? '62.5%' : '61.4%');
+      sign.style.right = window.innerWidth <= 520 ? '-1.5%' : (window.innerWidth <= 900 ? '-1%' : '0.8%');
+      sign.style.top = window.innerWidth <= 520 ? '61.7%' : (window.innerWidth <= 900 ? '60.7%' : '61.4%');
       sign.style.textAlign = 'center';
       sign.style.alignItems = 'center';
     }
