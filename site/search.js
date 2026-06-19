@@ -467,7 +467,7 @@
           max-width: 36% !important;
           width: clamp(86px, 24vw, 128px) !important;
           height: auto !important;
-          transform: translateX(-6px) scale(.84) !important;
+          transform: translate(2px, 7px) scale(.84) !important;
           transform-origin: left center !important;
           opacity: .68 !important;
         }
@@ -477,20 +477,20 @@
         .milestone-node {
           min-width: clamp(118px, 34vw, 152px) !important;
           padding: clamp(7px, 2vw, 9px) clamp(10px, 3vw, 14px) !important;
-          transform: translateX(-50%) scale(.82) !important;
+          transform: translateX(-50%) scale(.78) !important;
           transform-origin: center center !important;
         }
 
-        .node-u { top: 36.8% !important; left: 72.8% !important; }
-        .node-s { top: 51.8% !important; left: 45.7% !important; }
-        .node-j { top: 63.4% !important; left: 44.6% !important; }
-        .node-p { top: 72.0% !important; left: 50.2% !important; }
-        .node-k { top: 82.4% !important; left: 65.0% !important; }
+        .node-u { top: 39.2% !important; left: 72.8% !important; }
+        .node-s { top: 54.5% !important; left: 45.7% !important; }
+        .node-j { top: 66.0% !important; left: 44.6% !important; }
+        .node-p { top: 74.4% !important; left: 50.2% !important; }
+        .node-k { top: 84.8% !important; left: 65.0% !important; }
 
         .growth-sign {
           width: clamp(78px, 22vw, 98px) !important;
           right: -9.5% !important;
-          top: 62.0% !important;
+          top: 64.0% !important;
           padding: clamp(9px, 2.6vw, 13px) clamp(5px, 1.6vw, 7px) clamp(7px, 2vw, 9px) !important;
           text-align: center !important;
           align-items: center !important;
@@ -578,19 +578,19 @@
         .left-column .portal-card img {
           max-width: 32% !important;
           width: clamp(76px, 21vw, 112px) !important;
-          transform: translateX(-5px) scale(.78) !important;
+          transform: translate(2px, 6px) scale(.78) !important;
         }
 
         .node,
         .school-node,
         .milestone-node {
-          transform: translateX(-50%) scale(.74) !important;
+          transform: translateX(-50%) scale(.70) !important;
         }
 
         .growth-sign {
           width: clamp(72px, 23vw, 92px) !important;
           right: -11% !important;
-          top: 63.2% !important;
+          top: 65.2% !important;
           padding: clamp(8px, 2.4vw, 11px) clamp(4px, 1.4vw, 6px) clamp(6px, 1.8vw, 8px) !important;
         }
 
@@ -623,7 +623,7 @@
     const sign = document.querySelector('.growth-sign');
     if (sign) {
       sign.style.right = window.innerWidth <= 520 ? '-11%' : (window.innerWidth <= 900 ? '-9.5%' : '0.8%');
-      sign.style.top = window.innerWidth <= 520 ? '63.2%' : (window.innerWidth <= 900 ? '62.0%' : '61.4%');
+      sign.style.top = window.innerWidth <= 520 ? '65.2%' : (window.innerWidth <= 900 ? '64.0%' : '61.4%');
       sign.style.textAlign = 'center';
       sign.style.alignItems = 'center';
       if (window.innerWidth <= 900) sign.style.overflow = 'visible';
