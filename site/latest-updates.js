@@ -548,9 +548,6 @@
   }
 
   function moveCornerImagesDirectly() {
-    const oldRescue = document.getElementById('home-bottom-left-corner-rescue');
-    if (oldRescue) oldRescue.remove();
-
     const imgs = Array.from(document.images || []);
     const vw = window.innerWidth || 1200;
     const vh = (window.visualViewport && window.visualViewport.height) || window.innerHeight || 820;
@@ -591,7 +588,7 @@
     }
 
     if (!bottomLeft || !isPaintedInViewport(bottomLeft.img)) {
-      rescueBottomLeftCorner((bottomLeft && bottomLeft.img) || candidates.find(({ img }) => !topLeft || img !== topLeft.img)?.img || (topLeft && topLeft.img) || null);
+      rescueBottomLeftCorner((bottomLeft && bottomLeft.img) || findCornerArtworkSource(topLeft && topLeft.img));
     }
   }
 
@@ -605,17 +602,75 @@
     return Boolean(hit && (hit === element || element.contains(hit) || hit.contains(element)));
   }
 
+  function findCornerArtworkSource(preferredElement) {
+    const preferred = artworkSourceFromElement(preferredElement);
+    if (preferred) return preferred;
+
+    const vw = window.innerWidth || 1200;
+    const vh = (window.visualViewport && window.visualViewport.height) || window.innerHeight || 820;
+    const elements = Array.from(document.querySelectorAll('body *'));
+    const elementSources = elements.map((element) => {
+      if (isInsidePortalCard(element)) return null;
+      const url = artworkUrlFromElement(element);
+      if (!url) return null;
+      const rect = element.getBoundingClientRect();
+      const name = `${element.id || ''} ${element.className || ''} ${element.getAttribute('src') || ''}`;
+      const bottomScore = /bottom|lower|bl|corner|botanical|floral|leaf/i.test(name) ? 0 : 800;
+      const distance = Math.abs(rect.left) + Math.abs(vh - rect.bottom);
+      return { url, opacity: getComputedStyle(element).opacity || '.86', score: bottomScore + distance };
+    }).filter(Boolean).sort((a, b) => a.score - b.score);
+    if (elementSources[0]) return elementSources[0];
+
+    const cssSources = [];
+    Array.from(document.styleSheets || []).forEach((sheet) => {
+      let rules;
+      try { rules = sheet.cssRules || []; } catch (_) { return; }
+      Array.from(rules).forEach((rule) => {
+        const selector = rule.selectorText || '';
+        const bg = rule.style && (rule.style.backgroundImage || rule.style.background);
+        const url = extractCssUrl(bg);
+        if (!url) return;
+        if (!/bottom|lower|bl|corner|botanical|floral|leaf|home/i.test(selector + ' ' + url)) return;
+        const priority = /bottom|lower|bl/i.test(selector) ? 0 : 500;
+        cssSources.push({ url, opacity: '.86', score: priority });
+      });
+    });
+    cssSources.sort((a, b) => a.score - b.score);
+    return cssSources[0] || null;
+  }
+
+  function artworkSourceFromElement(element) {
+    if (!element) return null;
+    const url = artworkUrlFromElement(element);
+    if (!url) return null;
+    return { url, opacity: getComputedStyle(element).opacity || '.86' };
+  }
+
+  function artworkUrlFromElement(element) {
+    if (!element) return '';
+    if (element.currentSrc || element.src) return element.currentSrc || element.src;
+    const style = getComputedStyle(element);
+    return extractCssUrl(style.backgroundImage) || extractCssUrl(style.background);
+  }
+
+  function extractCssUrl(value) {
+    if (!value || value === 'none') return '';
+    const match = String(value).match(/url\(["']?([^"')]+)["']?\)/i);
+    return match ? match[1] : '';
+  }
+
   function rescueBottomLeftCorner(source) {
     if (!source) return;
+    const url = typeof source === 'string' ? source : source.url;
+    if (!url) return;
     let rescue = document.getElementById('home-bottom-left-corner-rescue');
     if (!rescue) {
-      rescue = source.cloneNode(false);
+      rescue = document.createElement('img');
       rescue.id = 'home-bottom-left-corner-rescue';
       rescue.setAttribute('aria-hidden', 'true');
-      rescue.removeAttribute('loading');
       document.body.appendChild(rescue);
     }
-    rescue.src = source.currentSrc || source.src;
+    rescue.src = url;
     rescue.alt = '';
     rescue.style.position = 'fixed';
     rescue.style.left = '0';
@@ -630,7 +685,7 @@
     rescue.style.translate = 'none';
     rescue.style.zIndex = '4';
     rescue.style.pointerEvents = 'none';
-    rescue.style.opacity = '.86';
+    rescue.style.opacity = (typeof source === 'object' && source.opacity) || '.86';
     rescue.style.filter = 'saturate(1.12) contrast(1.04)';
   }
 
