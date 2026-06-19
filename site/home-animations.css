@@ -1,62 +1,4 @@
-name: Apply first round home animations
-
-on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/apply-home-animations.yml'
-
-permissions:
-  contents: write
-
-jobs:
-  apply:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: true
-
-      - name: Add lightweight home animation CSS
-        run: |
-          python3 <<'PY'
-          from pathlib import Path
-
-          home = Path('site/home.html')
-          text = home.read_text(encoding='utf-8')
-
-          link = '<link rel="stylesheet" href="home-animations.css">'
-          if link not in text:
-              marker = '<title>A place to leave traces.</title>'
-              if marker not in text:
-                  raise SystemExit('Could not find title marker; refusing to edit home.html.')
-              text = text.replace(marker, marker + '\n' + link, 1)
-
-          text = text.replace(
-              '<!-- v5: all tree/corner images are embedded as data URIs, so sandbox preview will not lose them -->',
-              '<!-- home images are externalized; animation layer is kept separate in home-animations.css -->'
-          )
-
-          required = [
-              'latest-updates.js',
-              'search.js',
-              'src="/images/home/home-growth-tree-main.png"',
-              'src="/images/home/home-card-ornament.png"',
-              'treeBreath',
-              '@keyframes swing',
-              '@keyframes fall',
-              '--home-tree-x',
-              'width: calc(100% + 14px)',
-              'margin-left: -14px'
-          ]
-          for needle in required:
-              if needle not in text and needle not in Path('site/latest-updates.js').read_text(encoding='utf-8'):
-                  raise SystemExit(f'Missing preserved marker: {needle}')
-
-          home.write_text(text, encoding='utf-8')
-
-          css = r'''/* Ink Breath / 纸上生长
+/* Ink Breath / 纸上生长
    Lightweight home-only animation layer.
    It avoids changing layout dimensions, colors, fonts, or tuned placement values. */
 
@@ -268,20 +210,3 @@ jobs:
     transform: none !important;
   }
 }
-'''
-          Path('site/home-animations.css').write_text(css, encoding='utf-8')
-
-          Path('.github/workflows/apply-home-animations.yml').unlink(missing_ok=True)
-          PY
-
-      - name: Commit animation layer
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A site/home.html site/home-animations.css .github/workflows/apply-home-animations.yml
-          if git diff --cached --quiet; then
-            echo "No changes to commit."
-          else
-            git commit -m "Add first round home animations"
-            git push
-          fi
