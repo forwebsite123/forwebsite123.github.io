@@ -8,14 +8,13 @@
     const activityPages = ['snowboarding', 'diving', 'horse-riding', 'kitesurfing'];
     for (const a of activityPages) { if (p.includes(a)) return 'activity:' + a; }
     if (p.includes('found-fragments')) return 'fragments';
-    if (p.includes('into-the-wild'))  return 'activities';
+    if (p.includes('into-the-wild')) return 'activities';
     if (p.includes('drift-coordinates')) return 'photos';
     if (p.includes('tag')) {
       const tag = new URLSearchParams(window.location.search).get('tag');
       return tag ? 'tag:' + tag : 'photos';
     }
-    const photosIndexPages = ['europe', 'asia', 'africa', 'oceania',
-                              'north-america', 'south-america', 'antarctica', 'china'];
+    const photosIndexPages = ['europe', 'asia', 'africa', 'oceania', 'north-america', 'south-america', 'antarctica', 'china'];
     for (const idx of photosIndexPages) { if (p.includes(idx)) return 'photos'; }
     const pageName = window.location.pathname.split('/').pop();
     if (pageName) return 'album:' + (pageName.endsWith('.html') ? pageName : pageName + '.html');
@@ -27,7 +26,6 @@
     'horse-riding': '🐴 骑马', 'kitesurfing': '🪁 风筝冲浪'
   };
 
-  // 相册中英文对照，搜索时自动补充
   const ALBUM_ZH = {
     'guangzhou': '广州 中国 华南',
     'korea': '韩国 首尔 釜山',
@@ -49,7 +47,7 @@
     'spain': '西班牙 巴塞罗那 马德里',
     'serbia': '塞尔维亚 贝尔格莱德',
     'france': '法国 巴黎',
-    'country': '南极 南极洲',
+    'country': '南极 南极洲'
   };
 
   async function safeJson(url) {
@@ -64,7 +62,6 @@
   async function loadItems(scope) {
     const items = [];
 
-    /* All photos / photos index — grouped by album */
     if (scope === 'all' || scope === 'photos') {
       const data = await safeJson('/photos.json');
       if (data && data.items) {
@@ -72,7 +69,7 @@
         for (const item of data.items) {
           const key = item.page;
           if (!byPage[key]) {
-            const pageKey = (item.page || '').replace('.html','').toLowerCase();
+            const pageKey = (item.page || '').replace('.html', '').toLowerCase();
             const zhAlias = ALBUM_ZH[pageKey] || '';
             byPage[key] = {
               type: 'photo', icon: '📷',
@@ -88,7 +85,6 @@
       }
     }
 
-    /* Album scope — individual photos with lightbox links */
     if (scope.startsWith('album:')) {
       const albumPage = scope.slice(6);
       const data = await safeJson('/photos.json');
@@ -107,7 +103,6 @@
       }
     }
 
-    /* Tag scope — individual photos with that tag */
     if (scope.startsWith('tag:')) {
       const tag = scope.slice(4);
       const data = await safeJson('/photos.json');
@@ -126,7 +121,6 @@
       }
     }
 
-    /* Found Fragments */
     if (scope === 'all' || scope === 'fragments') {
       const data = await safeJson('/found-fragments.json');
       if (data && data.entries) {
@@ -143,11 +137,8 @@
       }
     }
 
-    /* Activity entries */
     const activityTypes = ['snowboarding', 'diving', 'horse-riding', 'kitesurfing'];
-    const toLoad = scope === 'all' || scope === 'activities'
-      ? activityTypes
-      : scope.startsWith('activity:') ? [scope.slice(9)] : [];
+    const toLoad = scope === 'all' || scope === 'activities' ? activityTypes : scope.startsWith('activity:') ? [scope.slice(9)] : [];
     for (const type of toLoad) {
       const data = await safeJson('/' + type + '.json');
       if (!data || !data.entries) continue;
@@ -169,18 +160,12 @@
     const q = query.trim().toLowerCase();
     if (!q) return [];
     const words = q.split(/\s+/);
-    return items
-      .map(item => {
-        const hay = item.text.toLowerCase() + ' ' + item.title.toLowerCase()
-                  + ' ' + item.section.toLowerCase()
-                  + ' ' + (item.tags || []).join(' ').toLowerCase();
-        let score = 0;
-        for (const w of words) if (hay.includes(w)) score++;
-        return { item, score };
-      })
-      .filter(x => x.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .map(x => x.item);
+    return items.map(item => {
+      const hay = item.text.toLowerCase() + ' ' + item.title.toLowerCase() + ' ' + item.section.toLowerCase() + ' ' + (item.tags || []).join(' ').toLowerCase();
+      let score = 0;
+      for (const w of words) if (hay.includes(w)) score++;
+      return { item, score };
+    }).filter(x => x.score > 0).sort((a, b) => b.score - a.score).map(x => x.item);
   }
 
   const CSS = `
@@ -210,24 +195,11 @@
     }
     #sk-close:hover { opacity: 1; }
     #sk-hint { margin-top: 10px; font-size: 0.72rem; letter-spacing: 0.1em; color: #c9a8aa; text-transform: uppercase; }
-    #sk-hint .sk-scope-label {
-      background: #f0e6e8; color: #9b7070;
-      padding: 2px 10px; border-radius: 20px; font-size: 0.68rem; margin-left: 6px;
-    }
-    #sk-results {
-      width: min(560px, 88vw); margin-top: 28px;
-      display: flex; flex-direction: column; gap: 6px;
-      max-height: 55vh; overflow-y: auto; padding-bottom: 40px;
-      scrollbar-width: thin; scrollbar-color: #e0cece transparent;
-    }
+    #sk-hint .sk-scope-label { background: #f0e6e8; color: #9b7070; padding: 2px 10px; border-radius: 20px; font-size: 0.68rem; margin-left: 6px; }
+    #sk-results { width: min(560px, 88vw); margin-top: 28px; display: flex; flex-direction: column; gap: 6px; max-height: 55vh; overflow-y: auto; padding-bottom: 40px; scrollbar-width: thin; scrollbar-color: #e0cece transparent; }
     #sk-results::-webkit-scrollbar { width: 4px; }
     #sk-results::-webkit-scrollbar-thumb { background: #e0cece; border-radius: 4px; }
-    .sk-result {
-      display: block; text-decoration: none; color: inherit;
-      padding: 14px 18px; border: 1px solid #e8d8db; border-radius: 10px;
-      background: rgba(255,255,255,0.6);
-      transition: background .15s, border-color .15s, transform .12s;
-    }
+    .sk-result { display: block; text-decoration: none; color: inherit; padding: 14px 18px; border: 1px solid #e8d8db; border-radius: 10px; background: rgba(255,255,255,0.6); transition: background .15s, border-color .15s, transform .12s; }
     .sk-result:hover { background: rgba(255,255,255,0.95); border-color: #c4a0a6; transform: translateX(3px); }
     .sk-result-head { display: flex; align-items: baseline; gap: 8px; }
     .sk-icon { font-size: 0.85rem; flex-shrink: 0; }
@@ -237,20 +209,9 @@
     .sk-tag { background: #f5edee; color: #a07880; padding: 2px 8px; border-radius: 20px; font-size: 0.68rem; }
     .sk-empty { text-align: center; color: #b09090; font-size: 0.88rem; margin-top: 24px; letter-spacing: 0.04em; }
     .sk-loading { text-align: center; color: #c4a0a6; font-size: 0.82rem; margin-top: 24px; letter-spacing: 0.08em; }
-    .sk-icon-ring {
-      position: fixed; border-radius: 50%;
-      border: 1.5px solid rgba(156, 115, 115, 0.7);
-      pointer-events: none; z-index: 99998;
-      animation: sk-ring-expand 0.55s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
-    }
-    @keyframes sk-ring-expand {
-      0%   { transform: translate(-50%, -50%) scale(1);    opacity: 0.85; }
-      100% { transform: translate(-50%, -50%) scale(3.2);  opacity: 0;    }
-    }
-    #sk-overlay {
-      transform: translateY(-8px);
-      transition: opacity 0.28s cubic-bezier(.4,0,.2,1), transform 0.28s cubic-bezier(.16,1,.3,1);
-    }
+    .sk-icon-ring { position: fixed; border-radius: 50%; border: 1.5px solid rgba(156, 115, 115, 0.7); pointer-events: none; z-index: 99998; animation: sk-ring-expand 0.55s cubic-bezier(0.2, 0.8, 0.4, 1) forwards; }
+    @keyframes sk-ring-expand { 0% { transform: translate(-50%, -50%) scale(1); opacity: 0.85; } 100% { transform: translate(-50%, -50%) scale(3.2); opacity: 0; } }
+    #sk-overlay { transform: translateY(-8px); transition: opacity 0.28s cubic-bezier(.4,0,.2,1), transform 0.28s cubic-bezier(.16,1,.3,1); }
     #sk-overlay.sk-open { opacity: 1; pointer-events: all; transform: translateY(0); }
     @media (prefers-color-scheme: dark) {
       #sk-overlay { background: rgba(30, 22, 22, 0.93); }
@@ -263,13 +224,13 @@
   `;
 
   function scopeLabel(scope) {
-    if (scope === 'all')       return '全站';
-    if (scope === 'photos')    return '漂流坐标';
+    if (scope === 'all') return '全站';
+    if (scope === 'photos') return '漂流坐标';
     if (scope === 'fragments') return '人间拾遗';
     if (scope === 'activities') return '沉浸体验';
     if (scope.startsWith('activity:')) return ACTIVITY_LABELS[scope.slice(9)] || scope.slice(9);
     if (scope.startsWith('album:')) return '当前相册';
-    if (scope.startsWith('tag:'))   return '#' + scope.slice(4);
+    if (scope.startsWith('tag:')) return '#' + scope.slice(4);
     return scope;
   }
 
@@ -279,7 +240,6 @@
     const style = document.createElement('style');
     style.textContent = CSS;
     document.head.appendChild(style);
-
     overlay = document.createElement('div');
     overlay.id = 'sk-overlay';
     overlay.setAttribute('role', 'dialog');
@@ -293,19 +253,12 @@
       <div id="sk-results" role="listbox"></div>
     `;
     document.body.appendChild(overlay);
-
-    input   = document.getElementById('sk-input');
+    input = document.getElementById('sk-input');
     results = document.getElementById('sk-results');
-
     document.getElementById('sk-close').addEventListener('click', close);
     overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape' && overlay.classList.contains('sk-open')) close();
-    });
-    input.addEventListener('input', () => {
-      if (!isLoaded) return;
-      render(doSearch(cachedItems, input.value));
-    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && overlay.classList.contains('sk-open')) close(); });
+    input.addEventListener('input', () => { if (!isLoaded) return; render(doSearch(cachedItems, input.value)); });
   }
 
   function render(items) {
@@ -322,20 +275,17 @@
           <span class="sk-title">${escHtml(item.title)}</span>
           <span class="sk-section">${escHtml(item.section)}</span>
         </div>
-        ${item.tags.length ? `<div class="sk-tags">${item.tags.map(t =>
-          `<span class="sk-tag">${escHtml(t)}</span>`).join('')}</div>` : ''}
+        ${item.tags.length ? `<div class="sk-tags">${item.tags.map(t => `<span class="sk-tag">${escHtml(t)}</span>`).join('')}</div>` : ''}
       </a>
     `).join('');
   }
 
   function escHtml(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
   function fireIconRing() {
-    const icon = document.getElementById('search-icon')
-      || document.querySelector('[class*="search"]')
-      || document.querySelector('button, span, div, i, label');
+    const icon = document.getElementById('search-icon') || document.querySelector('[class*="search"]') || document.querySelector('button, span, div, i, label');
     if (!icon) return;
     const rect = icon.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
@@ -352,8 +302,7 @@
     if (!overlay) buildOverlay();
     fireIconRing();
     const scope = detectScope();
-    document.getElementById('sk-hint').innerHTML =
-      `按 ESC 关闭 <span class="sk-scope-label">${scopeLabel(scope)}</span>`;
+    document.getElementById('sk-hint').innerHTML = `按 ESC 关闭 <span class="sk-scope-label">${scopeLabel(scope)}</span>`;
     overlay.classList.add('sk-open');
     input.focus();
     if (!isLoaded) {
@@ -386,9 +335,7 @@
     }
     const byClass = document.querySelector('[class*="search"]');
     if (byClass) { byClass.addEventListener('click', e => { e.preventDefault(); open(); }); return; }
-    document.addEventListener('keydown', e => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); open(); }
-    });
+    document.addEventListener('keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); open(); } });
   }
 
   function isHomePageForVisualPatch() {
@@ -448,15 +395,15 @@
         .growth-tree-main,
         .tree-image,
         .tree-art {
-          width: min(112vw, 630px) !important;
+          width: min(104vw, 610px) !important;
           max-height: 820px !important;
-          margin-left: -2vw !important;
-          margin-right: -2vw !important;
+          margin-left: 0 !important;
+          margin-right: 0 !important;
           object-fit: contain !important;
           object-position: center bottom !important;
-          border-radius: 38px !important;
-          -webkit-mask-image: radial-gradient(ellipse 78% 90% at 50% 52%, #000 50%, rgba(0,0,0,.72) 74%, rgba(0,0,0,0) 100%) !important;
-          mask-image: radial-gradient(ellipse 78% 90% at 50% 52%, #000 50%, rgba(0,0,0,.72) 74%, rgba(0,0,0,0) 100%) !important;
+          border-radius: 40px !important;
+          -webkit-mask-image: radial-gradient(ellipse 82% 92% at 50% 52%, #000 50%, rgba(0,0,0,.76) 76%, rgba(0,0,0,0) 100%) !important;
+          mask-image: radial-gradient(ellipse 82% 92% at 50% 52%, #000 50%, rgba(0,0,0,.76) 76%, rgba(0,0,0,0) 100%) !important;
         }
 
         .right-side,
@@ -469,7 +416,7 @@
           max-width: min(84vw, 390px) !important;
           margin-left: auto !important;
           margin-right: auto !important;
-          transform: none !important;
+          transform: translateX(2vw) !important;
           align-items: stretch !important;
           align-self: center !important;
           box-sizing: border-box !important;
@@ -496,7 +443,7 @@
           text-align: center !important;
           justify-content: center !important;
           align-items: center !important;
-          transform: none !important;
+          transform: translateX(2vw) !important;
           align-self: center !important;
           box-sizing: border-box !important;
         }
@@ -510,52 +457,57 @@
           transform-origin: center center !important;
         }
 
-        .node-u { top: 32.4% !important; left: 72.8% !important; }
-        .node-s { top: 47.2% !important; left: 45.7% !important; }
-        .node-j { top: 60.2% !important; left: 44.6% !important; }
-        .node-p { top: 69.0% !important; left: 50.2% !important; }
-        .node-k { top: 79.4% !important; left: 65.0% !important; }
+        .node-u { top: 36.8% !important; left: 72.8% !important; }
+        .node-s { top: 51.8% !important; left: 45.7% !important; }
+        .node-j { top: 63.4% !important; left: 44.6% !important; }
+        .node-p { top: 72.0% !important; left: 50.2% !important; }
+        .node-k { top: 82.4% !important; left: 65.0% !important; }
 
         .growth-sign {
-          width: clamp(92px, 25vw, 112px) !important;
-          right: -8.5% !important;
-          top: 57.2% !important;
-          padding: clamp(11px, 3.1vw, 15px) clamp(6px, 1.9vw, 8px) clamp(8px, 2.4vw, 11px) !important;
+          width: clamp(78px, 22vw, 98px) !important;
+          right: -9.5% !important;
+          top: 62.0% !important;
+          padding: clamp(9px, 2.6vw, 13px) clamp(5px, 1.6vw, 7px) clamp(7px, 2vw, 9px) !important;
           text-align: center !important;
           align-items: center !important;
           overflow: visible !important;
-          line-height: 1.08 !important;
+          line-height: 1.05 !important;
         }
 
         .growth-title {
-          font-size: clamp(15px, 4.2vw, 20px) !important;
-          line-height: .95 !important;
-          transform: translateX(-6px) !important;
+          font-size: clamp(11.5px, 3.2vw, 15px) !important;
+          line-height: 1.03 !important;
+          transform: translateX(-3px) !important;
+          white-space: normal !important;
+          word-break: keep-all !important;
+          overflow-wrap: normal !important;
+          hyphens: none !important;
+          text-wrap: balance !important;
         }
 
         .growth-sub {
-          font-size: clamp(9px, 2.55vw, 11.5px) !important;
+          font-size: clamp(8.2px, 2.35vw, 10px) !important;
           line-height: 1.08 !important;
         }
 
         .growth-cn {
-          font-size: clamp(7.8px, 2.35vw, 10px) !important;
-          line-height: 1.14 !important;
+          font-size: clamp(6.8px, 2.05vw, 8.8px) !important;
+          line-height: 1.12 !important;
           white-space: nowrap !important;
         }
 
         .growth-en {
-          font-size: clamp(6.2px, 1.9vw, 8px) !important;
-          line-height: 1.14 !important;
+          font-size: clamp(5.4px, 1.65vw, 7px) !important;
+          line-height: 1.12 !important;
           white-space: normal !important;
         }
 
         .growth-sign .chain,
         .chain {
           left: 50% !important;
-          width: clamp(68px, 19vw, 84px) !important;
-          height: clamp(46px, 12.8vw, 56px) !important;
-          top: clamp(-56px, -12.8vw, -46px) !important;
+          width: clamp(58px, 16vw, 72px) !important;
+          height: clamp(40px, 11vw, 50px) !important;
+          top: clamp(-50px, -11vw, -40px) !important;
           transform: translateX(-50%) !important;
         }
       }
@@ -576,12 +528,12 @@
         .growth-tree-main,
         .tree-image,
         .tree-art {
-          width: min(116vw, 600px) !important;
+          width: min(106vw, 580px) !important;
           max-height: 760px !important;
-          margin-left: -3vw !important;
-          margin-right: -3vw !important;
-          -webkit-mask-image: radial-gradient(ellipse 76% 90% at 50% 52%, #000 48%, rgba(0,0,0,.70) 72%, rgba(0,0,0,0) 100%) !important;
-          mask-image: radial-gradient(ellipse 76% 90% at 50% 52%, #000 48%, rgba(0,0,0,.70) 72%, rgba(0,0,0,0) 100%) !important;
+          margin-left: -1vw !important;
+          margin-right: 0 !important;
+          -webkit-mask-image: radial-gradient(ellipse 80% 92% at 50% 52%, #000 48%, rgba(0,0,0,.72) 74%, rgba(0,0,0,0) 100%) !important;
+          mask-image: radial-gradient(ellipse 80% 92% at 50% 52%, #000 48%, rgba(0,0,0,.72) 74%, rgba(0,0,0,0) 100%) !important;
         }
 
         .node,
@@ -591,27 +543,27 @@
         }
 
         .growth-sign {
-          width: clamp(86px, 27vw, 106px) !important;
-          right: -10% !important;
-          top: 58.5% !important;
-          padding: clamp(10px, 2.9vw, 14px) clamp(5px, 1.7vw, 7px) clamp(7px, 2.2vw, 10px) !important;
+          width: clamp(72px, 23vw, 92px) !important;
+          right: -11% !important;
+          top: 63.2% !important;
+          padding: clamp(8px, 2.4vw, 11px) clamp(4px, 1.4vw, 6px) clamp(6px, 1.8vw, 8px) !important;
         }
 
         .growth-title {
-          font-size: clamp(14px, 4.1vw, 18px) !important;
-          transform: translateX(-5px) !important;
+          font-size: clamp(10.5px, 3.1vw, 14px) !important;
+          transform: translateX(-2px) !important;
         }
 
         .growth-sub {
-          font-size: clamp(8.4px, 2.45vw, 10.8px) !important;
+          font-size: clamp(7.6px, 2.22vw, 9.3px) !important;
         }
 
         .growth-cn {
-          font-size: clamp(7.2px, 2.25vw, 9.4px) !important;
+          font-size: clamp(6.2px, 1.95vw, 8px) !important;
         }
 
         .growth-en {
-          font-size: clamp(5.8px, 1.82vw, 7.6px) !important;
+          font-size: clamp(5px, 1.55vw, 6.6px) !important;
         }
       }
     `;
@@ -625,8 +577,8 @@
 
     const sign = document.querySelector('.growth-sign');
     if (sign) {
-      sign.style.right = window.innerWidth <= 520 ? '-10%' : (window.innerWidth <= 900 ? '-8.5%' : '0.8%');
-      sign.style.top = window.innerWidth <= 520 ? '58.5%' : (window.innerWidth <= 900 ? '57.2%' : '61.4%');
+      sign.style.right = window.innerWidth <= 520 ? '-11%' : (window.innerWidth <= 900 ? '-9.5%' : '0.8%');
+      sign.style.top = window.innerWidth <= 520 ? '63.2%' : (window.innerWidth <= 900 ? '62.0%' : '61.4%');
       sign.style.textAlign = 'center';
       sign.style.alignItems = 'center';
       if (window.innerWidth <= 900) sign.style.overflow = 'visible';
@@ -638,7 +590,10 @@
       element.style.marginLeft = 'auto';
       element.style.marginRight = 'auto';
       if (element.classList.contains('growth-title')) {
-        element.style.transform = window.innerWidth <= 520 ? 'translateX(-5px)' : (window.innerWidth <= 900 ? 'translateX(-6px)' : 'translateX(-11px)');
+        element.style.transform = window.innerWidth <= 520 ? 'translateX(-2px)' : (window.innerWidth <= 900 ? 'translateX(-3px)' : 'translateX(-11px)');
+        element.style.wordBreak = 'keep-all';
+        element.style.overflowWrap = 'normal';
+        element.style.hyphens = 'none';
       }
     });
 
