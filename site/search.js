@@ -420,13 +420,107 @@
         }
 
         .growth-title {
-          transform: translateX(-7px) !important;
+          transform: translateX(-11px) !important;
         }
 
         .growth-sign .chain,
         .chain {
           left: 50% !important;
           transform: translateX(-50%) !important;
+        }
+      }
+
+      @media (max-width: 900px) {
+        .tree-area,
+        .tree-stage,
+        .tree-shell,
+        .center-stage,
+        .center-col,
+        .center-column {
+          min-height: clamp(640px, 150vw, 760px) !important;
+          height: clamp(640px, 150vw, 760px) !important;
+          margin: 0 auto !important;
+          overflow: visible !important;
+        }
+
+        .tree-main,
+        .main-tree,
+        .growth-tree-main,
+        .tree-image,
+        .tree-art {
+          width: min(112vw, 650px) !important;
+          max-height: 740px !important;
+          object-fit: contain !important;
+          object-position: center bottom !important;
+        }
+
+        .node,
+        .school-node,
+        .milestone-node {
+          min-width: clamp(118px, 34vw, 152px) !important;
+          padding: clamp(7px, 2vw, 9px) clamp(10px, 3vw, 14px) !important;
+          transform: translateX(-50%) scale(.82) !important;
+          transform-origin: center center !important;
+        }
+
+        .node-u { top: 34.2% !important; left: 72.8% !important; }
+        .node-s { top: 49.2% !important; left: 45.7% !important; }
+        .node-j { top: 63.2% !important; left: 44.6% !important; }
+        .node-p { top: 73.9% !important; left: 50.2% !important; }
+        .node-k { top: 82.2% !important; left: 59.0% !important; }
+
+        .growth-sign {
+          width: clamp(148px, 42vw, 180px) !important;
+          right: 1% !important;
+          top: 62.5% !important;
+          padding: clamp(20px, 5.4vw, 28px) clamp(10px, 3vw, 14px) clamp(16px, 4vw, 18px) !important;
+          text-align: center !important;
+          align-items: center !important;
+        }
+
+        .growth-title {
+          transform: translateX(-11px) !important;
+        }
+
+        .growth-sign .chain,
+        .chain {
+          left: 50% !important;
+          width: clamp(112px, 34vw, 138px) !important;
+          height: clamp(78px, 22vw, 92px) !important;
+          top: clamp(-92px, -22vw, -78px) !important;
+          transform: translateX(-50%) !important;
+        }
+      }
+
+      @media (max-width: 520px) {
+        .tree-area,
+        .tree-stage,
+        .tree-shell,
+        .center-stage,
+        .center-col,
+        .center-column {
+          min-height: clamp(570px, 160vw, 680px) !important;
+          height: clamp(570px, 160vw, 680px) !important;
+        }
+
+        .tree-main,
+        .main-tree,
+        .growth-tree-main,
+        .tree-image,
+        .tree-art {
+          width: min(120vw, 590px) !important;
+          max-height: 660px !important;
+        }
+
+        .node,
+        .school-node,
+        .milestone-node {
+          transform: translateX(-50%) scale(.74) !important;
+        }
+
+        .growth-sign {
+          width: clamp(136px, 42vw, 166px) !important;
+          top: 63.4% !important;
         }
       }
     `;
@@ -440,8 +534,8 @@
 
     const sign = document.querySelector('.growth-sign');
     if (sign) {
-      sign.style.right = '0.8%';
-      sign.style.top = '61.4%';
+      sign.style.right = window.innerWidth <= 900 ? '1%' : '0.8%';
+      sign.style.top = window.innerWidth <= 520 ? '63.4%' : (window.innerWidth <= 900 ? '62.5%' : '61.4%');
       sign.style.textAlign = 'center';
       sign.style.alignItems = 'center';
     }
@@ -451,7 +545,7 @@
       element.style.textAlign = 'center';
       element.style.marginLeft = 'auto';
       element.style.marginRight = 'auto';
-      if (element.classList.contains('growth-title')) element.style.transform = 'translateX(-7px)';
+      if (element.classList.contains('growth-title')) element.style.transform = 'translateX(-11px)';
     });
 
     document.querySelectorAll('.growth-sign .chain, .chain').forEach((element) => {
