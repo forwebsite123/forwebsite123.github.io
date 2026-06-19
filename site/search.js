@@ -391,10 +391,90 @@
     });
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', hookSearchIcon);
-  } else {
+  function isHomePageForVisualPatch() {
+    const p = window.location.pathname.toLowerCase().replace(/\/$/, '');
+    return p === '' || p === '/' || p === '/home' || p === '/home.html' || p === '/index' || p === '/index.html';
+  }
+
+  function injectHomeGrowthSignStyle() {
+    if (!isHomePageForVisualPatch() || document.getElementById('home-growth-sign-position-patch')) return;
+    const style = document.createElement('style');
+    style.id = 'home-growth-sign-position-patch';
+    style.textContent = `
+      @media (min-width: 901px) {
+        .growth-sign {
+          right: 0.8% !important;
+          top: 61.4% !important;
+          text-align: center !important;
+          align-items: center !important;
+        }
+
+        .growth-title,
+        .growth-sub,
+        .growth-cn,
+        .growth-en {
+          width: 100% !important;
+          text-align: center !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
+        }
+
+        .growth-sign .chain,
+        .chain {
+          left: 50% !important;
+          transform: translateX(-50%) !important;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function applyHomeGrowthSignPatch() {
+    if (!isHomePageForVisualPatch()) return;
+    document.documentElement.style.setProperty('--home-behind-x', '0px');
+    injectHomeGrowthSignStyle();
+
+    const sign = document.querySelector('.growth-sign');
+    if (sign) {
+      sign.style.right = '0.8%';
+      sign.style.top = '61.4%';
+      sign.style.textAlign = 'center';
+      sign.style.alignItems = 'center';
+    }
+
+    document.querySelectorAll('.growth-title, .growth-sub, .growth-cn, .growth-en').forEach((element) => {
+      element.style.width = '100%';
+      element.style.textAlign = 'center';
+      element.style.marginLeft = 'auto';
+      element.style.marginRight = 'auto';
+    });
+
+    document.querySelectorAll('.growth-sign .chain, .chain').forEach((element) => {
+      element.style.left = '50%';
+      element.style.transform = 'translateX(-50%)';
+    });
+  }
+
+  function scheduleHomeGrowthSignPatch() {
+    if (!isHomePageForVisualPatch()) return;
+    const run = () => requestAnimationFrame(applyHomeGrowthSignPatch);
+    run();
+    setTimeout(run, 120);
+    setTimeout(run, 450);
+    setTimeout(run, 1200);
+    window.addEventListener('resize', run, { passive: true });
+    if (window.visualViewport) window.visualViewport.addEventListener('resize', run, { passive: true });
+  }
+
+  function boot() {
     hookSearchIcon();
+    scheduleHomeGrowthSignPatch();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
   }
 
   window.siteSearch = { open, close };
