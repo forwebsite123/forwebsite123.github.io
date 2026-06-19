@@ -54,6 +54,10 @@
         indexImageBreath 18s ease-in-out 1.15s infinite alternate;
     }
 
+    body.leaving .hero-image {
+      animation-play-state: paused;
+    }
+
     .hero-image::after {
       content: "";
       position: absolute;
@@ -133,6 +137,9 @@
     }
 
     .enter-btn.clicked {
+      opacity: 1;
+      filter: none;
+      transform: translateY(0);
       animation: btn-pulse 0.6s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
     }
 
@@ -210,15 +217,19 @@
 
   <script>
     const btn = document.getElementById('enterBtn');
+    let isLeaving = false;
+
     btn.addEventListener('click', function (e) {
       e.preventDefault();
+      if (isLeaving) return;
+      isLeaving = true;
+      document.body.classList.add('leaving');
       btn.classList.remove('clicked');
       void btn.offsetWidth; // reflow to restart animation
       btn.classList.add('clicked');
-      btn.addEventListener('animationend', () => {
-        btn.classList.remove('clicked');
+      window.setTimeout(() => {
         window.location.href = btn.href;
-      }, { once: true });
+      }, 620);
     });
   </script>
 
