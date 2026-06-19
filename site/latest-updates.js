@@ -230,7 +230,7 @@
         .corner-top-left,
         .floral-top-left,
         .botanical-top-left {
-          transform: translate(-56px, -8px) !important;
+          transform: translate(-40px, -8px) !important;
           translate: none !important;
         }
 
@@ -241,7 +241,8 @@
         .home-corner-bl,
         .corner-bottom-left,
         .floral-bottom-left,
-        .botanical-bottom-left {
+        .botanical-bottom-left,
+        #home-bottom-left-corner-rescue {
           position: fixed !important;
           left: 0 !important;
           right: auto !important;
@@ -249,6 +250,8 @@
           bottom: clamp(18px, 2.2vh, 28px) !important;
           display: block !important;
           visibility: visible !important;
+          width: clamp(170px, 15vw, 260px) !important;
+          height: auto !important;
           transform: translate(-12px, 0) !important;
           translate: none !important;
           z-index: 4 !important;
@@ -545,34 +548,54 @@
     const vw = window.innerWidth || 1200;
     const vh = (window.visualViewport && window.visualViewport.height) || window.innerHeight || 820;
     const candidates = imgs.map((img) => ({ img, rect: img.getBoundingClientRect() }))
-      .filter(({ img, rect }) => !isInsidePortalCard(img) && rect.width >= 80 && rect.height >= 80 && rect.width <= 440 && rect.height <= 440);
+      .filter(({ img, rect }) => !isInsidePortalCard(img) && rect.width >= 70 && rect.height >= 70 && rect.width <= 460 && rect.height <= 460);
 
     const topLeft = candidates
       .filter(({ rect }) => rect.left < vw * 0.35 && rect.top < vh * 0.35)
       .sort((a, b) => (a.rect.left + a.rect.top) - (b.rect.left + b.rect.top))[0];
 
     const bottomLeft = candidates
-      .filter(({ rect }) => rect.left < vw * 0.35 && rect.top > vh * 0.35)
+      .filter(({ rect }) => rect.left < vw * 0.45 && rect.top > vh * 0.28 && (!topLeft || rect.top > topLeft.rect.bottom + 40))
       .sort((a, b) => (a.rect.left + Math.abs(vh - a.rect.bottom)) - (b.rect.left + Math.abs(vh - b.rect.bottom)))[0];
 
     if (topLeft) {
-      topLeft.img.style.transform = 'translate(-56px, -8px)';
+      topLeft.img.style.transform = 'translate(-40px, -8px)';
       topLeft.img.style.translate = 'none';
     }
 
-    if (bottomLeft && (!topLeft || bottomLeft.img !== topLeft.img)) {
-      bottomLeft.img.style.position = 'fixed';
-      bottomLeft.img.style.left = '0';
-      bottomLeft.img.style.right = 'auto';
-      bottomLeft.img.style.top = 'auto';
-      bottomLeft.img.style.bottom = 'clamp(18px, 2.2vh, 28px)';
-      bottomLeft.img.style.display = 'block';
-      bottomLeft.img.style.visibility = 'visible';
-      bottomLeft.img.style.transform = 'translate(-12px, 0)';
-      bottomLeft.img.style.translate = 'none';
-      bottomLeft.img.style.zIndex = '4';
-      bottomLeft.img.style.pointerEvents = 'none';
+    const source = (bottomLeft && bottomLeft.img) ||
+      candidates.find(({ img }) => !topLeft || img !== topLeft.img)?.img ||
+      (topLeft && topLeft.img);
+
+    rescueBottomLeftCorner(source);
+  }
+
+  function rescueBottomLeftCorner(source) {
+    if (!source) return;
+    let rescue = document.getElementById('home-bottom-left-corner-rescue');
+    if (!rescue) {
+      rescue = source.cloneNode(false);
+      rescue.id = 'home-bottom-left-corner-rescue';
+      rescue.setAttribute('aria-hidden', 'true');
+      rescue.removeAttribute('loading');
+      document.body.appendChild(rescue);
     }
+    rescue.src = source.currentSrc || source.src;
+    rescue.alt = '';
+    rescue.style.position = 'fixed';
+    rescue.style.left = '0';
+    rescue.style.right = 'auto';
+    rescue.style.top = 'auto';
+    rescue.style.bottom = 'clamp(18px, 2.2vh, 28px)';
+    rescue.style.display = 'block';
+    rescue.style.visibility = 'visible';
+    rescue.style.width = 'clamp(170px, 15vw, 260px)';
+    rescue.style.height = 'auto';
+    rescue.style.transform = 'translate(-12px, 0)';
+    rescue.style.translate = 'none';
+    rescue.style.zIndex = '4';
+    rescue.style.pointerEvents = 'none';
+    rescue.style.opacity = getComputedStyle(source).opacity || '1';
   }
 
   function isInsidePortalCard(element) {
