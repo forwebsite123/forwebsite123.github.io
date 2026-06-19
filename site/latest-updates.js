@@ -122,10 +122,10 @@
         .card img,
         .entry-card img,
         .portal-card img {
-          transform: translateX(-18px) !important;
+          transform: translateX(-8px) !important;
           translate: none !important;
           z-index: 1 !important;
-          opacity: .72 !important;
+          opacity: .76 !important;
           pointer-events: none !important;
           clip-path: none !important;
         }
@@ -230,8 +230,10 @@
         .corner-top-left,
         .floral-top-left,
         .botanical-top-left {
-          transform: translate(-40px, -8px) !important;
+          transform: translate(-36px, -8px) !important;
           translate: none !important;
+          opacity: .86 !important;
+          filter: saturate(1.12) contrast(1.04) !important;
         }
 
         img[src*="home-corner-bl"],
@@ -241,8 +243,7 @@
         .home-corner-bl,
         .corner-bottom-left,
         .floral-bottom-left,
-        .botanical-bottom-left,
-        #home-bottom-left-corner-rescue {
+        .botanical-bottom-left {
           position: fixed !important;
           left: 0 !important;
           right: auto !important;
@@ -256,6 +257,8 @@
           translate: none !important;
           z-index: 4 !important;
           pointer-events: none !important;
+          opacity: .86 !important;
+          filter: saturate(1.12) contrast(1.04) !important;
         }
       }
 
@@ -544,6 +547,9 @@
   }
 
   function moveCornerImagesDirectly() {
+    const rescue = document.getElementById('home-bottom-left-corner-rescue');
+    if (rescue) rescue.remove();
+
     const imgs = Array.from(document.images || []);
     const vw = window.innerWidth || 1200;
     const vh = (window.visualViewport && window.visualViewport.height) || window.innerHeight || 820;
@@ -559,43 +565,29 @@
       .sort((a, b) => (a.rect.left + Math.abs(vh - a.rect.bottom)) - (b.rect.left + Math.abs(vh - b.rect.bottom)))[0];
 
     if (topLeft) {
-      topLeft.img.style.transform = 'translate(-40px, -8px)';
+      topLeft.img.style.transform = 'translate(-36px, -8px)';
       topLeft.img.style.translate = 'none';
+      topLeft.img.style.opacity = '.86';
+      topLeft.img.style.filter = 'saturate(1.12) contrast(1.04)';
     }
 
-    const source = (bottomLeft && bottomLeft.img) ||
-      candidates.find(({ img }) => !topLeft || img !== topLeft.img)?.img ||
-      (topLeft && topLeft.img);
-
-    rescueBottomLeftCorner(source);
-  }
-
-  function rescueBottomLeftCorner(source) {
-    if (!source) return;
-    let rescue = document.getElementById('home-bottom-left-corner-rescue');
-    if (!rescue) {
-      rescue = source.cloneNode(false);
-      rescue.id = 'home-bottom-left-corner-rescue';
-      rescue.setAttribute('aria-hidden', 'true');
-      rescue.removeAttribute('loading');
-      document.body.appendChild(rescue);
+    if (bottomLeft && (!topLeft || bottomLeft.img !== topLeft.img)) {
+      bottomLeft.img.style.position = 'fixed';
+      bottomLeft.img.style.left = '0';
+      bottomLeft.img.style.right = 'auto';
+      bottomLeft.img.style.top = 'auto';
+      bottomLeft.img.style.bottom = 'clamp(18px, 2.2vh, 28px)';
+      bottomLeft.img.style.display = 'block';
+      bottomLeft.img.style.visibility = 'visible';
+      bottomLeft.img.style.width = 'clamp(170px, 15vw, 260px)';
+      bottomLeft.img.style.height = 'auto';
+      bottomLeft.img.style.transform = 'translate(-12px, 0)';
+      bottomLeft.img.style.translate = 'none';
+      bottomLeft.img.style.zIndex = '4';
+      bottomLeft.img.style.pointerEvents = 'none';
+      bottomLeft.img.style.opacity = '.86';
+      bottomLeft.img.style.filter = 'saturate(1.12) contrast(1.04)';
     }
-    rescue.src = source.currentSrc || source.src;
-    rescue.alt = '';
-    rescue.style.position = 'fixed';
-    rescue.style.left = '0';
-    rescue.style.right = 'auto';
-    rescue.style.top = 'auto';
-    rescue.style.bottom = 'clamp(18px, 2.2vh, 28px)';
-    rescue.style.display = 'block';
-    rescue.style.visibility = 'visible';
-    rescue.style.width = 'clamp(170px, 15vw, 260px)';
-    rescue.style.height = 'auto';
-    rescue.style.transform = 'translate(-12px, 0)';
-    rescue.style.translate = 'none';
-    rescue.style.zIndex = '4';
-    rescue.style.pointerEvents = 'none';
-    rescue.style.opacity = getComputedStyle(source).opacity || '1';
   }
 
   function isInsidePortalCard(element) {
@@ -614,10 +606,10 @@
         const imgRect = img.getBoundingClientRect();
         const intersects = imgRect.right > rect.left - 24 && imgRect.left < rect.right && imgRect.bottom > rect.top && imgRect.top < rect.bottom;
         if (!intersects || imgRect.width > 240 || imgRect.height > 240) return;
-        img.style.transform = 'translateX(-18px)';
+        img.style.transform = 'translateX(-8px)';
         img.style.translate = 'none';
         img.style.zIndex = '1';
-        img.style.opacity = '.72';
+        img.style.opacity = '.76';
         img.style.pointerEvents = 'none';
         img.style.clipPath = 'none';
       });
