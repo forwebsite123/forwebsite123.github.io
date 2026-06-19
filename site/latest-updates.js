@@ -58,7 +58,7 @@
         --home-cards-y: -84px;
         --home-latest-x: -12px;
         --home-latest-y: 16px;
-        --home-behind-x: 8px;
+        --home-behind-x: 5px;
         --home-behind-y: -212px;
       }
 
@@ -139,14 +139,6 @@
           margin-top: 0 !important;
           margin-bottom: 0 !important;
           overflow: visible !important;
-        }
-
-        .tree-area,
-        .tree-stage,
-        .tree-shell,
-        .center-stage,
-        .center-col,
-        .center-column {
           transform: translate(var(--home-tree-x), var(--home-tree-y)) scale(var(--home-tree-scale)) !important;
           transform-origin: center center !important;
           scale: none !important;
@@ -229,21 +221,7 @@
           pointer-events: none !important;
         }
 
-        img[src*="home-corner-tl"],
-        img[src*="corner-tl"],
-        img[src*="top-left"],
-        img.flora-tl,
-        .flora-tl img,
-        .corner-tl,
-        .home-corner-tl,
-        .corner-top-left,
-        .floral-top-left,
-        .botanical-top-left {
-          transform: translate(-36px, -40px) !important;
-          translate: none !important;
-          opacity: .86 !important;
-          filter: saturate(1.12) contrast(1.04) !important;
-        }
+        /* Keep top-left flora owned by home.html (.flora-tl). Do not transform its inner img here. */
 
         img[src*="home-corner-bl"],
         img[src*="corner-bl"],
@@ -488,7 +466,7 @@
     root.style.setProperty('--home-cards-y', `${cardsY}px`);
     root.style.setProperty('--home-latest-x', '-12px');
     root.style.setProperty('--home-latest-y', `${latestY}px`);
-    root.style.setProperty('--home-behind-x', '8px');
+    root.style.setProperty('--home-behind-x', '5px');
     root.style.setProperty('--home-behind-y', `${behindY}px`);
   }
 
@@ -573,33 +551,8 @@
   }
 
   function moveCornerImagesDirectly() {
-    const imgs = Array.from(document.images || []);
-    const vw = window.innerWidth || 1200;
-    const vh = (window.visualViewport && window.visualViewport.height) || window.innerHeight || 820;
-    const candidates = imgs.map((img) => ({ img, rect: img.getBoundingClientRect() }))
-      .filter(({ img, rect }) => !isInsidePortalCard(img) && rect.width >= 70 && rect.height >= 70 && rect.width <= 460 && rect.height <= 460);
-
-    const topLeft = candidates
-      .filter(({ rect }) => rect.left < vw * 0.35 && rect.top < vh * 0.35)
-      .sort((a, b) => (a.rect.left + a.rect.top) - (b.rect.left + b.rect.top))[0];
-
-    if (topLeft) {
-      topLeft.img.style.transform = 'translate(-36px, -40px)';
-      topLeft.img.style.translate = 'none';
-      topLeft.img.style.opacity = '.86';
-      topLeft.img.style.filter = 'saturate(1.12) contrast(1.04)';
-    }
-
-    const floraTlImg = document.querySelector('img.flora-tl, .flora-tl img');
-    if (floraTlImg) {
-      floraTlImg.style.transform = 'translate(-36px, -40px)';
-      floraTlImg.style.translate = 'none';
-      floraTlImg.style.opacity = '.86';
-      floraTlImg.style.filter = 'saturate(1.12) contrast(1.04)';
-    }
-
     const floraBlImg = document.querySelector('.flora-bl img');
-    if (floraBlImg && (!topLeft || floraBlImg !== topLeft.img)) {
+    if (floraBlImg) {
       floraBlImg.style.position = 'fixed';
       floraBlImg.style.left = '0';
       floraBlImg.style.right = 'auto';
@@ -623,10 +576,6 @@
       floraBrImg.style.transform = 'rotate(90deg) scale(1.08)';
       floraBrImg.style.transformOrigin = 'center center';
     }
-  }
-
-  function isInsidePortalCard(element) {
-    return Boolean(element.closest('.card, .entry-card, .portal-card'));
   }
 
   function fixLeftCardIllustrationsDirectly() {
