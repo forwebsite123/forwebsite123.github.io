@@ -295,6 +295,7 @@
       }
 
       @media (max-width: 900px) {
+        #search-icon, .search-btn, .search-icon { font-size: clamp(24px, 6.8vw, 34px) !important; }
         .tree-area, .tree-stage, .tree-shell, .center-stage, .center-col, .center-column { min-height: clamp(548px, 139vw, 672px) !important; height: clamp(548px, 139vw, 672px) !important; margin: 0 auto !important; overflow: visible !important; }
         .tree-main, .main-tree, .growth-tree-main, .tree-image, .tree-art { width: min(calc(100vw - 18px), 580px) !important; max-height: 820px !important; display: block !important; margin-left: auto !important; margin-right: auto !important; object-fit: contain !important; object-position: center top !important; border-radius: 40px !important; -webkit-mask-image: radial-gradient(ellipse 78% 90% at 50% 52%, #000 46%, rgba(0,0,0,.62) 72%, rgba(0,0,0,0) 98%) !important; mask-image: radial-gradient(ellipse 78% 90% at 50% 52%, #000 46%, rgba(0,0,0,.62) 72%, rgba(0,0,0,0) 98%) !important; }
         .corner-top-left img, .floral-top-left img, .botanical-top-left img, .home-corner-tl img, .corner-tl img, .flora-tl img, img[src*="home-corner-tl"], img[src*="corner-tl"], img[src*="top-left"] { opacity: .96 !important; filter: saturate(1.08) contrast(1.12) brightness(1.02) !important; image-rendering: auto !important; -webkit-font-smoothing: antialiased !important; backface-visibility: hidden !important; }
