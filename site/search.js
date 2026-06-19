@@ -407,6 +407,22 @@
           mask-image: radial-gradient(ellipse 82% 92% at 50% 52%, #000 50%, rgba(0,0,0,.76) 76%, rgba(0,0,0,0) 100%) !important;
         }
 
+        .corner-top-left img,
+        .floral-top-left img,
+        .botanical-top-left img,
+        .home-corner-tl img,
+        .corner-tl img,
+        .flora-tl img,
+        img[src*="home-corner-tl"],
+        img[src*="corner-tl"],
+        img[src*="top-left"] {
+          opacity: .96 !important;
+          filter: saturate(1.08) contrast(1.12) brightness(1.02) !important;
+          image-rendering: auto !important;
+          -webkit-font-smoothing: antialiased !important;
+          backface-visibility: hidden !important;
+        }
+
         .right-side,
         .right-col,
         .right-column,
@@ -483,7 +499,7 @@
 
         .node-u { top: 34.8% !important; left: 72.8% !important; }
         .node-s { top: 49.4% !important; left: 45.7% !important; }
-        .node-j { top: 61.2% !important; left: 44.6% !important; }
+        .node-j { top: 60.4% !important; left: 44.6% !important; }
         .node-p { top: 70.0% !important; left: 50.2% !important; }
         .node-k { top: 80.6% !important; left: 65.0% !important; }
 
