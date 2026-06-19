@@ -395,7 +395,7 @@
         .growth-tree-main,
         .tree-image,
         .tree-art {
-          width: min(100vw, 590px) !important;
+          width: min(calc(100vw - 18px), 580px) !important;
           max-height: 820px !important;
           display: block !important;
           margin-left: auto !important;
@@ -576,7 +576,7 @@
         .growth-tree-main,
         .tree-image,
         .tree-art {
-          width: min(100vw, 560px) !important;
+          width: min(calc(100vw - 18px), 548px) !important;
           max-height: 760px !important;
           display: block !important;
           margin-left: auto !important;
