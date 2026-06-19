@@ -6,6 +6,7 @@
   injectHomeFavicon();
   injectHomeCanvasPatch();
   scheduleHomeDirectAdjustments();
+  scheduleForcedBottomLeftFlora();
 
   const list = document.getElementById('latest-updates-list');
   if (!list) return;
@@ -473,6 +474,7 @@
       setHomeViewportVars();
       setKindergartenLink();
       moveCornerImagesDirectly();
+      forceBottomLeftFlora();
       if (window.innerWidth <= 900) return;
       nudgeElementByText(/Kindergarten|幼儿园/, 10, 0, { minWidth: 80, minHeight: 28, maxWidth: 280, maxHeight: 140 });
       nudgeElementByText(/Growth\s*Rings/, 12, -10, { minWidth: 160, minHeight: 70, maxWidth: 440, maxHeight: 280 });
@@ -486,6 +488,53 @@
     setTimeout(run, 1200);
     window.addEventListener('resize', run, { passive: true });
     if (window.visualViewport) window.visualViewport.addEventListener('resize', run, { passive: true });
+  }
+
+  function scheduleForcedBottomLeftFlora() {
+    if (!isHomeLikePage()) return;
+    const run = () => forceBottomLeftFlora();
+    run();
+    window.addEventListener('load', run, { once: true });
+    setTimeout(run, 80);
+    setTimeout(run, 220);
+    setTimeout(run, 600);
+    setTimeout(run, 1400);
+    window.addEventListener('resize', run, { passive: true });
+    if (window.visualViewport) window.visualViewport.addEventListener('resize', run, { passive: true });
+  }
+
+  function forceBottomLeftFlora() {
+    if (!isHomeLikePage()) return;
+    const source = document.querySelector('.flora.flora-tl img') ||
+      document.querySelector('.flora img:not(#home-bottom-left-corner-rescue)') ||
+      Array.from(document.images || []).find((img) => img.id !== 'home-bottom-left-corner-rescue' && /data:image\/png|flora|corner|botanical|leaf|flower/i.test(`${img.currentSrc || img.src || ''} ${img.className || ''}`));
+    if (!source || !(source.currentSrc || source.src)) return;
+
+    let rescue = document.getElementById('home-bottom-left-corner-rescue');
+    if (!rescue) {
+      rescue = document.createElement('img');
+      rescue.id = 'home-bottom-left-corner-rescue';
+      rescue.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(rescue);
+    }
+
+    rescue.src = source.currentSrc || source.src;
+    rescue.alt = '';
+    rescue.style.position = 'fixed';
+    rescue.style.left = '0';
+    rescue.style.right = 'auto';
+    rescue.style.top = 'auto';
+    rescue.style.bottom = 'clamp(18px, 2.2vh, 28px)';
+    rescue.style.display = 'block';
+    rescue.style.visibility = 'visible';
+    rescue.style.width = 'clamp(170px, 15vw, 260px)';
+    rescue.style.height = 'auto';
+    rescue.style.transform = 'translate(-12px, 0)';
+    rescue.style.translate = 'none';
+    rescue.style.zIndex = '4';
+    rescue.style.pointerEvents = 'none';
+    rescue.style.opacity = '.86';
+    rescue.style.filter = 'saturate(1.12) contrast(1.04)';
   }
 
   function setKindergartenLink() {
