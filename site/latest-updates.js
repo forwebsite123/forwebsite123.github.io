@@ -122,7 +122,7 @@
         .card img,
         .entry-card img,
         .portal-card img {
-          transform: translateX(-8px) !important;
+          transform: translateX(-6px) !important;
           translate: none !important;
           z-index: 1 !important;
           opacity: .76 !important;
@@ -591,7 +591,7 @@
     }
 
     if (!bottomLeft || !isPaintedInViewport(bottomLeft.img)) {
-      rescueBottomLeftCorner((bottomLeft && bottomLeft.img) || candidates.find(({ img }) => !topLeft || img !== topLeft.img)?.img || null);
+      rescueBottomLeftCorner((bottomLeft && bottomLeft.img) || candidates.find(({ img }) => !topLeft || img !== topLeft.img)?.img || (topLeft && topLeft.img) || null);
     }
   }
 
@@ -650,7 +650,7 @@
         const imgRect = img.getBoundingClientRect();
         const intersects = imgRect.right > rect.left - 24 && imgRect.left < rect.right && imgRect.bottom > rect.top && imgRect.top < rect.bottom;
         if (!intersects || imgRect.width > 240 || imgRect.height > 240) return;
-        img.style.transform = 'translateX(-8px)';
+        img.style.transform = 'translateX(-6px)';
         img.style.translate = 'none';
         img.style.zIndex = '1';
         img.style.opacity = '.76';
