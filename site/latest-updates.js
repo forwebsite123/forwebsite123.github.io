@@ -52,7 +52,8 @@
       :root {
         --home-vh: 100dvh;
         --home-tree-scale: .86;
-        --home-tree-x: -76px;
+        --home-shared-x: -10px;
+        --home-tree-x: -86px;
         --home-tree-y: -100px;
         --home-cards-y: -66px;
         --home-latest-x: -12px;
@@ -102,7 +103,7 @@
         .left-column {
           padding-top: 0 !important;
           gap: clamp(13px, 2vh, 21px) !important;
-          transform: translateY(var(--home-cards-y)) !important;
+          transform: translate(var(--home-shared-x), var(--home-cards-y)) !important;
           translate: none !important;
         }
 
@@ -121,7 +122,7 @@
         .card img,
         .entry-card img,
         .portal-card img {
-          transform: translateX(-6px) !important;
+          transform: translateX(-18px) !important;
           translate: none !important;
           z-index: 1 !important;
           opacity: .72 !important;
@@ -229,7 +230,7 @@
         .corner-top-left,
         .floral-top-left,
         .botanical-top-left {
-          transform: translate(-40px, -8px) !important;
+          transform: translate(-56px, -8px) !important;
           translate: none !important;
         }
 
@@ -245,12 +246,12 @@
           left: 0 !important;
           right: auto !important;
           top: auto !important;
-          bottom: clamp(14px, 1.8vh, 22px) !important;
+          bottom: clamp(18px, 2.2vh, 28px) !important;
           display: block !important;
           visibility: visible !important;
-          transform: translate(-32px, 0) !important;
+          transform: translate(-12px, 0) !important;
           translate: none !important;
-          z-index: 3 !important;
+          z-index: 4 !important;
           pointer-events: none !important;
         }
       }
@@ -442,12 +443,15 @@
       latestY = -22;
     }
 
-    if (!isSafari) {
-      treeY += 12;
+    if (isSafari) {
+      treeY -= 6;
+    } else {
+      treeY += 22;
     }
 
     root.style.setProperty('--home-tree-scale', String(treeScale));
-    root.style.setProperty('--home-tree-x', '-76px');
+    root.style.setProperty('--home-shared-x', '-10px');
+    root.style.setProperty('--home-tree-x', '-86px');
     root.style.setProperty('--home-tree-y', `${treeY}px`);
     root.style.setProperty('--home-cards-y', `${cardsY}px`);
     root.style.setProperty('--home-latest-x', '-12px');
@@ -538,29 +542,37 @@
 
   function moveCornerImagesDirectly() {
     const imgs = Array.from(document.images || []);
+    const vw = window.innerWidth || 1200;
     const vh = (window.visualViewport && window.visualViewport.height) || window.innerHeight || 820;
-    imgs.forEach((img) => {
-      if (isInsidePortalCard(img)) return;
-      const rect = img.getBoundingClientRect();
-      if (rect.width < 90 || rect.height < 90) return;
-      if (rect.left < window.innerWidth * 0.18 && rect.top < 190) {
-        img.style.transform = 'translate(-40px, -8px)';
-        img.style.translate = 'none';
-      }
-      if (rect.left < window.innerWidth * 0.18 && rect.bottom > vh - 260) {
-        img.style.position = 'fixed';
-        img.style.left = '0';
-        img.style.right = 'auto';
-        img.style.top = 'auto';
-        img.style.bottom = 'clamp(14px, 1.8vh, 22px)';
-        img.style.display = 'block';
-        img.style.visibility = 'visible';
-        img.style.transform = 'translate(-32px, 0)';
-        img.style.translate = 'none';
-        img.style.zIndex = '3';
-        img.style.pointerEvents = 'none';
-      }
-    });
+    const candidates = imgs.map((img) => ({ img, rect: img.getBoundingClientRect() }))
+      .filter(({ img, rect }) => !isInsidePortalCard(img) && rect.width >= 80 && rect.height >= 80 && rect.width <= 440 && rect.height <= 440);
+
+    const topLeft = candidates
+      .filter(({ rect }) => rect.left < vw * 0.35 && rect.top < vh * 0.35)
+      .sort((a, b) => (a.rect.left + a.rect.top) - (b.rect.left + b.rect.top))[0];
+
+    const bottomLeft = candidates
+      .filter(({ rect }) => rect.left < vw * 0.35 && rect.top > vh * 0.35)
+      .sort((a, b) => (a.rect.left + Math.abs(vh - a.rect.bottom)) - (b.rect.left + Math.abs(vh - b.rect.bottom)))[0];
+
+    if (topLeft) {
+      topLeft.img.style.transform = 'translate(-56px, -8px)';
+      topLeft.img.style.translate = 'none';
+    }
+
+    if (bottomLeft && (!topLeft || bottomLeft.img !== topLeft.img)) {
+      bottomLeft.img.style.position = 'fixed';
+      bottomLeft.img.style.left = '0';
+      bottomLeft.img.style.right = 'auto';
+      bottomLeft.img.style.top = 'auto';
+      bottomLeft.img.style.bottom = 'clamp(18px, 2.2vh, 28px)';
+      bottomLeft.img.style.display = 'block';
+      bottomLeft.img.style.visibility = 'visible';
+      bottomLeft.img.style.transform = 'translate(-12px, 0)';
+      bottomLeft.img.style.translate = 'none';
+      bottomLeft.img.style.zIndex = '4';
+      bottomLeft.img.style.pointerEvents = 'none';
+    }
   }
 
   function isInsidePortalCard(element) {
@@ -579,7 +591,7 @@
         const imgRect = img.getBoundingClientRect();
         const intersects = imgRect.right > rect.left - 24 && imgRect.left < rect.right && imgRect.bottom > rect.top && imgRect.top < rect.bottom;
         if (!intersects || imgRect.width > 240 || imgRect.height > 240) return;
-        img.style.transform = 'translateX(-6px)';
+        img.style.transform = 'translateX(-18px)';
         img.style.translate = 'none';
         img.style.zIndex = '1';
         img.style.opacity = '.72';
