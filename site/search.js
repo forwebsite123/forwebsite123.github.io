@@ -489,7 +489,7 @@
 
         .growth-sign {
           width: clamp(78px, 22vw, 98px) !important;
-          right: -9.5% !important;
+          right: -6.5% !important;
           top: 59.8% !important;
           padding: clamp(9px, 2.6vw, 13px) clamp(5px, 1.6vw, 7px) clamp(7px, 2vw, 9px) !important;
           text-align: center !important;
@@ -533,6 +533,14 @@
           height: clamp(40px, 11vw, 50px) !important;
           top: clamp(-50px, -11vw, -40px) !important;
           transform: translateX(-50%) !important;
+        }
+
+        .footer-text,
+        .site-quote,
+        .home-quote,
+        footer {
+          margin-top: -18px !important;
+          transform: translateY(-18px) !important;
         }
       }
 
@@ -590,7 +598,7 @@
 
         .growth-sign {
           width: clamp(72px, 23vw, 92px) !important;
-          right: -11% !important;
+          right: -8% !important;
           top: 61.2% !important;
           padding: clamp(8px, 2.4vw, 11px) clamp(4px, 1.4vw, 6px) clamp(6px, 1.8vw, 8px) !important;
         }
@@ -623,7 +631,7 @@
 
     const sign = document.querySelector('.growth-sign');
     if (sign) {
-      sign.style.right = window.innerWidth <= 520 ? '-11%' : (window.innerWidth <= 900 ? '-9.5%' : '0.8%');
+      sign.style.right = window.innerWidth <= 520 ? '-8%' : (window.innerWidth <= 900 ? '-6.5%' : '0.8%');
       sign.style.top = window.innerWidth <= 520 ? '61.2%' : (window.innerWidth <= 900 ? '59.8%' : '61.4%');
       sign.style.textAlign = 'center';
       sign.style.alignItems = 'center';
