@@ -55,7 +55,7 @@
         --home-shared-x: -20px;
         --home-tree-x: -86px;
         --home-tree-y: -100px;
-        --home-cards-y: -76px;
+        --home-cards-y: -84px;
         --home-latest-x: -12px;
         --home-latest-y: -4px;
         --home-behind-x: -34px;
@@ -177,7 +177,7 @@
         .latest-panel,
         .panel-card,
         .updates-card {
-          min-height: clamp(292px, 37vh, 390px) !important;
+          min-height: clamp(320px, 41vh, 430px) !important;
           padding: clamp(20px, 2.5vh, 28px) clamp(22px, 2.8vw, 32px) !important;
           box-sizing: border-box !important;
         }
@@ -249,12 +249,12 @@
           left: 0 !important;
           right: auto !important;
           top: auto !important;
-          bottom: clamp(-14px, -1.2vh, -6px) !important;
+          bottom: clamp(-22px, -2vh, -14px) !important;
           display: block !important;
           visibility: visible !important;
-          width: clamp(135px, 12vw, 210px) !important;
+          width: clamp(122px, 11vw, 195px) !important;
           height: auto !important;
-          transform: translate(14px, 0) rotate(-90deg) !important;
+          transform: translate(26px, 0) rotate(-90deg) !important;
           transform-origin: center center !important;
           translate: none !important;
           z-index: 4 !important;
@@ -438,28 +438,28 @@
 
     let treeScale = .86;
     let treeY = -100;
-    let cardsY = -76;
+    let cardsY = -84;
     let behindY = -96;
     let latestY = -4;
 
     if (height < 850) {
       treeScale = .83;
       treeY = -124;
-      cardsY = -84;
+      cardsY = -92;
       behindY = -112;
       latestY = -10;
     }
     if (height < 780) {
       treeScale = .80;
       treeY = -150;
-      cardsY = -94;
+      cardsY = -102;
       behindY = -128;
       latestY = -16;
     }
     if (height < 720) {
       treeScale = .77;
       treeY = -172;
-      cardsY = -102;
+      cardsY = -110;
       behindY = -140;
       latestY = -22;
     }
@@ -585,12 +585,12 @@
       floraBlImg.style.left = '0';
       floraBlImg.style.right = 'auto';
       floraBlImg.style.top = 'auto';
-      floraBlImg.style.bottom = 'clamp(-14px, -1.2vh, -6px)';
+      floraBlImg.style.bottom = 'clamp(-22px, -2vh, -14px)';
       floraBlImg.style.display = 'block';
       floraBlImg.style.visibility = 'visible';
-      floraBlImg.style.width = 'clamp(135px, 12vw, 210px)';
+      floraBlImg.style.width = 'clamp(122px, 11vw, 195px)';
       floraBlImg.style.height = 'auto';
-      floraBlImg.style.transform = 'translate(14px, 0) rotate(-90deg)';
+      floraBlImg.style.transform = 'translate(26px, 0) rotate(-90deg)';
       floraBlImg.style.transformOrigin = 'center center';
       floraBlImg.style.translate = 'none';
       floraBlImg.style.zIndex = '4';
