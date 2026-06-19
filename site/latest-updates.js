@@ -243,7 +243,8 @@
         .home-corner-bl,
         .corner-bottom-left,
         .floral-bottom-left,
-        .botanical-bottom-left {
+        .botanical-bottom-left,
+        #home-bottom-left-corner-rescue {
           position: fixed !important;
           left: 0 !important;
           right: auto !important;
@@ -547,8 +548,8 @@
   }
 
   function moveCornerImagesDirectly() {
-    const rescue = document.getElementById('home-bottom-left-corner-rescue');
-    if (rescue) rescue.remove();
+    const oldRescue = document.getElementById('home-bottom-left-corner-rescue');
+    if (oldRescue) oldRescue.remove();
 
     const imgs = Array.from(document.images || []);
     const vw = window.innerWidth || 1200;
@@ -588,6 +589,49 @@
       bottomLeft.img.style.opacity = '.86';
       bottomLeft.img.style.filter = 'saturate(1.12) contrast(1.04)';
     }
+
+    if (!bottomLeft || !isPaintedInViewport(bottomLeft.img)) {
+      rescueBottomLeftCorner((bottomLeft && bottomLeft.img) || candidates.find(({ img }) => !topLeft || img !== topLeft.img)?.img || null);
+    }
+  }
+
+  function isPaintedInViewport(element) {
+    if (!element) return false;
+    const rect = element.getBoundingClientRect();
+    if (rect.width < 12 || rect.height < 12) return false;
+    const x = Math.min(Math.max(rect.left + rect.width * 0.5, 1), window.innerWidth - 2);
+    const y = Math.min(Math.max(rect.top + rect.height * 0.5, 1), window.innerHeight - 2);
+    const hit = document.elementFromPoint(x, y);
+    return Boolean(hit && (hit === element || element.contains(hit) || hit.contains(element)));
+  }
+
+  function rescueBottomLeftCorner(source) {
+    if (!source) return;
+    let rescue = document.getElementById('home-bottom-left-corner-rescue');
+    if (!rescue) {
+      rescue = source.cloneNode(false);
+      rescue.id = 'home-bottom-left-corner-rescue';
+      rescue.setAttribute('aria-hidden', 'true');
+      rescue.removeAttribute('loading');
+      document.body.appendChild(rescue);
+    }
+    rescue.src = source.currentSrc || source.src;
+    rescue.alt = '';
+    rescue.style.position = 'fixed';
+    rescue.style.left = '0';
+    rescue.style.right = 'auto';
+    rescue.style.top = 'auto';
+    rescue.style.bottom = 'clamp(18px, 2.2vh, 28px)';
+    rescue.style.display = 'block';
+    rescue.style.visibility = 'visible';
+    rescue.style.width = 'clamp(170px, 15vw, 260px)';
+    rescue.style.height = 'auto';
+    rescue.style.transform = 'translate(-12px, 0)';
+    rescue.style.translate = 'none';
+    rescue.style.zIndex = '4';
+    rescue.style.pointerEvents = 'none';
+    rescue.style.opacity = '.86';
+    rescue.style.filter = 'saturate(1.12) contrast(1.04)';
   }
 
   function isInsidePortalCard(element) {
