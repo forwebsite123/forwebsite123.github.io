@@ -6,7 +6,7 @@
     const p = window.location.pathname.toLowerCase().replace(/\/$/, '');
     if (p === '' || p === '/home' || p === '/index' || p === '/index.html') return 'all';
     const activityPages = ['snowboarding', 'diving', 'horse-riding', 'kitesurfing'];
-    for (const a of activityPages) { if (p.includes(a)) return 'activity:' + a; }
+    for (const a of activityPages) if (p.includes(a)) return 'activity:' + a;
     if (p.includes('found-fragments')) return 'fragments';
     if (p.includes('into-the-wild')) return 'activities';
     if (p.includes('drift-coordinates')) return 'photos';
@@ -15,44 +15,38 @@
       return tag ? 'tag:' + tag : 'photos';
     }
     const photosIndexPages = ['europe', 'asia', 'africa', 'oceania', 'north-america', 'south-america', 'antarctica', 'china'];
-    for (const idx of photosIndexPages) { if (p.includes(idx)) return 'photos'; }
+    for (const idx of photosIndexPages) if (p.includes(idx)) return 'photos';
     const pageName = window.location.pathname.split('/').pop();
     if (pageName) return 'album:' + (pageName.endsWith('.html') ? pageName : pageName + '.html');
     return 'all';
   }
 
   const ACTIVITY_LABELS = {
-    'snowboarding': '🏂 滑雪', 'diving': '🤿 潜水',
-    'horse-riding': '🐴 骑马', 'kitesurfing': '🪁 风筝冲浪'
+    'snowboarding': '🏂 滑雪',
+    'diving': '🤿 潜水',
+    'horse-riding': '🐴 骑马',
+    'kitesurfing': '🪁 风筝冲浪'
   };
 
   const ALBUM_ZH = {
-    'guangzhou': '广州 中国 华南',
-    'korea': '韩国 首尔 釜山',
-    'japan': '日本 东京 京都 大阪',
-    'thailand': '泰国 曼谷 清迈',
-    'singapore': '新加坡',
-    'egypt': '埃及 开罗',
-    'tanzania': '坦桑尼亚 非洲',
-    'australia': '澳大利亚 澳洲 悉尼',
-    'brazil': '巴西 里约',
-    'canada': '加拿大',
-    'uk': '英国 伦敦 杜伦 爱丁堡 贝尔法斯特 英格兰 苏格兰 北爱尔兰',
-    'usa': '美国 纽约 洛杉矶 华盛顿',
-    'italy': '意大利 罗马 米兰 佛罗伦萨 威尼斯',
-    'vatican': '梵蒂冈',
-    'switzerland': '瑞士',
-    'denmark': '丹麦 哥本哈根',
-    'austria': '奥地利 维也纳',
-    'spain': '西班牙 巴塞罗那 马德里',
-    'serbia': '塞尔维亚 贝尔格莱德',
-    'france': '法国 巴黎',
-    'country': '南极 南极洲'
+    guangzhou: '广州 中国 华南', korea: '韩国 首尔 釜山', japan: '日本 东京 京都 大阪',
+    thailand: '泰国 曼谷 清迈', singapore: '新加坡', egypt: '埃及 开罗',
+    tanzania: '坦桑尼亚 非洲', australia: '澳大利亚 澳洲 悉尼', brazil: '巴西 里约',
+    canada: '加拿大', uk: '英国 伦敦 杜伦 爱丁堡 贝尔法斯特 英格兰 苏格兰 北爱尔兰',
+    usa: '美国 纽约 洛杉矶 华盛顿', italy: '意大利 罗马 米兰 佛罗伦萨 威尼斯',
+    vatican: '梵蒂冈', switzerland: '瑞士', denmark: '丹麦 哥本哈根',
+    austria: '奥地利 维也纳', spain: '西班牙 巴塞罗那 马德里',
+    serbia: '塞尔维亚 贝尔格莱德', france: '法国 巴黎', country: '南极 南极洲'
   };
 
   async function safeJson(url) {
-    try { const r = await fetch(url); if (!r.ok) return null; return await r.json(); }
-    catch { return null; }
+    try {
+      const r = await fetch(url);
+      if (!r.ok) return null;
+      return await r.json();
+    } catch {
+      return null;
+    }
   }
 
   function photoUrl(page, image) {
@@ -70,12 +64,11 @@
           const key = item.page;
           if (!byPage[key]) {
             const pageKey = (item.page || '').replace('.html', '').toLowerCase();
-            const zhAlias = ALBUM_ZH[pageKey] || '';
             byPage[key] = {
               type: 'photo', icon: '📷',
               title: item.pageLabel || item.page || '',
               section: '漂流坐标', tags: [], url: '/' + item.page,
-              text: zhAlias + ' '
+              text: (ALBUM_ZH[pageKey] || '') + ' '
             };
           }
           byPage[key].text += ' ' + (item.title || '') + ' ' + (item.tags || []).join(' ');
@@ -92,12 +85,9 @@
         for (const item of data.items) {
           if (item.page !== albumPage) continue;
           items.push({
-            type: 'photo', icon: '🖼',
-            title: item.title || item.image?.split('/').pop() || '(photo)',
-            section: item.pageLabel || albumPage,
-            tags: item.tags || [],
-            url: photoUrl(item.page, item.image),
-            text: (item.title || '') + ' ' + (item.tags || []).join(' ')
+            type: 'photo', icon: '🖼', title: item.title || item.image?.split('/').pop() || '(photo)',
+            section: item.pageLabel || albumPage, tags: item.tags || [],
+            url: photoUrl(item.page, item.image), text: (item.title || '') + ' ' + (item.tags || []).join(' ')
           });
         }
       }
@@ -110,12 +100,9 @@
         for (const item of data.items) {
           if (!(item.tags || []).includes(tag)) continue;
           items.push({
-            type: 'photo', icon: '🖼',
-            title: item.title || item.image?.split('/').pop() || '(photo)',
-            section: item.pageLabel || item.page || '',
-            tags: (item.tags || []).filter(t => t !== tag),
-            url: photoUrl(item.page, item.image),
-            text: (item.title || '') + ' ' + (item.tags || []).join(' ')
+            type: 'photo', icon: '🖼', title: item.title || item.image?.split('/').pop() || '(photo)',
+            section: item.pageLabel || item.page || '', tags: (item.tags || []).filter(t => t !== tag),
+            url: photoUrl(item.page, item.image), text: (item.title || '') + ' ' + (item.tags || []).join(' ')
           });
         }
       }
@@ -127,10 +114,8 @@
         for (const entry of data.entries) {
           const preview = (entry.text || '').slice(0, 50) + ((entry.text || '').length > 50 ? '…' : '');
           items.push({
-            type: 'fragment', icon: '✦',
-            title: preview || '(fragment)',
-            section: '人间拾遗', tags: entry.tags || [],
-            url: '/found-fragments.html',
+            type: 'fragment', icon: '✦', title: preview || '(fragment)', section: '人间拾遗',
+            tags: entry.tags || [], url: '/found-fragments.html',
             text: (entry.text || '') + ' ' + (entry.tags || []).join(' ')
           });
         }
@@ -146,8 +131,7 @@
         items.push({
           type: 'activity', icon: ACTIVITY_LABELS[type]?.split(' ')[0] || '◈',
           title: [entry.location, entry.date].filter(Boolean).join(' · ') || type,
-          section: ACTIVITY_LABELS[type] || type, tags: [],
-          url: '/' + type + '.html',
+          section: ACTIVITY_LABELS[type] || type, tags: [], url: '/' + type + '.html',
           text: [entry.location, entry.date, entry.note, entry.record_caption].filter(Boolean).join(' ')
         });
       }
@@ -169,30 +153,12 @@
   }
 
   const CSS = `
-    #sk-overlay {
-      position: fixed; inset: 0; z-index: 99999;
-      background: rgba(246, 241, 239, 0.93);
-      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-      display: flex; flex-direction: column; align-items: center;
-      padding-top: 90px; opacity: 0; pointer-events: none;
-    }
-    #sk-overlay.sk-open { opacity: 1; pointer-events: all; }
+    #sk-overlay { position: fixed; inset: 0; z-index: 99999; background: rgba(246, 241, 239, 0.93); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: flex; flex-direction: column; align-items: center; padding-top: 90px; opacity: 0; pointer-events: none; transform: translateY(-8px); transition: opacity 0.28s cubic-bezier(.4,0,.2,1), transform 0.28s cubic-bezier(.16,1,.3,1); }
+    #sk-overlay.sk-open { opacity: 1; pointer-events: all; transform: translateY(0); }
     #sk-input-wrap { position: relative; width: min(560px, 88vw); }
-    #sk-input {
-      width: 100%; box-sizing: border-box;
-      border: none; border-bottom: 1.5px solid #9b7070;
-      background: transparent; outline: none;
-      font-size: clamp(1.1rem, 2.5vw, 1.5rem); font-family: inherit;
-      color: #5c3d42; padding: 6px 36px 6px 4px;
-      letter-spacing: 0.03em; caret-color: #9b7070;
-    }
+    #sk-input { width: 100%; box-sizing: border-box; border: none; border-bottom: 1.5px solid #9b7070; background: transparent; outline: none; font-size: clamp(1.1rem, 2.5vw, 1.5rem); font-family: inherit; color: #5c3d42; padding: 6px 36px 6px 4px; letter-spacing: 0.03em; caret-color: #9b7070; }
     #sk-input::placeholder { color: #c9a8aa; }
-    #sk-close {
-      position: absolute; right: 0; top: 50%; transform: translateY(-50%);
-      background: none; border: none; cursor: pointer;
-      color: #9b7070; font-size: 1rem; padding: 4px; opacity: .7;
-      transition: opacity .15s;
-    }
+    #sk-close { position: absolute; right: 0; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #9b7070; font-size: 1rem; padding: 4px; opacity: .7; transition: opacity .15s; }
     #sk-close:hover { opacity: 1; }
     #sk-hint { margin-top: 10px; font-size: 0.72rem; letter-spacing: 0.1em; color: #c9a8aa; text-transform: uppercase; }
     #sk-hint .sk-scope-label { background: #f0e6e8; color: #9b7070; padding: 2px 10px; border-radius: 20px; font-size: 0.68rem; margin-left: 6px; }
@@ -211,16 +177,7 @@
     .sk-loading { text-align: center; color: #c4a0a6; font-size: 0.82rem; margin-top: 24px; letter-spacing: 0.08em; }
     .sk-icon-ring { position: fixed; border-radius: 50%; border: 1.5px solid rgba(156, 115, 115, 0.7); pointer-events: none; z-index: 99998; animation: sk-ring-expand 0.55s cubic-bezier(0.2, 0.8, 0.4, 1) forwards; }
     @keyframes sk-ring-expand { 0% { transform: translate(-50%, -50%) scale(1); opacity: 0.85; } 100% { transform: translate(-50%, -50%) scale(3.2); opacity: 0; } }
-    #sk-overlay { transform: translateY(-8px); transition: opacity 0.28s cubic-bezier(.4,0,.2,1), transform 0.28s cubic-bezier(.16,1,.3,1); }
-    #sk-overlay.sk-open { opacity: 1; pointer-events: all; transform: translateY(0); }
-    @media (prefers-color-scheme: dark) {
-      #sk-overlay { background: rgba(30, 22, 22, 0.93); }
-      #sk-input { color: #e8d0d0; border-bottom-color: #7a5555; }
-      .sk-result { background: rgba(40,28,28,0.6); border-color: #5a3838; }
-      .sk-result:hover { background: rgba(50,35,35,0.95); }
-      .sk-title { color: #e8d0d0; }
-      .sk-tag { background: #3a2424; color: #b08080; }
-    }
+    @media (prefers-color-scheme: dark) { #sk-overlay { background: rgba(30, 22, 22, 0.93); } #sk-input { color: #e8d0d0; border-bottom-color: #7a5555; } .sk-result { background: rgba(40,28,28,0.6); border-color: #5a3838; } .sk-result:hover { background: rgba(50,35,35,0.95); } .sk-title { color: #e8d0d0; } .sk-tag { background: #3a2424; color: #b08080; } }
   `;
 
   function scopeLabel(scope) {
@@ -264,25 +221,16 @@
   function render(items) {
     const q = input.value.trim();
     if (!q) { results.innerHTML = ''; return; }
-    if (items.length === 0) {
-      results.innerHTML = `<div class="sk-empty">没有找到"${escHtml(q)}"的相关内容</div>`;
-      return;
-    }
+    if (items.length === 0) { results.innerHTML = `<div class="sk-empty">没有找到"${escHtml(q)}"的相关内容</div>`; return; }
     results.innerHTML = items.slice(0, 25).map(item => `
       <a class="sk-result" href="${escHtml(item.url)}" role="option">
-        <div class="sk-result-head">
-          <span class="sk-icon">${item.icon}</span>
-          <span class="sk-title">${escHtml(item.title)}</span>
-          <span class="sk-section">${escHtml(item.section)}</span>
-        </div>
+        <div class="sk-result-head"><span class="sk-icon">${item.icon}</span><span class="sk-title">${escHtml(item.title)}</span><span class="sk-section">${escHtml(item.section)}</span></div>
         ${item.tags.length ? `<div class="sk-tags">${item.tags.map(t => `<span class="sk-tag">${escHtml(t)}</span>`).join('')}</div>` : ''}
       </a>
     `).join('');
   }
 
-  function escHtml(s) {
-    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
+  function escHtml(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 
   function fireIconRing() {
     const icon = document.getElementById('search-icon') || document.querySelector('[class*="search"]') || document.querySelector('button, span, div, i, label');
@@ -314,12 +262,7 @@
     }
   }
 
-  function close() {
-    if (!overlay) return;
-    overlay.classList.remove('sk-open');
-    input.value = '';
-    results.innerHTML = '';
-  }
+  function close() { if (!overlay) return; overlay.classList.remove('sk-open'); input.value = ''; results.innerHTML = ''; }
 
   function hookSearchIcon() {
     const byId = document.getElementById('search-icon');
@@ -327,11 +270,7 @@
     const all = document.querySelectorAll('a, button, span, div, i, label');
     for (const el of all) {
       const t = el.childNodes.length === 1 ? el.textContent.trim() : el.firstChild?.textContent?.trim() || '';
-      if (t === '⌕' || t === '🔍') {
-        el.style.cursor = 'pointer';
-        el.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); open(); });
-        return;
-      }
+      if (t === '⌕' || t === '🔍') { el.style.cursor = 'pointer'; el.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); open(); }); return; }
     }
     const byClass = document.querySelector('[class*="search"]');
     if (byClass) { byClass.addEventListener('click', e => { e.preventDefault(); open(); }); return; }
@@ -349,292 +288,45 @@
     style.id = 'home-growth-sign-position-patch';
     style.textContent = `
       @media (min-width: 901px) {
-        .growth-sign {
-          right: 0.8% !important;
-          top: 61.4% !important;
-          text-align: center !important;
-          align-items: center !important;
-        }
-
-        .growth-title,
-        .growth-sub,
-        .growth-cn,
-        .growth-en {
-          width: 100% !important;
-          text-align: center !important;
-          margin-left: auto !important;
-          margin-right: auto !important;
-        }
-
-        .growth-title {
-          transform: translateX(-11px) !important;
-        }
-
-        .growth-sign .chain,
-        .chain {
-          left: 50% !important;
-          transform: translateX(-50%) !important;
-        }
+        .growth-sign { right: 0.8% !important; top: 61.4% !important; text-align: center !important; align-items: center !important; }
+        .growth-title, .growth-sub, .growth-cn, .growth-en { width: 100% !important; text-align: center !important; margin-left: auto !important; margin-right: auto !important; }
+        .growth-title { transform: translateX(-11px) !important; }
+        .growth-sign .chain, .chain { left: 50% !important; transform: translateX(-50%) !important; }
       }
 
       @media (max-width: 900px) {
-        .tree-area,
-        .tree-stage,
-        .tree-shell,
-        .center-stage,
-        .center-col,
-        .center-column {
-          min-height: clamp(548px, 139vw, 672px) !important;
-          height: clamp(548px, 139vw, 672px) !important;
-          margin: 0 auto !important;
-          overflow: visible !important;
-        }
-
-        .tree-main,
-        .main-tree,
-        .growth-tree-main,
-        .tree-image,
-        .tree-art {
-          width: min(calc(100vw - 18px), 580px) !important;
-          max-height: 820px !important;
-          display: block !important;
-          margin-left: auto !important;
-          margin-right: auto !important;
-          object-fit: contain !important;
-          object-position: center top !important;
-          border-radius: 40px !important;
-          -webkit-mask-image: radial-gradient(ellipse 82% 92% at 50% 52%, #000 50%, rgba(0,0,0,.76) 76%, rgba(0,0,0,0) 100%) !important;
-          mask-image: radial-gradient(ellipse 82% 92% at 50% 52%, #000 50%, rgba(0,0,0,.76) 76%, rgba(0,0,0,0) 100%) !important;
-        }
-
-        .corner-top-left img,
-        .floral-top-left img,
-        .botanical-top-left img,
-        .home-corner-tl img,
-        .corner-tl img,
-        .flora-tl img,
-        img[src*="home-corner-tl"],
-        img[src*="corner-tl"],
-        img[src*="top-left"] {
-          opacity: .96 !important;
-          filter: saturate(1.08) contrast(1.12) brightness(1.02) !important;
-          image-rendering: auto !important;
-          -webkit-font-smoothing: antialiased !important;
-          backface-visibility: hidden !important;
-        }
-
-        .right-side,
-        .right-col,
-        .right-column,
-        .latest-area,
-        .latest-panel-wrap,
-        .bottom-panels {
-          width: min(84vw, 390px) !important;
-          max-width: min(84vw, 390px) !important;
-          margin-left: auto !important;
-          margin-right: auto !important;
-          transform: translateX(2vw) !important;
-          align-items: stretch !important;
-          align-self: center !important;
-          box-sizing: border-box !important;
-        }
-
-        .latest-card,
-        .latest-panel,
-        .panel-card,
-        .updates-card {
-          width: 100% !important;
-          max-width: 100% !important;
-          margin-left: 0 !important;
-          margin-right: 0 !important;
-          box-sizing: border-box !important;
-        }
-
-        .side-links,
-        .behind-wrap,
-        .behind-pixels {
-          width: min(84vw, 390px) !important;
-          max-width: min(84vw, 390px) !important;
-          margin-left: auto !important;
-          margin-right: auto !important;
-          text-align: center !important;
-          justify-content: center !important;
-          align-items: center !important;
-          transform: none !important;
-          align-self: center !important;
-          box-sizing: border-box !important;
-        }
-
-        .cards .card img,
-        .cards .entry-card img,
-        .cards .portal-card img,
-        .grid .card img,
-        .grid .entry-card img,
-        .grid .portal-card img,
-        .left-side .card img,
-        .left-side .entry-card img,
-        .left-side .portal-card img,
-        .left-col .card img,
-        .left-col .entry-card img,
-        .left-col .portal-card img,
-        .left-column .card img,
-        .left-column .entry-card img,
-        .left-column .portal-card img {
-          max-width: 36% !important;
-          width: clamp(86px, 24vw, 128px) !important;
-          height: auto !important;
-          transform: translate(2px, 7px) scale(.84) !important;
-          transform-origin: left center !important;
-          opacity: .68 !important;
-        }
-
-        .node,
-        .school-node,
-        .milestone-node {
-          min-width: clamp(118px, 34vw, 152px) !important;
-          padding: clamp(7px, 2vw, 9px) clamp(10px, 3vw, 14px) !important;
-          transform: translateX(-50%) scale(.78) !important;
-          transform-origin: center center !important;
-        }
-
+        .tree-area, .tree-stage, .tree-shell, .center-stage, .center-col, .center-column { min-height: clamp(548px, 139vw, 672px) !important; height: clamp(548px, 139vw, 672px) !important; margin: 0 auto !important; overflow: visible !important; }
+        .tree-main, .main-tree, .growth-tree-main, .tree-image, .tree-art { width: min(calc(100vw - 18px), 580px) !important; max-height: 820px !important; display: block !important; margin-left: auto !important; margin-right: auto !important; object-fit: contain !important; object-position: center top !important; border-radius: 40px !important; -webkit-mask-image: radial-gradient(ellipse 82% 92% at 50% 52%, #000 50%, rgba(0,0,0,.76) 76%, rgba(0,0,0,0) 100%) !important; mask-image: radial-gradient(ellipse 82% 92% at 50% 52%, #000 50%, rgba(0,0,0,.76) 76%, rgba(0,0,0,0) 100%) !important; }
+        .corner-top-left img, .floral-top-left img, .botanical-top-left img, .home-corner-tl img, .corner-tl img, .flora-tl img, img[src*="home-corner-tl"], img[src*="corner-tl"], img[src*="top-left"] { opacity: .96 !important; filter: saturate(1.08) contrast(1.12) brightness(1.02) !important; image-rendering: auto !important; -webkit-font-smoothing: antialiased !important; backface-visibility: hidden !important; }
+        .right-side, .right-col, .right-column, .latest-area, .latest-panel-wrap, .bottom-panels { width: min(84vw, 390px) !important; max-width: min(84vw, 390px) !important; margin-left: auto !important; margin-right: auto !important; transform: translateX(2vw) !important; align-items: stretch !important; align-self: center !important; box-sizing: border-box !important; }
+        .latest-card, .latest-panel, .panel-card, .updates-card { width: 100% !important; max-width: 100% !important; margin-left: 0 !important; margin-right: 0 !important; box-sizing: border-box !important; }
+        .side-links, .behind-wrap, .behind-pixels { width: min(84vw, 390px) !important; max-width: min(84vw, 390px) !important; margin-left: auto !important; margin-right: auto !important; text-align: center !important; justify-content: center !important; align-items: center !important; transform: none !important; align-self: center !important; box-sizing: border-box !important; }
+        .cards .card img, .cards .entry-card img, .cards .portal-card img, .grid .card img, .grid .entry-card img, .grid .portal-card img, .left-side .card img, .left-side .entry-card img, .left-side .portal-card img, .left-col .card img, .left-col .entry-card img, .left-col .portal-card img, .left-column .card img, .left-column .entry-card img, .left-column .portal-card img { max-width: 36% !important; width: clamp(86px, 24vw, 128px) !important; height: auto !important; transform: translate(2px, 7px) scale(.84) !important; transform-origin: left center !important; opacity: .68 !important; }
+        .node, .school-node, .milestone-node { min-width: clamp(118px, 34vw, 152px) !important; padding: clamp(7px, 2vw, 9px) clamp(10px, 3vw, 14px) !important; transform: translateX(-50%) scale(.78) !important; transform-origin: center center !important; }
         .node-u { top: 34.8% !important; left: 72.8% !important; }
         .node-s { top: 49.4% !important; left: 45.7% !important; }
         .node-j { top: 60.4% !important; left: 44.6% !important; }
         .node-p { top: 70.0% !important; left: 50.2% !important; }
         .node-k { top: 80.6% !important; left: 65.0% !important; }
-
-        .growth-sign {
-          width: clamp(78px, 22vw, 98px) !important;
-          right: -2.5% !important;
-          top: 61.4% !important;
-          padding: clamp(9px, 2.6vw, 13px) clamp(5px, 1.6vw, 7px) clamp(7px, 2vw, 9px) !important;
-          text-align: center !important;
-          align-items: center !important;
-          overflow: visible !important;
-          line-height: 1.05 !important;
-        }
-
-        .growth-title {
-          font-size: clamp(11.5px, 3.2vw, 15px) !important;
-          line-height: 1.03 !important;
-          transform: translateX(-3px) !important;
-          white-space: normal !important;
-          word-break: keep-all !important;
-          overflow-wrap: normal !important;
-          hyphens: none !important;
-          text-wrap: balance !important;
-        }
-
-        .growth-sub {
-          font-size: clamp(8.2px, 2.35vw, 10px) !important;
-          line-height: 1.08 !important;
-        }
-
-        .growth-cn {
-          font-size: clamp(6.8px, 2.05vw, 8.8px) !important;
-          line-height: 1.12 !important;
-          white-space: nowrap !important;
-        }
-
-        .growth-en {
-          font-size: clamp(5.4px, 1.65vw, 7px) !important;
-          line-height: 1.12 !important;
-          white-space: normal !important;
-        }
-
-        .growth-sign .chain,
-        .chain {
-          left: 50% !important;
-          width: clamp(58px, 16vw, 72px) !important;
-          height: clamp(40px, 11vw, 50px) !important;
-          top: clamp(-50px, -11vw, -40px) !important;
-          transform: translateX(-50%) !important;
-        }
-
-        .footer-text,
-        .site-quote,
-        .home-quote,
-        footer {
-          margin-top: -22px !important;
-          transform: translateY(-22px) !important;
-        }
+        .growth-sign { width: clamp(78px, 22vw, 98px) !important; right: -1.5% !important; top: 62.1% !important; padding: clamp(9px, 2.6vw, 13px) clamp(5px, 1.6vw, 7px) clamp(7px, 2vw, 9px) !important; text-align: center !important; align-items: center !important; overflow: visible !important; line-height: 1.05 !important; }
+        .growth-title { font-size: clamp(11.5px, 3.2vw, 15px) !important; line-height: 1.03 !important; transform: translateX(-3px) !important; white-space: normal !important; word-break: keep-all !important; overflow-wrap: normal !important; hyphens: none !important; text-wrap: balance !important; }
+        .growth-sub { font-size: clamp(8.2px, 2.35vw, 10px) !important; line-height: 1.08 !important; }
+        .growth-cn { font-size: clamp(6.8px, 2.05vw, 8.8px) !important; line-height: 1.12 !important; white-space: nowrap !important; }
+        .growth-en { font-size: clamp(5.4px, 1.65vw, 7px) !important; line-height: 1.12 !important; white-space: normal !important; }
+        .growth-sign .chain, .chain { left: 50% !important; width: clamp(58px, 16vw, 72px) !important; height: clamp(40px, 11vw, 50px) !important; top: clamp(-50px, -11vw, -40px) !important; transform: translateX(-50%) !important; }
+        .footer-text, .site-quote, .home-quote, footer { margin-top: -22px !important; transform: translateY(-22px) !important; }
       }
 
       @media (max-width: 520px) {
-        .tree-area,
-        .tree-stage,
-        .tree-shell,
-        .center-stage,
-        .center-col,
-        .center-column {
-          min-height: clamp(508px, 145vw, 625px) !important;
-          height: clamp(508px, 145vw, 625px) !important;
-        }
-
-        .tree-main,
-        .main-tree,
-        .growth-tree-main,
-        .tree-image,
-        .tree-art {
-          width: min(calc(100vw - 18px), 548px) !important;
-          max-height: 760px !important;
-          display: block !important;
-          margin-left: auto !important;
-          margin-right: auto !important;
-          object-position: center top !important;
-          -webkit-mask-image: radial-gradient(ellipse 80% 92% at 50% 52%, #000 48%, rgba(0,0,0,.72) 74%, rgba(0,0,0,0) 100%) !important;
-          mask-image: radial-gradient(ellipse 80% 92% at 50% 52%, #000 48%, rgba(0,0,0,.72) 74%, rgba(0,0,0,0) 100%) !important;
-        }
-
-        .cards .card img,
-        .cards .entry-card img,
-        .cards .portal-card img,
-        .grid .card img,
-        .grid .entry-card img,
-        .grid .portal-card img,
-        .left-side .card img,
-        .left-side .entry-card img,
-        .left-side .portal-card img,
-        .left-col .card img,
-        .left-col .entry-card img,
-        .left-col .portal-card img,
-        .left-column .card img,
-        .left-column .entry-card img,
-        .left-column .portal-card img {
-          max-width: 32% !important;
-          width: clamp(76px, 21vw, 112px) !important;
-          transform: translate(2px, 6px) scale(.78) !important;
-        }
-
-        .node,
-        .school-node,
-        .milestone-node {
-          transform: translateX(-50%) scale(.70) !important;
-        }
-
-        .growth-sign {
-          width: clamp(72px, 23vw, 92px) !important;
-          right: -4% !important;
-          top: 62.8% !important;
-          padding: clamp(8px, 2.4vw, 11px) clamp(4px, 1.4vw, 6px) clamp(6px, 1.8vw, 8px) !important;
-        }
-
-        .growth-title {
-          font-size: clamp(10.5px, 3.1vw, 14px) !important;
-          transform: translateX(-2px) !important;
-        }
-
-        .growth-sub {
-          font-size: clamp(7.6px, 2.22vw, 9.3px) !important;
-        }
-
-        .growth-cn {
-          font-size: clamp(6.2px, 1.95vw, 8px) !important;
-        }
-
-        .growth-en {
-          font-size: clamp(5px, 1.55vw, 6.6px) !important;
-        }
+        .tree-area, .tree-stage, .tree-shell, .center-stage, .center-col, .center-column { min-height: clamp(508px, 145vw, 625px) !important; height: clamp(508px, 145vw, 625px) !important; }
+        .tree-main, .main-tree, .growth-tree-main, .tree-image, .tree-art { width: min(calc(100vw - 18px), 548px) !important; max-height: 760px !important; display: block !important; margin-left: auto !important; margin-right: auto !important; object-position: center top !important; -webkit-mask-image: radial-gradient(ellipse 80% 92% at 50% 52%, #000 48%, rgba(0,0,0,.72) 74%, rgba(0,0,0,0) 100%) !important; mask-image: radial-gradient(ellipse 80% 92% at 50% 52%, #000 48%, rgba(0,0,0,.72) 74%, rgba(0,0,0,0) 100%) !important; }
+        .cards .card img, .cards .entry-card img, .cards .portal-card img, .grid .card img, .grid .entry-card img, .grid .portal-card img, .left-side .card img, .left-side .entry-card img, .left-side .portal-card img, .left-col .card img, .left-col .entry-card img, .left-col .portal-card img, .left-column .card img, .left-column .entry-card img, .left-column .portal-card img { max-width: 32% !important; width: clamp(76px, 21vw, 112px) !important; transform: translate(2px, 6px) scale(.78) !important; }
+        .node, .school-node, .milestone-node { transform: translateX(-50%) scale(.70) !important; }
+        .growth-sign { width: clamp(72px, 23vw, 92px) !important; right: -3% !important; top: 63.5% !important; padding: clamp(8px, 2.4vw, 11px) clamp(4px, 1.4vw, 6px) clamp(6px, 1.8vw, 8px) !important; }
+        .growth-title { font-size: clamp(10.5px, 3.1vw, 14px) !important; transform: translateX(-2px) !important; }
+        .growth-sub { font-size: clamp(7.6px, 2.22vw, 9.3px) !important; }
+        .growth-cn { font-size: clamp(6.2px, 1.95vw, 8px) !important; }
+        .growth-en { font-size: clamp(5px, 1.55vw, 6.6px) !important; }
       }
     `;
     document.head.appendChild(style);
@@ -647,8 +339,8 @@
 
     const sign = document.querySelector('.growth-sign');
     if (sign) {
-      sign.style.right = window.innerWidth <= 520 ? '-4%' : (window.innerWidth <= 900 ? '-2.5%' : '0.8%');
-      sign.style.top = window.innerWidth <= 520 ? '62.8%' : (window.innerWidth <= 900 ? '61.4%' : '61.4%');
+      sign.style.right = window.innerWidth <= 520 ? '-3%' : (window.innerWidth <= 900 ? '-1.5%' : '0.8%');
+      sign.style.top = window.innerWidth <= 520 ? '63.5%' : (window.innerWidth <= 900 ? '62.1%' : '61.4%');
       sign.style.textAlign = 'center';
       sign.style.alignItems = 'center';
       if (window.innerWidth <= 900) sign.style.overflow = 'visible';
@@ -689,11 +381,8 @@
     scheduleHomeGrowthSignPatch();
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', boot);
-  } else {
-    boot();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
 
   window.siteSearch = { open, close };
 })();
