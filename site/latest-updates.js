@@ -53,7 +53,7 @@
         --home-vh: 100dvh;
         --home-tree-scale: .86;
         --home-shared-x: -20px;
-        --home-tree-x: -106px;
+        --home-tree-x: -110px;
         --home-tree-y: -100px;
         --home-cards-y: -84px;
         --home-latest-x: -12px;
@@ -110,8 +110,8 @@
         .card,
         .entry-card,
         .portal-card {
-          width: calc(92% - 14px) !important;
-          max-width: calc(92% - 14px) !important;
+          width: calc(92% - 24px) !important;
+          max-width: calc(92% - 24px) !important;
           min-height: clamp(114px, 15.2vh, 146px) !important;
           margin-left: 4% !important;
           margin-right: auto !important;
@@ -169,6 +169,9 @@
         .latest-panel,
         .panel-card,
         .updates-card {
+          width: calc(100% + 14px) !important;
+          max-width: 370px !important;
+          margin-left: -14px !important;
           min-height: clamp(320px, 41vh, 430px) !important;
           padding: clamp(20px, 2.5vh, 28px) clamp(22px, 2.8vw, 32px) !important;
           box-sizing: border-box !important;
@@ -463,7 +466,7 @@
 
     root.style.setProperty('--home-tree-scale', String(treeScale));
     root.style.setProperty('--home-shared-x', '-20px');
-    root.style.setProperty('--home-tree-x', '-106px');
+    root.style.setProperty('--home-tree-x', '-110px');
     root.style.setProperty('--home-tree-y', `${treeY}px`);
     root.style.setProperty('--home-cards-y', `${cardsY}px`);
     root.style.setProperty('--home-latest-x', '-12px');
@@ -542,7 +545,7 @@
     let panel = latestList;
     while (panel.parentElement && panel.parentElement !== document.body) {
       const rect = panel.parentElement.getBoundingClientRect();
-      if (rect.width >= 180 && rect.height >= 120 && rect.width <= 560 && rect.height <= 520) {
+      if (rect.width >= 180 && rect.height >= 120 && rect.width <= 580 && rect.height <= 540) {
         panel = panel.parentElement;
       }
       if (/latest|panel|card|updates/i.test(panel.className || '')) break;
