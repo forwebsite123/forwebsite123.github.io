@@ -59,7 +59,7 @@
         --home-latest-x: -12px;
         --home-latest-y: 24px;
         --home-behind-x: -34px;
-        --home-behind-y: -96px;
+        --home-behind-y: -112px;
       }
 
       html { min-height: 100%; overflow-x: hidden; }
@@ -252,9 +252,9 @@
           bottom: clamp(-26px, -2.4vh, -18px) !important;
           display: block !important;
           visibility: visible !important;
-          width: clamp(112px, 10vw, 180px) !important;
+          width: clamp(104px, 9.4vw, 168px) !important;
           height: auto !important;
-          transform: translate(26px, 0) rotate(-90deg) !important;
+          transform: translate(18px, 0) rotate(-90deg) !important;
           transform-origin: center center !important;
           translate: none !important;
           z-index: 4 !important;
@@ -272,7 +272,7 @@
         .floral-bottom-right,
         .botanical-bottom-right,
         .flora-br img {
-          transform: rotate(90deg) !important;
+          transform: rotate(90deg) scale(1.08) !important;
           transform-origin: center center !important;
         }
       }
@@ -439,28 +439,28 @@
     let treeScale = .86;
     let treeY = -100;
     let cardsY = -84;
-    let behindY = -96;
+    let behindY = -112;
     let latestY = 24;
 
     if (height < 850) {
       treeScale = .83;
       treeY = -124;
       cardsY = -92;
-      behindY = -112;
+      behindY = -128;
       latestY = 18;
     }
     if (height < 780) {
       treeScale = .80;
       treeY = -150;
       cardsY = -102;
-      behindY = -128;
+      behindY = -144;
       latestY = 12;
     }
     if (height < 720) {
       treeScale = .77;
       treeY = -172;
       cardsY = -110;
-      behindY = -140;
+      behindY = -156;
       latestY = 6;
     }
 
@@ -588,9 +588,9 @@
       floraBlImg.style.bottom = 'clamp(-26px, -2.4vh, -18px)';
       floraBlImg.style.display = 'block';
       floraBlImg.style.visibility = 'visible';
-      floraBlImg.style.width = 'clamp(112px, 10vw, 180px)';
+      floraBlImg.style.width = 'clamp(104px, 9.4vw, 168px)';
       floraBlImg.style.height = 'auto';
-      floraBlImg.style.transform = 'translate(26px, 0) rotate(-90deg)';
+      floraBlImg.style.transform = 'translate(18px, 0) rotate(-90deg)';
       floraBlImg.style.transformOrigin = 'center center';
       floraBlImg.style.translate = 'none';
       floraBlImg.style.zIndex = '4';
@@ -601,7 +601,7 @@
 
     const floraBrImg = document.querySelector('.flora-br img');
     if (floraBrImg) {
-      floraBrImg.style.transform = 'rotate(90deg)';
+      floraBrImg.style.transform = 'rotate(90deg) scale(1.08)';
       floraBrImg.style.transformOrigin = 'center center';
     }
   }
