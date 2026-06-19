@@ -6,7 +6,6 @@
   injectHomeFavicon();
   injectHomeCanvasPatch();
   scheduleHomeDirectAdjustments();
-  scheduleForcedBottomLeftFlora();
 
   const list = document.getElementById('latest-updates-list');
   if (!list) return;
@@ -65,6 +64,7 @@
 
       html { min-height: 100%; overflow-x: hidden; }
       body { min-height: 100dvh; overflow-x: hidden; }
+      #home-bottom-left-corner-rescue { display: none !important; visibility: hidden !important; }
 
       @media (min-width: 901px) {
         html,
@@ -244,8 +244,7 @@
         .home-corner-bl,
         .corner-bottom-left,
         .floral-bottom-left,
-        .botanical-bottom-left,
-        #home-bottom-left-corner-rescue {
+        .botanical-bottom-left {
           position: fixed !important;
           left: 0 !important;
           right: auto !important;
@@ -474,7 +473,7 @@
       setHomeViewportVars();
       setKindergartenLink();
       moveCornerImagesDirectly();
-      forceBottomLeftFlora();
+      removeBottomLeftRescue();
       if (window.innerWidth <= 900) return;
       nudgeElementByText(/Kindergarten|幼儿园/, 10, 0, { minWidth: 80, minHeight: 28, maxWidth: 280, maxHeight: 140 });
       nudgeElementByText(/Growth\s*Rings/, 12, -10, { minWidth: 160, minHeight: 70, maxWidth: 440, maxHeight: 280 });
@@ -490,51 +489,9 @@
     if (window.visualViewport) window.visualViewport.addEventListener('resize', run, { passive: true });
   }
 
-  function scheduleForcedBottomLeftFlora() {
-    if (!isHomeLikePage()) return;
-    const run = () => forceBottomLeftFlora();
-    run();
-    window.addEventListener('load', run, { once: true });
-    setTimeout(run, 80);
-    setTimeout(run, 220);
-    setTimeout(run, 600);
-    setTimeout(run, 1400);
-    window.addEventListener('resize', run, { passive: true });
-    if (window.visualViewport) window.visualViewport.addEventListener('resize', run, { passive: true });
-  }
-
-  function forceBottomLeftFlora() {
-    if (!isHomeLikePage()) return;
-    const source = document.querySelector('.flora.flora-tl img') ||
-      document.querySelector('.flora img:not(#home-bottom-left-corner-rescue)') ||
-      Array.from(document.images || []).find((img) => img.id !== 'home-bottom-left-corner-rescue' && /data:image\/png|flora|corner|botanical|leaf|flower/i.test(`${img.currentSrc || img.src || ''} ${img.className || ''}`));
-    if (!source || !(source.currentSrc || source.src)) return;
-
-    let rescue = document.getElementById('home-bottom-left-corner-rescue');
-    if (!rescue) {
-      rescue = document.createElement('img');
-      rescue.id = 'home-bottom-left-corner-rescue';
-      rescue.setAttribute('aria-hidden', 'true');
-      document.body.appendChild(rescue);
-    }
-
-    rescue.src = source.currentSrc || source.src;
-    rescue.alt = '';
-    rescue.style.position = 'fixed';
-    rescue.style.left = '0';
-    rescue.style.right = 'auto';
-    rescue.style.top = 'auto';
-    rescue.style.bottom = 'clamp(18px, 2.2vh, 28px)';
-    rescue.style.display = 'block';
-    rescue.style.visibility = 'visible';
-    rescue.style.width = 'clamp(170px, 15vw, 260px)';
-    rescue.style.height = 'auto';
-    rescue.style.transform = 'translate(-12px, 0)';
-    rescue.style.translate = 'none';
-    rescue.style.zIndex = '4';
-    rescue.style.pointerEvents = 'none';
-    rescue.style.opacity = '.86';
-    rescue.style.filter = 'saturate(1.12) contrast(1.04)';
+  function removeBottomLeftRescue() {
+    const rescue = document.getElementById('home-bottom-left-corner-rescue');
+    if (rescue) rescue.remove();
   }
 
   function setKindergartenLink() {
@@ -635,106 +592,6 @@
       bottomLeft.img.style.opacity = '.86';
       bottomLeft.img.style.filter = 'saturate(1.12) contrast(1.04)';
     }
-
-    if (!bottomLeft || !isPaintedInViewport(bottomLeft.img)) {
-      rescueBottomLeftCorner((bottomLeft && bottomLeft.img) || findCornerArtworkSource(topLeft && topLeft.img));
-    }
-  }
-
-  function isPaintedInViewport(element) {
-    if (!element) return false;
-    const rect = element.getBoundingClientRect();
-    if (rect.width < 12 || rect.height < 12) return false;
-    const x = Math.min(Math.max(rect.left + rect.width * 0.5, 1), window.innerWidth - 2);
-    const y = Math.min(Math.max(rect.top + rect.height * 0.5, 1), window.innerHeight - 2);
-    const hit = document.elementFromPoint(x, y);
-    return Boolean(hit && (hit === element || element.contains(hit) || hit.contains(element)));
-  }
-
-  function findCornerArtworkSource(preferredElement) {
-    const preferred = artworkSourceFromElement(preferredElement);
-    if (preferred) return preferred;
-
-    const vh = (window.visualViewport && window.visualViewport.height) || window.innerHeight || 820;
-    const elements = Array.from(document.querySelectorAll('body *'));
-    const elementSources = elements.map((element) => {
-      if (isInsidePortalCard(element)) return null;
-      const url = artworkUrlFromElement(element);
-      if (!url) return null;
-      const rect = element.getBoundingClientRect();
-      const name = `${element.id || ''} ${element.className || ''} ${element.getAttribute('src') || ''}`;
-      const bottomScore = /bottom|lower|bl|corner|botanical|floral|leaf/i.test(name) ? 0 : 800;
-      const distance = Math.abs(rect.left) + Math.abs(vh - rect.bottom);
-      return { url, opacity: getComputedStyle(element).opacity || '.86', score: bottomScore + distance };
-    }).filter(Boolean).sort((a, b) => a.score - b.score);
-    if (elementSources[0]) return elementSources[0];
-
-    const cssSources = [];
-    Array.from(document.styleSheets || []).forEach((sheet) => {
-      let rules;
-      try { rules = sheet.cssRules || []; } catch (_) { return; }
-      Array.from(rules).forEach((rule) => {
-        const selector = rule.selectorText || '';
-        const bg = rule.style && (rule.style.backgroundImage || rule.style.background);
-        const url = extractCssUrl(bg);
-        if (!url) return;
-        if (!/bottom|lower|bl|corner|botanical|floral|leaf|home/i.test(selector + ' ' + url)) return;
-        const priority = /bottom|lower|bl/i.test(selector) ? 0 : 500;
-        cssSources.push({ url, opacity: '.86', score: priority });
-      });
-    });
-    cssSources.sort((a, b) => a.score - b.score);
-    return cssSources[0] || null;
-  }
-
-  function artworkSourceFromElement(element) {
-    if (!element) return null;
-    const url = artworkUrlFromElement(element);
-    if (!url) return null;
-    return { url, opacity: getComputedStyle(element).opacity || '.86' };
-  }
-
-  function artworkUrlFromElement(element) {
-    if (!element) return '';
-    if (element.currentSrc || element.src) return element.currentSrc || element.src;
-    const style = getComputedStyle(element);
-    return extractCssUrl(style.backgroundImage) || extractCssUrl(style.background);
-  }
-
-  function extractCssUrl(value) {
-    if (!value || value === 'none') return '';
-    const match = String(value).match(/url\(["']?([^"')]+)["']?\)/i);
-    return match ? match[1] : '';
-  }
-
-  function rescueBottomLeftCorner(source) {
-    if (!source) return;
-    const url = typeof source === 'string' ? source : source.url;
-    if (!url) return;
-    let rescue = document.getElementById('home-bottom-left-corner-rescue');
-    if (!rescue) {
-      rescue = document.createElement('img');
-      rescue.id = 'home-bottom-left-corner-rescue';
-      rescue.setAttribute('aria-hidden', 'true');
-      document.body.appendChild(rescue);
-    }
-    rescue.src = url;
-    rescue.alt = '';
-    rescue.style.position = 'fixed';
-    rescue.style.left = '0';
-    rescue.style.right = 'auto';
-    rescue.style.top = 'auto';
-    rescue.style.bottom = 'clamp(18px, 2.2vh, 28px)';
-    rescue.style.display = 'block';
-    rescue.style.visibility = 'visible';
-    rescue.style.width = 'clamp(170px, 15vw, 260px)';
-    rescue.style.height = 'auto';
-    rescue.style.transform = 'translate(-12px, 0)';
-    rescue.style.translate = 'none';
-    rescue.style.zIndex = '4';
-    rescue.style.pointerEvents = 'none';
-    rescue.style.opacity = (typeof source === 'object' && source.opacity) || '.86';
-    rescue.style.filter = 'saturate(1.12) contrast(1.04)';
   }
 
   function isInsidePortalCard(element) {
