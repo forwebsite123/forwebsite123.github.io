@@ -448,15 +448,15 @@
         .growth-tree-main,
         .tree-image,
         .tree-art {
-          width: min(124vw, 670px) !important;
+          width: min(112vw, 630px) !important;
           max-height: 820px !important;
-          margin-left: -4vw !important;
-          margin-right: -4vw !important;
+          margin-left: -2vw !important;
+          margin-right: -2vw !important;
           object-fit: contain !important;
           object-position: center bottom !important;
           border-radius: 38px !important;
-          -webkit-mask-image: radial-gradient(ellipse 76% 88% at 50% 52%, #000 48%, rgba(0,0,0,.74) 72%, rgba(0,0,0,0) 100%) !important;
-          mask-image: radial-gradient(ellipse 76% 88% at 50% 52%, #000 48%, rgba(0,0,0,.74) 72%, rgba(0,0,0,0) 100%) !important;
+          -webkit-mask-image: radial-gradient(ellipse 78% 90% at 50% 52%, #000 50%, rgba(0,0,0,.72) 74%, rgba(0,0,0,0) 100%) !important;
+          mask-image: radial-gradient(ellipse 78% 90% at 50% 52%, #000 50%, rgba(0,0,0,.72) 74%, rgba(0,0,0,0) 100%) !important;
         }
 
         .right-side,
@@ -465,12 +465,13 @@
         .latest-area,
         .latest-panel-wrap,
         .bottom-panels {
-          width: min(88vw, 420px) !important;
-          max-width: min(88vw, 420px) !important;
-          margin-left: 50% !important;
-          margin-right: 0 !important;
-          transform: translateX(-50%) !important;
+          width: min(84vw, 390px) !important;
+          max-width: min(84vw, 390px) !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
+          transform: none !important;
           align-items: stretch !important;
+          align-self: center !important;
           box-sizing: border-box !important;
         }
 
@@ -488,14 +489,15 @@
         .side-links,
         .behind-wrap,
         .behind-pixels {
-          width: min(88vw, 420px) !important;
-          max-width: min(88vw, 420px) !important;
-          margin-left: 50% !important;
-          margin-right: 0 !important;
+          width: min(84vw, 390px) !important;
+          max-width: min(84vw, 390px) !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
           text-align: center !important;
           justify-content: center !important;
           align-items: center !important;
-          transform: translateX(-50%) !important;
+          transform: none !important;
+          align-self: center !important;
           box-sizing: border-box !important;
         }
 
@@ -508,52 +510,52 @@
           transform-origin: center center !important;
         }
 
-        .node-u { top: 29.0% !important; left: 72.8% !important; }
-        .node-s { top: 43.8% !important; left: 45.7% !important; }
-        .node-j { top: 56.8% !important; left: 44.6% !important; }
-        .node-p { top: 65.4% !important; left: 50.2% !important; }
-        .node-k { top: 75.8% !important; left: 65.0% !important; }
+        .node-u { top: 32.4% !important; left: 72.8% !important; }
+        .node-s { top: 47.2% !important; left: 45.7% !important; }
+        .node-j { top: 60.2% !important; left: 44.6% !important; }
+        .node-p { top: 69.0% !important; left: 50.2% !important; }
+        .node-k { top: 79.4% !important; left: 65.0% !important; }
 
         .growth-sign {
-          width: clamp(104px, 29vw, 128px) !important;
-          right: -8% !important;
-          top: 52.6% !important;
-          padding: clamp(13px, 3.6vw, 18px) clamp(7px, 2.2vw, 10px) clamp(10px, 2.9vw, 14px) !important;
+          width: clamp(92px, 25vw, 112px) !important;
+          right: -8.5% !important;
+          top: 57.2% !important;
+          padding: clamp(11px, 3.1vw, 15px) clamp(6px, 1.9vw, 8px) clamp(8px, 2.4vw, 11px) !important;
           text-align: center !important;
           align-items: center !important;
           overflow: visible !important;
-          line-height: 1.12 !important;
+          line-height: 1.08 !important;
         }
 
         .growth-title {
-          font-size: clamp(18px, 5vw, 24px) !important;
+          font-size: clamp(15px, 4.2vw, 20px) !important;
           line-height: .95 !important;
-          transform: translateX(-8px) !important;
+          transform: translateX(-6px) !important;
         }
 
         .growth-sub {
-          font-size: clamp(10.5px, 3vw, 13px) !important;
-          line-height: 1.1 !important;
+          font-size: clamp(9px, 2.55vw, 11.5px) !important;
+          line-height: 1.08 !important;
         }
 
         .growth-cn {
-          font-size: clamp(9px, 2.75vw, 12px) !important;
-          line-height: 1.18 !important;
+          font-size: clamp(7.8px, 2.35vw, 10px) !important;
+          line-height: 1.14 !important;
           white-space: nowrap !important;
         }
 
         .growth-en {
-          font-size: clamp(7.4px, 2.25vw, 9.8px) !important;
-          line-height: 1.18 !important;
+          font-size: clamp(6.2px, 1.9vw, 8px) !important;
+          line-height: 1.14 !important;
           white-space: normal !important;
         }
 
         .growth-sign .chain,
         .chain {
           left: 50% !important;
-          width: clamp(80px, 23vw, 98px) !important;
-          height: clamp(54px, 15vw, 66px) !important;
-          top: clamp(-66px, -15vw, -54px) !important;
+          width: clamp(68px, 19vw, 84px) !important;
+          height: clamp(46px, 12.8vw, 56px) !important;
+          top: clamp(-56px, -12.8vw, -46px) !important;
           transform: translateX(-50%) !important;
         }
       }
@@ -574,12 +576,12 @@
         .growth-tree-main,
         .tree-image,
         .tree-art {
-          width: min(130vw, 640px) !important;
+          width: min(116vw, 600px) !important;
           max-height: 760px !important;
-          margin-left: -6vw !important;
-          margin-right: -6vw !important;
-          -webkit-mask-image: radial-gradient(ellipse 74% 88% at 50% 52%, #000 46%, rgba(0,0,0,.70) 70%, rgba(0,0,0,0) 100%) !important;
-          mask-image: radial-gradient(ellipse 74% 88% at 50% 52%, #000 46%, rgba(0,0,0,.70) 70%, rgba(0,0,0,0) 100%) !important;
+          margin-left: -3vw !important;
+          margin-right: -3vw !important;
+          -webkit-mask-image: radial-gradient(ellipse 76% 90% at 50% 52%, #000 48%, rgba(0,0,0,.70) 72%, rgba(0,0,0,0) 100%) !important;
+          mask-image: radial-gradient(ellipse 76% 90% at 50% 52%, #000 48%, rgba(0,0,0,.70) 72%, rgba(0,0,0,0) 100%) !important;
         }
 
         .node,
@@ -589,27 +591,27 @@
         }
 
         .growth-sign {
-          width: clamp(96px, 30vw, 116px) !important;
+          width: clamp(86px, 27vw, 106px) !important;
           right: -10% !important;
-          top: 53.8% !important;
-          padding: clamp(12px, 3.4vw, 16px) clamp(6px, 2vw, 9px) clamp(9px, 2.7vw, 12px) !important;
+          top: 58.5% !important;
+          padding: clamp(10px, 2.9vw, 14px) clamp(5px, 1.7vw, 7px) clamp(7px, 2.2vw, 10px) !important;
         }
 
         .growth-title {
-          font-size: clamp(16px, 4.8vw, 21px) !important;
-          transform: translateX(-7px) !important;
+          font-size: clamp(14px, 4.1vw, 18px) !important;
+          transform: translateX(-5px) !important;
         }
 
         .growth-sub {
-          font-size: clamp(9.6px, 2.9vw, 12px) !important;
+          font-size: clamp(8.4px, 2.45vw, 10.8px) !important;
         }
 
         .growth-cn {
-          font-size: clamp(8.4px, 2.65vw, 11px) !important;
+          font-size: clamp(7.2px, 2.25vw, 9.4px) !important;
         }
 
         .growth-en {
-          font-size: clamp(6.9px, 2.15vw, 9px) !important;
+          font-size: clamp(5.8px, 1.82vw, 7.6px) !important;
         }
       }
     `;
@@ -623,8 +625,8 @@
 
     const sign = document.querySelector('.growth-sign');
     if (sign) {
-      sign.style.right = window.innerWidth <= 520 ? '-10%' : (window.innerWidth <= 900 ? '-8%' : '0.8%');
-      sign.style.top = window.innerWidth <= 520 ? '53.8%' : (window.innerWidth <= 900 ? '52.6%' : '61.4%');
+      sign.style.right = window.innerWidth <= 520 ? '-10%' : (window.innerWidth <= 900 ? '-8.5%' : '0.8%');
+      sign.style.top = window.innerWidth <= 520 ? '58.5%' : (window.innerWidth <= 900 ? '57.2%' : '61.4%');
       sign.style.textAlign = 'center';
       sign.style.alignItems = 'center';
       if (window.innerWidth <= 900) sign.style.overflow = 'visible';
@@ -636,7 +638,7 @@
       element.style.marginLeft = 'auto';
       element.style.marginRight = 'auto';
       if (element.classList.contains('growth-title')) {
-        element.style.transform = window.innerWidth <= 520 ? 'translateX(-7px)' : (window.innerWidth <= 900 ? 'translateX(-8px)' : 'translateX(-11px)');
+        element.style.transform = window.innerWidth <= 520 ? 'translateX(-5px)' : (window.innerWidth <= 900 ? 'translateX(-6px)' : 'translateX(-11px)');
       }
     });
 
