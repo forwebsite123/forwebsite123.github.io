@@ -58,8 +58,8 @@
         --home-cards-y: -84px;
         --home-latest-x: -12px;
         --home-latest-y: 16px;
-        --home-behind-x: -34px;
-        --home-behind-y: -180px;
+        --home-behind-x: 46px;
+        --home-behind-y: -200px;
       }
 
       html { min-height: 100%; overflow-x: hidden; }
@@ -230,7 +230,7 @@
         .corner-top-left,
         .floral-top-left,
         .botanical-top-left {
-          transform: translate(-36px, -16px) !important;
+          transform: translate(-36px, -22px) !important;
           translate: none !important;
           opacity: .86 !important;
           filter: saturate(1.12) contrast(1.04) !important;
@@ -439,28 +439,28 @@
     let treeScale = .86;
     let treeY = -100;
     let cardsY = -84;
-    let behindY = -180;
+    let behindY = -200;
     let latestY = 16;
 
     if (height < 850) {
       treeScale = .83;
       treeY = -124;
       cardsY = -92;
-      behindY = -196;
+      behindY = -216;
       latestY = 10;
     }
     if (height < 780) {
       treeScale = .80;
       treeY = -150;
       cardsY = -102;
-      behindY = -212;
+      behindY = -232;
       latestY = 4;
     }
     if (height < 720) {
       treeScale = .77;
       treeY = -172;
       cardsY = -110;
-      behindY = -224;
+      behindY = -244;
       latestY = 0;
     }
 
@@ -477,7 +477,7 @@
     root.style.setProperty('--home-cards-y', `${cardsY}px`);
     root.style.setProperty('--home-latest-x', '-12px');
     root.style.setProperty('--home-latest-y', `${latestY}px`);
-    root.style.setProperty('--home-behind-x', '-34px');
+    root.style.setProperty('--home-behind-x', '46px');
     root.style.setProperty('--home-behind-y', `${behindY}px`);
   }
 
@@ -573,7 +573,7 @@
       .sort((a, b) => (a.rect.left + a.rect.top) - (b.rect.left + b.rect.top))[0];
 
     if (topLeft) {
-      topLeft.img.style.transform = 'translate(-36px, -16px)';
+      topLeft.img.style.transform = 'translate(-36px, -22px)';
       topLeft.img.style.translate = 'none';
       topLeft.img.style.opacity = '.86';
       topLeft.img.style.filter = 'saturate(1.12) contrast(1.04)';
