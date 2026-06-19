@@ -60,29 +60,32 @@
   animation: inkPaperAppear .85s var(--ink-anim-ease) .78s both;
 }
 
-/* Water-ripple memory touch for the four home entrance cards. */
+/* Soft paper light touch for the four home entrance cards. */
 .card::after {
   content: "" !important;
   position: absolute;
-  inset: -36%;
+  inset: 0;
   z-index: 0;
   pointer-events: none;
   opacity: 0;
+  border-radius: inherit;
   background:
-    radial-gradient(circle at 18% 76%, rgba(255, 255, 255, .42) 0 2%, transparent 12%),
-    radial-gradient(circle at 18% 76%, rgba(177, 135, 126, .13) 0 10%, transparent 30%),
-    radial-gradient(circle at 18% 76%, rgba(188, 150, 104, .09) 0 18%, transparent 45%);
-  transform: scale(.72);
-  transition: opacity .52s ease, transform .78s var(--ink-anim-ease);
+    linear-gradient(118deg, transparent 0%, rgba(255, 255, 255, .34) 42%, rgba(255, 250, 244, .20) 50%, transparent 66%),
+    radial-gradient(ellipse at 50% 18%, rgba(255, 255, 255, .26), transparent 54%);
+  transform: translateX(-118%);
+  transition: opacity .36s ease, transform .82s var(--ink-anim-ease);
 }
 
 .card:hover::after,
 .card:focus-visible::after {
-  opacity: 1;
-  transform: scale(1.02);
+  opacity: .72;
+  transform: translateX(118%);
 }
 
-.card:hover {
+.card:hover,
+.card:focus-visible {
+  background: rgba(255, 253, 250, .64);
+  border-color: rgba(177, 135, 126, .50);
   box-shadow: var(--ink-soft-shadow);
 }
 
@@ -173,7 +176,7 @@
 
   .card:hover::after,
   .card:focus-visible::after {
-    opacity: .42;
+    opacity: .34;
   }
 }
 
