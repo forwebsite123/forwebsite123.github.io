@@ -1,8 +1,11 @@
 (function () {
   'use strict';
 
+  const KINDERGARTEN_URL = 'https://baike.baidu.com/item/%E4%B8%AD%E5%9B%BD%E4%BA%BA%E6%B0%91%E8%A7%A3%E6%94%BE%E5%86%9B%E5%B9%BF%E4%B8%9C%E7%9C%81%E5%86%9B%E5%8C%BA%E7%AC%AC%E4%B8%80%E5%B9%BC%E5%84%BF%E5%9B%AD/67472209';
+
   injectHomeFavicon();
   injectHomeCanvasPatch();
+  scheduleHomeLabelNudges();
 
   const list = document.getElementById('latest-updates-list');
   if (!list) return;
@@ -36,17 +39,36 @@
   function injectHomeCanvasPatch() {
     if (!isHomeLikePage() || document.getElementById('home-canvas-mobile-patch')) return;
 
+    setHomeViewportVars();
+    window.addEventListener('resize', setHomeViewportVars, { passive: true });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', setHomeViewportVars, { passive: true });
+      window.visualViewport.addEventListener('scroll', setHomeViewportVars, { passive: true });
+    }
+
     const style = document.createElement('style');
     style.id = 'home-canvas-mobile-patch';
     style.textContent = `
+      :root {
+        --home-vh: 100dvh;
+        --home-tree-scale: .88;
+        --home-tree-x: -18px;
+        --home-tree-y: -72px;
+        --home-cards-y: -66px;
+        --home-latest-x: -22px;
+        --home-latest-y: -4px;
+        --home-behind-x: -28px;
+        --home-behind-y: -96px;
+      }
+
       html { min-height: 100%; overflow-x: hidden; }
-      body { min-height: 100svh; overflow-x: hidden; }
+      body { min-height: 100dvh; overflow-x: hidden; }
 
       @media (min-width: 901px) {
         html,
         body {
-          height: 100svh;
-          max-height: 100svh;
+          height: var(--home-vh) !important;
+          max-height: var(--home-vh) !important;
           overflow-x: hidden !important;
           overflow-y: hidden !important;
         }
@@ -54,9 +76,9 @@
         .page,
         main,
         .home-stage {
-          height: 100svh !important;
+          height: var(--home-vh) !important;
           min-height: 0 !important;
-          max-height: 100svh !important;
+          max-height: var(--home-vh) !important;
           padding-top: clamp(24px, 3.2vh, 42px) !important;
           padding-bottom: 0 !important;
           box-sizing: border-box !important;
@@ -66,7 +88,7 @@
         .layout,
         .home-layout,
         .home-feature-layout {
-          height: calc(100svh - clamp(42px, 5.4vh, 66px)) !important;
+          height: calc(var(--home-vh) - clamp(42px, 5.4vh, 66px)) !important;
           min-height: 0 !important;
           margin-top: 0 !important;
           margin-bottom: 0 !important;
@@ -80,7 +102,8 @@
         .left-column {
           padding-top: 0 !important;
           gap: clamp(13px, 2vh, 21px) !important;
-          translate: 0 -66px !important;
+          transform: translateY(var(--home-cards-y)) !important;
+          translate: none !important;
         }
 
         .card,
@@ -107,9 +130,10 @@
         }
 
         .tree-area {
-          scale: .88 !important;
-          translate: 0 -72px !important;
+          transform: translate(var(--home-tree-x), var(--home-tree-y)) scale(var(--home-tree-scale)) !important;
           transform-origin: center center !important;
+          scale: none !important;
+          translate: none !important;
         }
 
         .tree-main,
@@ -128,6 +152,8 @@
         .latest-area,
         .latest-panel-wrap {
           padding-top: clamp(22px, 3.6vh, 48px) !important;
+          transform: translate(var(--home-latest-x), var(--home-latest-y)) !important;
+          translate: none !important;
         }
 
         .latest-card,
@@ -139,20 +165,13 @@
           box-sizing: border-box !important;
         }
 
-        #latest-updates-list {
-          gap: clamp(9px, 1.15vh, 14px) !important;
-        }
-
+        #latest-updates-list { gap: clamp(9px, 1.15vh, 14px) !important; }
         #latest-updates-list .update-item {
           font-size: clamp(10.2px, .70vw, 12px) !important;
           line-height: 1.35 !important;
           column-gap: 10px !important;
         }
-
-        #latest-updates-list .update-link {
-          min-width: 0 !important;
-        }
-
+        #latest-updates-list .update-link { min-width: 0 !important; }
         #latest-updates-list .update-text {
           white-space: normal !important;
           overflow: hidden !important;
@@ -160,7 +179,6 @@
           -webkit-line-clamp: 2 !important;
           -webkit-box-orient: vertical !important;
         }
-
         #latest-updates-list .update-date {
           font-size: clamp(9px, .60vw, 10.4px) !important;
           white-space: nowrap !important;
@@ -169,7 +187,8 @@
         .side-links,
         .behind-wrap,
         .behind-pixels {
-          transform: translate(-16px, -96px) !important;
+          transform: translate(var(--home-behind-x), var(--home-behind-y)) !important;
+          translate: none !important;
         }
 
         .footer-text,
@@ -186,6 +205,17 @@
           pointer-events: none !important;
         }
 
+        img[src*="home-corner-tl"],
+        img[src*="corner-tl"],
+        img[src*="top-left"],
+        .corner-tl,
+        .home-corner-tl,
+        .corner-top-left,
+        .floral-top-left,
+        .botanical-top-left {
+          translate: -12px 0 !important;
+        }
+
         img[src*="home-corner-bl"],
         img[src*="corner-bl"],
         img[src*="bottom-left"],
@@ -194,17 +224,12 @@
         .corner-bottom-left,
         .floral-bottom-left,
         .botanical-bottom-left {
-          transform: translateY(10px) !important;
+          translate: -12px 12px !important;
         }
       }
 
       @media (max-width: 900px) {
-        body {
-          min-height: 100svh;
-          overflow-x: hidden !important;
-          overflow-y: auto !important;
-        }
-
+        body { min-height: 100dvh; overflow-x: hidden !important; overflow-y: auto !important; }
         .page,
         main,
         .home-stage,
@@ -224,13 +249,9 @@
           gap: clamp(18px, 5vw, 28px) !important;
           overflow-x: hidden !important;
         }
-
         .site-note,
         .topline,
-        .tagline {
-          max-width: calc(100vw - 76px) !important;
-        }
-
+        .tagline { max-width: calc(100vw - 76px) !important; }
         #search-icon,
         .search-btn,
         .search-icon {
@@ -238,7 +259,6 @@
           font-size: clamp(22px, 6vw, 30px) !important;
           z-index: 20 !important;
         }
-
         .tree-area,
         .tree-stage,
         .tree-shell,
@@ -254,7 +274,6 @@
           transform: none !important;
           overflow: visible !important;
         }
-
         .tree-main,
         .main-tree,
         .growth-tree-main,
@@ -264,21 +283,18 @@
           width: min(118vw, 560px) !important;
           height: auto !important;
         }
-
         .node,
         .school-node,
         .milestone-node {
           transform: translateX(-50%) scale(.68) !important;
           transform-origin: center center !important;
         }
-
         .growth-wrap,
         .growth-ring-wrap,
         .growth-sign-wrap {
           transform: scale(.66) !important;
           transform-origin: top center !important;
         }
-
         .right-side,
         .right-col,
         .right-column,
@@ -296,7 +312,6 @@
           align-items: stretch !important;
           gap: 18px !important;
         }
-
         .latest-card,
         .latest-panel,
         .panel-card,
@@ -307,14 +322,9 @@
           padding: 22px 20px !important;
           box-sizing: border-box !important;
         }
-
         .side-links,
         .behind-wrap,
-        .behind-pixels {
-          margin-top: 4px !important;
-          transform: none !important;
-        }
-
+        .behind-pixels { margin-top: 4px !important; transform: none !important; }
         .cards,
         .grid,
         .left-side,
@@ -330,7 +340,6 @@
           grid-template-columns: 1fr !important;
           gap: clamp(15px, 4.5vw, 22px) !important;
         }
-
         .card,
         .entry-card,
         .portal-card {
@@ -340,25 +349,14 @@
           padding: clamp(18px, 5vw, 26px) !important;
           box-sizing: border-box !important;
         }
-
         .cn { font-size: clamp(30px, 10.8vw, 46px) !important; }
         .en { font-size: clamp(18px, 5.6vw, 24px) !important; }
-
-        #latest-updates-list .update-item {
-          grid-template-columns: minmax(0, 1fr) !important;
-          row-gap: 4px !important;
-        }
-
+        #latest-updates-list .update-item { grid-template-columns: minmax(0, 1fr) !important; row-gap: 4px !important; }
         #latest-updates-list .update-date { justify-self: start !important; }
-
         .footer-text,
         .site-quote,
         .home-quote,
-        footer {
-          order: 4 !important;
-          margin-top: 4px !important;
-          text-align: center !important;
-        }
+        footer { order: 4 !important; margin-top: 4px !important; text-align: center !important; }
       }
 
       @media (max-width: 520px) {
@@ -371,28 +369,65 @@
           min-height: clamp(470px, 148vw, 630px) !important;
           height: clamp(470px, 148vw, 630px) !important;
         }
-
         .node,
         .school-node,
-        .milestone-node {
-          transform: translateX(-50%) scale(.58) !important;
-        }
-
+        .milestone-node { transform: translateX(-50%) scale(.58) !important; }
         .growth-wrap,
         .growth-ring-wrap,
-        .growth-sign-wrap {
-          transform: scale(.56) !important;
-        }
+        .growth-sign-wrap { transform: scale(.56) !important; }
       }
     `;
     document.head.appendChild(style);
+  }
 
-    scheduleHomeLabelNudges();
+  function setHomeViewportVars() {
+    if (!isHomeLikePage()) return;
+    const root = document.documentElement;
+    const height = Math.round((window.visualViewport && window.visualViewport.height) || window.innerHeight || 820);
+    root.style.setProperty('--home-vh', `${height}px`);
+
+    let treeScale = .88;
+    let treeY = -72;
+    let cardsY = -66;
+    let behindY = -96;
+    let latestY = -4;
+
+    if (height < 820) {
+      treeScale = .86;
+      treeY = -88;
+      cardsY = -74;
+      behindY = -112;
+      latestY = -10;
+    }
+    if (height < 760) {
+      treeScale = .83;
+      treeY = -108;
+      cardsY = -84;
+      behindY = -128;
+      latestY = -16;
+    }
+    if (height < 700) {
+      treeScale = .80;
+      treeY = -126;
+      cardsY = -92;
+      behindY = -140;
+      latestY = -22;
+    }
+
+    root.style.setProperty('--home-tree-scale', String(treeScale));
+    root.style.setProperty('--home-tree-x', '-22px');
+    root.style.setProperty('--home-tree-y', `${treeY}px`);
+    root.style.setProperty('--home-cards-y', `${cardsY}px`);
+    root.style.setProperty('--home-latest-x', '-26px');
+    root.style.setProperty('--home-latest-y', `${latestY}px`);
+    root.style.setProperty('--home-behind-x', '-34px');
+    root.style.setProperty('--home-behind-y', `${behindY}px`);
   }
 
   function scheduleHomeLabelNudges() {
     if (!isHomeLikePage()) return;
     const run = () => {
+      setKindergartenLink();
       if (window.innerWidth <= 900) return;
       nudgeElementByText(/Kindergarten|幼儿园/, 10, 0, { minWidth: 90, minHeight: 36, maxWidth: 260, maxHeight: 130 });
       nudgeElementByText(/Growth\s*Rings/, 12, -10, { minWidth: 180, minHeight: 90, maxWidth: 420, maxHeight: 260 });
@@ -400,16 +435,30 @@
     window.addEventListener('load', run, { once: true });
     setTimeout(run, 250);
     setTimeout(run, 900);
+    window.addEventListener('resize', run, { passive: true });
   }
 
-  function nudgeElementByText(pattern, dx, dy, limits) {
-    const all = Array.from(document.querySelectorAll('body *'));
-    const textNode = all.find((element) => {
+  function setKindergartenLink() {
+    const element = findElementByText(/Kindergarten|幼儿园/);
+    if (!element) return;
+    const anchor = element.closest('a');
+    if (!anchor) return;
+    anchor.href = KINDERGARTEN_URL;
+    anchor.target = '_blank';
+    anchor.rel = 'noopener noreferrer';
+  }
+
+  function findElementByText(pattern) {
+    return Array.from(document.querySelectorAll('body *')).find((element) => {
       const text = (element.textContent || '').replace(/\s+/g, ' ').trim();
       if (!pattern.test(text)) return false;
       const rect = element.getBoundingClientRect();
       return rect.width > 0 && rect.height > 0;
     });
+  }
+
+  function nudgeElementByText(pattern, dx, dy, limits) {
+    const textNode = findElementByText(pattern);
     if (!textNode) return;
 
     let target = textNode;
