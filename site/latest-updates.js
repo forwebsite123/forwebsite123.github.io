@@ -243,7 +243,8 @@
         .home-corner-bl,
         .corner-bottom-left,
         .floral-bottom-left,
-        .botanical-bottom-left {
+        .botanical-bottom-left,
+        .flora-bl img {
           position: fixed !important;
           left: 0 !important;
           right: auto !important;
@@ -253,12 +254,26 @@
           visibility: visible !important;
           width: clamp(170px, 15vw, 260px) !important;
           height: auto !important;
-          transform: translate(-12px, 0) !important;
+          transform: translate(-12px, 0) rotate(-90deg) !important;
+          transform-origin: center center !important;
           translate: none !important;
           z-index: 4 !important;
           pointer-events: none !important;
           opacity: .86 !important;
           filter: saturate(1.12) contrast(1.04) !important;
+        }
+
+        img[src*="home-corner-br"],
+        img[src*="corner-br"],
+        img[src*="bottom-right"],
+        .corner-br,
+        .home-corner-br,
+        .corner-bottom-right,
+        .floral-bottom-right,
+        .botanical-bottom-right,
+        .flora-br img {
+          transform: rotate(90deg) !important;
+          transform-origin: center center !important;
         }
       }
 
@@ -531,9 +546,9 @@
   }
 
   function moveLatestPanelDirectly() {
-    const list = document.getElementById('latest-updates-list');
-    if (!list) return;
-    let panel = list;
+    const latestList = document.getElementById('latest-updates-list');
+    if (!latestList) return;
+    let panel = latestList;
     while (panel.parentElement && panel.parentElement !== document.body) {
       const rect = panel.parentElement.getBoundingClientRect();
       if (rect.width >= 180 && rect.height >= 120 && rect.width <= 560 && rect.height <= 520) {
@@ -575,12 +590,19 @@
       floraBlImg.style.visibility = 'visible';
       floraBlImg.style.width = 'clamp(170px, 15vw, 260px)';
       floraBlImg.style.height = 'auto';
-      floraBlImg.style.transform = 'translate(-12px, 0)';
+      floraBlImg.style.transform = 'translate(-12px, 0) rotate(-90deg)';
+      floraBlImg.style.transformOrigin = 'center center';
       floraBlImg.style.translate = 'none';
       floraBlImg.style.zIndex = '4';
       floraBlImg.style.pointerEvents = 'none';
       floraBlImg.style.opacity = '.86';
       floraBlImg.style.filter = 'saturate(1.12) contrast(1.04)';
+    }
+
+    const floraBrImg = document.querySelector('.flora-br img');
+    if (floraBrImg) {
+      floraBrImg.style.transform = 'rotate(90deg)';
+      floraBrImg.style.transformOrigin = 'center center';
     }
   }
 
