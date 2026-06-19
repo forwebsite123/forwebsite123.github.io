@@ -52,7 +52,7 @@
       :root {
         --home-vh: 100dvh;
         --home-tree-scale: .86;
-        --home-tree-x: -64px;
+        --home-tree-x: -76px;
         --home-tree-y: -100px;
         --home-cards-y: -66px;
         --home-latest-x: -12px;
@@ -121,7 +121,7 @@
         .card img,
         .entry-card img,
         .portal-card img {
-          transform: translateX(24px) !important;
+          transform: translateX(-6px) !important;
           translate: none !important;
           z-index: 1 !important;
           opacity: .72 !important;
@@ -229,7 +229,7 @@
         .corner-top-left,
         .floral-top-left,
         .botanical-top-left {
-          transform: translate(-24px, -8px) !important;
+          transform: translate(-40px, -8px) !important;
           translate: none !important;
         }
 
@@ -243,10 +243,14 @@
         .botanical-bottom-left {
           position: fixed !important;
           left: 0 !important;
-          bottom: clamp(4px, 0.8vh, 10px) !important;
-          transform: translate(-28px, 0) !important;
+          right: auto !important;
+          top: auto !important;
+          bottom: clamp(14px, 1.8vh, 22px) !important;
+          display: block !important;
+          visibility: visible !important;
+          transform: translate(-32px, 0) !important;
           translate: none !important;
-          z-index: 1 !important;
+          z-index: 3 !important;
           pointer-events: none !important;
         }
       }
@@ -443,7 +447,7 @@
     }
 
     root.style.setProperty('--home-tree-scale', String(treeScale));
-    root.style.setProperty('--home-tree-x', '-64px');
+    root.style.setProperty('--home-tree-x', '-76px');
     root.style.setProperty('--home-tree-y', `${treeY}px`);
     root.style.setProperty('--home-cards-y', `${cardsY}px`);
     root.style.setProperty('--home-latest-x', '-12px');
@@ -540,16 +544,20 @@
       const rect = img.getBoundingClientRect();
       if (rect.width < 90 || rect.height < 90) return;
       if (rect.left < window.innerWidth * 0.18 && rect.top < 190) {
-        img.style.transform = 'translate(-24px, -8px)';
+        img.style.transform = 'translate(-40px, -8px)';
         img.style.translate = 'none';
       }
       if (rect.left < window.innerWidth * 0.18 && rect.bottom > vh - 260) {
         img.style.position = 'fixed';
         img.style.left = '0';
-        img.style.bottom = 'clamp(4px, 0.8vh, 10px)';
-        img.style.transform = 'translate(-28px, 0)';
+        img.style.right = 'auto';
+        img.style.top = 'auto';
+        img.style.bottom = 'clamp(14px, 1.8vh, 22px)';
+        img.style.display = 'block';
+        img.style.visibility = 'visible';
+        img.style.transform = 'translate(-32px, 0)';
         img.style.translate = 'none';
-        img.style.zIndex = '1';
+        img.style.zIndex = '3';
         img.style.pointerEvents = 'none';
       }
     });
@@ -571,7 +579,7 @@
         const imgRect = img.getBoundingClientRect();
         const intersects = imgRect.right > rect.left - 24 && imgRect.left < rect.right && imgRect.bottom > rect.top && imgRect.top < rect.bottom;
         if (!intersects || imgRect.width > 240 || imgRect.height > 240) return;
-        img.style.transform = 'translateX(24px)';
+        img.style.transform = 'translateX(-6px)';
         img.style.translate = 'none';
         img.style.zIndex = '1';
         img.style.opacity = '.72';
