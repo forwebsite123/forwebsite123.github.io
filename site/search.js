@@ -448,12 +448,51 @@
         .growth-tree-main,
         .tree-image,
         .tree-art {
-          width: min(112vw, 650px) !important;
-          max-height: 740px !important;
+          width: min(132vw, 700px) !important;
+          max-height: 760px !important;
+          margin-left: -7vw !important;
+          margin-right: -7vw !important;
           object-fit: contain !important;
           object-position: center bottom !important;
-          -webkit-mask-image: radial-gradient(ellipse 84% 90% at 50% 52%, #000 68%, rgba(0,0,0,.88) 82%, rgba(0,0,0,0) 100%) !important;
-          mask-image: radial-gradient(ellipse 84% 90% at 50% 52%, #000 68%, rgba(0,0,0,.88) 82%, rgba(0,0,0,0) 100%) !important;
+          border-radius: 34px !important;
+          -webkit-mask-image: radial-gradient(ellipse 72% 84% at 50% 52%, #000 50%, rgba(0,0,0,.74) 70%, rgba(0,0,0,0) 100%) !important;
+          mask-image: radial-gradient(ellipse 72% 84% at 50% 52%, #000 50%, rgba(0,0,0,.74) 70%, rgba(0,0,0,0) 100%) !important;
+        }
+
+        .right-side,
+        .right-col,
+        .right-column,
+        .latest-area,
+        .latest-panel-wrap,
+        .bottom-panels {
+          width: min(92vw, 420px) !important;
+          max-width: min(92vw, 420px) !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
+          align-items: center !important;
+        }
+
+        .latest-card,
+        .latest-panel,
+        .panel-card,
+        .updates-card {
+          width: 100% !important;
+          max-width: 100% !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
+        }
+
+        .side-links,
+        .behind-wrap,
+        .behind-pixels {
+          width: min(92vw, 420px) !important;
+          max-width: min(92vw, 420px) !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
+          text-align: center !important;
+          justify-content: center !important;
+          align-items: center !important;
+          transform: none !important;
         }
 
         .node,
@@ -472,24 +511,45 @@
         .node-k { top: 82.2% !important; left: 65.0% !important; }
 
         .growth-sign {
-          width: clamp(126px, 35vw, 152px) !important;
-          right: -1% !important;
-          top: 60.7% !important;
-          padding: clamp(17px, 4.6vw, 23px) clamp(9px, 2.7vw, 12px) clamp(13px, 3.6vw, 16px) !important;
+          width: clamp(104px, 29vw, 128px) !important;
+          right: -8% !important;
+          top: 59.9% !important;
+          padding: clamp(13px, 3.6vw, 18px) clamp(7px, 2.2vw, 10px) clamp(10px, 2.9vw, 14px) !important;
           text-align: center !important;
           align-items: center !important;
+          overflow: visible !important;
+          line-height: 1.12 !important;
         }
 
         .growth-title {
-          transform: translateX(-11px) !important;
+          font-size: clamp(18px, 5vw, 24px) !important;
+          line-height: .95 !important;
+          transform: translateX(-8px) !important;
+        }
+
+        .growth-sub {
+          font-size: clamp(10.5px, 3vw, 13px) !important;
+          line-height: 1.1 !important;
+        }
+
+        .growth-cn {
+          font-size: clamp(9px, 2.75vw, 12px) !important;
+          line-height: 1.18 !important;
+          white-space: nowrap !important;
+        }
+
+        .growth-en {
+          font-size: clamp(7.4px, 2.25vw, 9.8px) !important;
+          line-height: 1.18 !important;
+          white-space: normal !important;
         }
 
         .growth-sign .chain,
         .chain {
           left: 50% !important;
-          width: clamp(96px, 28vw, 118px) !important;
-          height: clamp(66px, 18vw, 78px) !important;
-          top: clamp(-78px, -18vw, -66px) !important;
+          width: clamp(80px, 23vw, 98px) !important;
+          height: clamp(54px, 15vw, 66px) !important;
+          top: clamp(-66px, -15vw, -54px) !important;
           transform: translateX(-50%) !important;
         }
       }
@@ -510,10 +570,12 @@
         .growth-tree-main,
         .tree-image,
         .tree-art {
-          width: min(120vw, 590px) !important;
-          max-height: 660px !important;
-          -webkit-mask-image: radial-gradient(ellipse 84% 90% at 50% 52%, #000 66%, rgba(0,0,0,.86) 81%, rgba(0,0,0,0) 100%) !important;
-          mask-image: radial-gradient(ellipse 84% 90% at 50% 52%, #000 66%, rgba(0,0,0,.86) 81%, rgba(0,0,0,0) 100%) !important;
+          width: min(138vw, 680px) !important;
+          max-height: 680px !important;
+          margin-left: -10vw !important;
+          margin-right: -10vw !important;
+          -webkit-mask-image: radial-gradient(ellipse 70% 84% at 50% 52%, #000 46%, rgba(0,0,0,.70) 68%, rgba(0,0,0,0) 100%) !important;
+          mask-image: radial-gradient(ellipse 70% 84% at 50% 52%, #000 46%, rgba(0,0,0,.70) 68%, rgba(0,0,0,0) 100%) !important;
         }
 
         .node,
@@ -523,9 +585,27 @@
         }
 
         .growth-sign {
-          width: clamp(118px, 36vw, 148px) !important;
-          right: -1.5% !important;
-          top: 61.7% !important;
+          width: clamp(96px, 30vw, 116px) !important;
+          right: -10% !important;
+          top: 60.9% !important;
+          padding: clamp(12px, 3.4vw, 16px) clamp(6px, 2vw, 9px) clamp(9px, 2.7vw, 12px) !important;
+        }
+
+        .growth-title {
+          font-size: clamp(16px, 4.8vw, 21px) !important;
+          transform: translateX(-7px) !important;
+        }
+
+        .growth-sub {
+          font-size: clamp(9.6px, 2.9vw, 12px) !important;
+        }
+
+        .growth-cn {
+          font-size: clamp(8.4px, 2.65vw, 11px) !important;
+        }
+
+        .growth-en {
+          font-size: clamp(6.9px, 2.15vw, 9px) !important;
         }
       }
     `;
@@ -539,10 +619,11 @@
 
     const sign = document.querySelector('.growth-sign');
     if (sign) {
-      sign.style.right = window.innerWidth <= 520 ? '-1.5%' : (window.innerWidth <= 900 ? '-1%' : '0.8%');
-      sign.style.top = window.innerWidth <= 520 ? '61.7%' : (window.innerWidth <= 900 ? '60.7%' : '61.4%');
+      sign.style.right = window.innerWidth <= 520 ? '-10%' : (window.innerWidth <= 900 ? '-8%' : '0.8%');
+      sign.style.top = window.innerWidth <= 520 ? '60.9%' : (window.innerWidth <= 900 ? '59.9%' : '61.4%');
       sign.style.textAlign = 'center';
       sign.style.alignItems = 'center';
+      if (window.innerWidth <= 900) sign.style.overflow = 'visible';
     }
 
     document.querySelectorAll('.growth-title, .growth-sub, .growth-cn, .growth-en').forEach((element) => {
@@ -550,7 +631,9 @@
       element.style.textAlign = 'center';
       element.style.marginLeft = 'auto';
       element.style.marginRight = 'auto';
-      if (element.classList.contains('growth-title')) element.style.transform = 'translateX(-11px)';
+      if (element.classList.contains('growth-title')) {
+        element.style.transform = window.innerWidth <= 520 ? 'translateX(-7px)' : (window.innerWidth <= 900 ? 'translateX(-8px)' : 'translateX(-11px)');
+      }
     });
 
     document.querySelectorAll('.growth-sign .chain, .chain').forEach((element) => {
