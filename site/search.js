@@ -419,6 +419,10 @@
           margin-right: auto !important;
         }
 
+        .growth-title {
+          transform: translateX(-7px) !important;
+        }
+
         .growth-sign .chain,
         .chain {
           left: 50% !important;
@@ -447,6 +451,7 @@
       element.style.textAlign = 'center';
       element.style.marginLeft = 'auto';
       element.style.marginRight = 'auto';
+      if (element.classList.contains('growth-title')) element.style.transform = 'translateX(-7px)';
     });
 
     document.querySelectorAll('.growth-sign .chain, .chain').forEach((element) => {
