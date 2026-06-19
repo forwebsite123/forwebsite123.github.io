@@ -53,12 +53,12 @@
         --home-vh: 100dvh;
         --home-tree-scale: .86;
         --home-shared-x: -20px;
-        --home-tree-x: -102px;
+        --home-tree-x: -106px;
         --home-tree-y: -100px;
         --home-cards-y: -84px;
         --home-latest-x: -12px;
         --home-latest-y: 16px;
-        --home-behind-x: 3px;
+        --home-behind-x: 1px;
         --home-behind-y: -212px;
       }
 
@@ -169,6 +169,9 @@
         .latest-panel,
         .panel-card,
         .updates-card {
+          width: calc(100% + 14px) !important;
+          max-width: 370px !important;
+          margin-left: -14px !important;
           min-height: clamp(320px, 41vh, 430px) !important;
           padding: clamp(20px, 2.5vh, 28px) clamp(22px, 2.8vw, 32px) !important;
           box-sizing: border-box !important;
@@ -359,6 +362,7 @@
           min-height: auto !important;
           padding: 22px 20px !important;
           box-sizing: border-box !important;
+          margin-left: 0 !important;
         }
         .side-links,
         .behind-wrap,
@@ -463,12 +467,12 @@
 
     root.style.setProperty('--home-tree-scale', String(treeScale));
     root.style.setProperty('--home-shared-x', '-20px');
-    root.style.setProperty('--home-tree-x', '-102px');
+    root.style.setProperty('--home-tree-x', '-106px');
     root.style.setProperty('--home-tree-y', `${treeY}px`);
     root.style.setProperty('--home-cards-y', `${cardsY}px`);
     root.style.setProperty('--home-latest-x', '-12px');
     root.style.setProperty('--home-latest-y', `${latestY}px`);
-    root.style.setProperty('--home-behind-x', '3px');
+    root.style.setProperty('--home-behind-x', '1px');
     root.style.setProperty('--home-behind-y', `${behindY}px`);
   }
 
@@ -542,7 +546,7 @@
     let panel = latestList;
     while (panel.parentElement && panel.parentElement !== document.body) {
       const rect = panel.parentElement.getBoundingClientRect();
-      if (rect.width >= 180 && rect.height >= 120 && rect.width <= 560 && rect.height <= 520) {
+      if (rect.width >= 180 && rect.height >= 120 && rect.width <= 580 && rect.height <= 540) {
         panel = panel.parentElement;
       }
       if (/latest|panel|card|updates/i.test(panel.className || '')) break;
