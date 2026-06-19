@@ -58,7 +58,7 @@
         --home-cards-y: -84px;
         --home-latest-x: -12px;
         --home-latest-y: 16px;
-        --home-behind-x: 24px;
+        --home-behind-x: 18px;
         --home-behind-y: -200px;
       }
 
@@ -230,7 +230,7 @@
         .corner-top-left,
         .floral-top-left,
         .botanical-top-left {
-          transform: translate(-36px, -28px) !important;
+          transform: translate(-36px, -34px) !important;
           translate: none !important;
           opacity: .86 !important;
           filter: saturate(1.12) contrast(1.04) !important;
@@ -466,10 +466,10 @@
 
     if (isSafari) {
       treeY -= 6;
-      cardsY -= 8;
+      cardsY -= 14;
     } else {
       treeY += 22;
-      cardsY += 8;
+      cardsY += 16;
     }
 
     root.style.setProperty('--home-tree-scale', String(treeScale));
@@ -479,7 +479,7 @@
     root.style.setProperty('--home-cards-y', `${cardsY}px`);
     root.style.setProperty('--home-latest-x', '-12px');
     root.style.setProperty('--home-latest-y', `${latestY}px`);
-    root.style.setProperty('--home-behind-x', '24px');
+    root.style.setProperty('--home-behind-x', '18px');
     root.style.setProperty('--home-behind-y', `${behindY}px`);
   }
 
@@ -575,7 +575,7 @@
       .sort((a, b) => (a.rect.left + a.rect.top) - (b.rect.left + b.rect.top))[0];
 
     if (topLeft) {
-      topLeft.img.style.transform = 'translate(-36px, -28px)';
+      topLeft.img.style.transform = 'translate(-36px, -34px)';
       topLeft.img.style.translate = 'none';
       topLeft.img.style.opacity = '.86';
       topLeft.img.style.filter = 'saturate(1.12) contrast(1.04)';
