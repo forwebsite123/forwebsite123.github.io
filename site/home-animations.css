@@ -4,7 +4,7 @@
 
 :root {
   --ink-anim-ease: cubic-bezier(.18, .72, .22, 1);
-  --ink-soft-shadow: 0 16px 34px rgba(122, 87, 87, .075);
+  --ink-soft-shadow: 0 18px 38px rgba(122, 87, 87, .095);
   --ink-paper-light: rgba(255, 252, 247, .68);
   --ink-paper-line: rgba(177, 135, 126, .18);
 }
@@ -70,22 +70,22 @@
   opacity: 0;
   border-radius: inherit;
   background:
-    linear-gradient(118deg, transparent 0%, rgba(255, 255, 255, .34) 42%, rgba(255, 250, 244, .20) 50%, transparent 66%),
-    radial-gradient(ellipse at 50% 18%, rgba(255, 255, 255, .26), transparent 54%);
+    linear-gradient(118deg, transparent 0%, rgba(255, 255, 255, .58) 39%, rgba(255, 250, 244, .38) 50%, rgba(255, 255, 255, .22) 58%, transparent 72%),
+    radial-gradient(ellipse at 50% 18%, rgba(255, 255, 255, .38), transparent 58%);
   transform: translateX(-118%);
-  transition: opacity .36s ease, transform .82s var(--ink-anim-ease);
+  transition: opacity .34s ease, transform .86s var(--ink-anim-ease);
 }
 
 .card:hover::after,
 .card:focus-visible::after {
-  opacity: .72;
+  opacity: .92;
   transform: translateX(118%);
 }
 
 .card:hover,
 .card:focus-visible {
-  background: rgba(255, 253, 250, .64);
-  border-color: rgba(177, 135, 126, .50);
+  background: rgba(255, 253, 250, .70);
+  border-color: rgba(177, 135, 126, .56);
   box-shadow: var(--ink-soft-shadow);
 }
 
@@ -176,7 +176,7 @@
 
   .card:hover::after,
   .card:focus-visible::after {
-    opacity: .34;
+    opacity: .48;
   }
 }
 
