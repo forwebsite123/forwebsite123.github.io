@@ -437,8 +437,8 @@
         .center-stage,
         .center-col,
         .center-column {
-          min-height: clamp(640px, 150vw, 760px) !important;
-          height: clamp(640px, 150vw, 760px) !important;
+          min-height: clamp(690px, 170vw, 860px) !important;
+          height: clamp(690px, 170vw, 860px) !important;
           margin: 0 auto !important;
           overflow: visible !important;
         }
@@ -448,15 +448,15 @@
         .growth-tree-main,
         .tree-image,
         .tree-art {
-          width: min(132vw, 700px) !important;
-          max-height: 760px !important;
-          margin-left: -7vw !important;
-          margin-right: -7vw !important;
+          width: min(124vw, 670px) !important;
+          max-height: 820px !important;
+          margin-left: -4vw !important;
+          margin-right: -4vw !important;
           object-fit: contain !important;
           object-position: center bottom !important;
-          border-radius: 34px !important;
-          -webkit-mask-image: radial-gradient(ellipse 72% 84% at 50% 52%, #000 50%, rgba(0,0,0,.74) 70%, rgba(0,0,0,0) 100%) !important;
-          mask-image: radial-gradient(ellipse 72% 84% at 50% 52%, #000 50%, rgba(0,0,0,.74) 70%, rgba(0,0,0,0) 100%) !important;
+          border-radius: 38px !important;
+          -webkit-mask-image: radial-gradient(ellipse 76% 88% at 50% 52%, #000 48%, rgba(0,0,0,.74) 72%, rgba(0,0,0,0) 100%) !important;
+          mask-image: radial-gradient(ellipse 76% 88% at 50% 52%, #000 48%, rgba(0,0,0,.74) 72%, rgba(0,0,0,0) 100%) !important;
         }
 
         .right-side,
@@ -465,11 +465,13 @@
         .latest-area,
         .latest-panel-wrap,
         .bottom-panels {
-          width: min(92vw, 420px) !important;
-          max-width: min(92vw, 420px) !important;
-          margin-left: auto !important;
-          margin-right: auto !important;
-          align-items: center !important;
+          width: min(88vw, 420px) !important;
+          max-width: min(88vw, 420px) !important;
+          margin-left: 50% !important;
+          margin-right: 0 !important;
+          transform: translateX(-50%) !important;
+          align-items: stretch !important;
+          box-sizing: border-box !important;
         }
 
         .latest-card,
@@ -478,21 +480,23 @@
         .updates-card {
           width: 100% !important;
           max-width: 100% !important;
-          margin-left: auto !important;
-          margin-right: auto !important;
+          margin-left: 0 !important;
+          margin-right: 0 !important;
+          box-sizing: border-box !important;
         }
 
         .side-links,
         .behind-wrap,
         .behind-pixels {
-          width: min(92vw, 420px) !important;
-          max-width: min(92vw, 420px) !important;
-          margin-left: auto !important;
-          margin-right: auto !important;
+          width: min(88vw, 420px) !important;
+          max-width: min(88vw, 420px) !important;
+          margin-left: 50% !important;
+          margin-right: 0 !important;
           text-align: center !important;
           justify-content: center !important;
           align-items: center !important;
-          transform: none !important;
+          transform: translateX(-50%) !important;
+          box-sizing: border-box !important;
         }
 
         .node,
@@ -504,16 +508,16 @@
           transform-origin: center center !important;
         }
 
-        .node-u { top: 34.2% !important; left: 72.8% !important; }
-        .node-s { top: 49.2% !important; left: 45.7% !important; }
-        .node-j { top: 63.2% !important; left: 44.6% !important; }
-        .node-p { top: 71.8% !important; left: 50.2% !important; }
-        .node-k { top: 82.2% !important; left: 65.0% !important; }
+        .node-u { top: 29.0% !important; left: 72.8% !important; }
+        .node-s { top: 43.8% !important; left: 45.7% !important; }
+        .node-j { top: 56.8% !important; left: 44.6% !important; }
+        .node-p { top: 65.4% !important; left: 50.2% !important; }
+        .node-k { top: 75.8% !important; left: 65.0% !important; }
 
         .growth-sign {
           width: clamp(104px, 29vw, 128px) !important;
           right: -8% !important;
-          top: 59.9% !important;
+          top: 52.6% !important;
           padding: clamp(13px, 3.6vw, 18px) clamp(7px, 2.2vw, 10px) clamp(10px, 2.9vw, 14px) !important;
           text-align: center !important;
           align-items: center !important;
@@ -561,8 +565,8 @@
         .center-stage,
         .center-col,
         .center-column {
-          min-height: clamp(570px, 160vw, 680px) !important;
-          height: clamp(570px, 160vw, 680px) !important;
+          min-height: clamp(640px, 178vw, 770px) !important;
+          height: clamp(640px, 178vw, 770px) !important;
         }
 
         .tree-main,
@@ -570,12 +574,12 @@
         .growth-tree-main,
         .tree-image,
         .tree-art {
-          width: min(138vw, 680px) !important;
-          max-height: 680px !important;
-          margin-left: -10vw !important;
-          margin-right: -10vw !important;
-          -webkit-mask-image: radial-gradient(ellipse 70% 84% at 50% 52%, #000 46%, rgba(0,0,0,.70) 68%, rgba(0,0,0,0) 100%) !important;
-          mask-image: radial-gradient(ellipse 70% 84% at 50% 52%, #000 46%, rgba(0,0,0,.70) 68%, rgba(0,0,0,0) 100%) !important;
+          width: min(130vw, 640px) !important;
+          max-height: 760px !important;
+          margin-left: -6vw !important;
+          margin-right: -6vw !important;
+          -webkit-mask-image: radial-gradient(ellipse 74% 88% at 50% 52%, #000 46%, rgba(0,0,0,.70) 70%, rgba(0,0,0,0) 100%) !important;
+          mask-image: radial-gradient(ellipse 74% 88% at 50% 52%, #000 46%, rgba(0,0,0,.70) 70%, rgba(0,0,0,0) 100%) !important;
         }
 
         .node,
@@ -587,7 +591,7 @@
         .growth-sign {
           width: clamp(96px, 30vw, 116px) !important;
           right: -10% !important;
-          top: 60.9% !important;
+          top: 53.8% !important;
           padding: clamp(12px, 3.4vw, 16px) clamp(6px, 2vw, 9px) clamp(9px, 2.7vw, 12px) !important;
         }
 
@@ -620,7 +624,7 @@
     const sign = document.querySelector('.growth-sign');
     if (sign) {
       sign.style.right = window.innerWidth <= 520 ? '-10%' : (window.innerWidth <= 900 ? '-8%' : '0.8%');
-      sign.style.top = window.innerWidth <= 520 ? '60.9%' : (window.innerWidth <= 900 ? '59.9%' : '61.4%');
+      sign.style.top = window.innerWidth <= 520 ? '53.8%' : (window.innerWidth <= 900 ? '52.6%' : '61.4%');
       sign.style.textAlign = 'center';
       sign.style.alignItems = 'center';
       if (window.innerWidth <= 900) sign.style.overflow = 'visible';
