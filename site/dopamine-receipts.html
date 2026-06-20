@@ -477,7 +477,48 @@
     @keyframes modalReceiptOpen {
       from {
         opacity: 0;
-        transform: translateY(12px);
+        transform: translateY(14px) scale(0.985);
+        filter: blur(1.2px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+      }
+    }
+
+    @keyframes modalStatReveal {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+        filter: blur(0.8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+      }
+    }
+
+    @keyframes routeMarkerBreathe {
+      0% {
+        opacity: 0.45;
+        stroke-width: 1.5;
+      }
+      58% {
+        opacity: 1;
+        stroke-width: 2.8;
+      }
+      100% {
+        opacity: 1;
+        stroke-width: 2;
+      }
+    }
+
+    @keyframes noRouteReveal {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
       }
       to {
         opacity: 1;
@@ -538,12 +579,44 @@
     }
 
     .modal-overlay.open .modal {
-      animation: modalReceiptOpen 0.35s ease both;
+      animation: modalReceiptOpen 0.42s cubic-bezier(0.18, 0.72, 0.22, 1) both;
+    }
+
+    .modal-overlay.open .modal-stat {
+      animation: modalStatReveal 0.42s cubic-bezier(0.18, 0.72, 0.22, 1) both;
+    }
+
+    .modal-overlay.open .modal-stat:nth-child(1) { animation-delay: 0.06s; }
+    .modal-overlay.open .modal-stat:nth-child(2) { animation-delay: 0.10s; }
+    .modal-overlay.open .modal-stat:nth-child(3) { animation-delay: 0.14s; }
+    .modal-overlay.open .modal-stat:nth-child(4) { animation-delay: 0.18s; }
+    .modal-overlay.open .modal-stat:nth-child(n+5) { animation-delay: 0.22s; }
+
+    .dopamine-route-start,
+    .dopamine-route-end {
+      animation: routeMarkerBreathe 0.75s cubic-bezier(0.18, 0.72, 0.22, 1) both;
+    }
+
+    .no-route-msg {
+      animation: noRouteReveal 0.35s ease both;
     }
 
     @media (prefers-reduced-motion: reduce) {
       .grid .card.receipt-card-pending,
       .grid .card.receipt-card-visible {
+        opacity: 1;
+        transform: none;
+        filter: none;
+        transition: none;
+        animation: none;
+      }
+
+      .modal-overlay.open .modal,
+      .modal-overlay.open .modal-stat,
+      .dopamine-route-line,
+      .dopamine-route-start,
+      .dopamine-route-end,
+      .no-route-msg {
         opacity: 1;
         transform: none;
         filter: none;
@@ -1141,6 +1214,24 @@ function openModal(idx) {
   setTimeout(() => initMap(w), 150);
 }
     
+    function animateRouteLine(poly) {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+      requestAnimationFrame(() => {
+        const path = poly.getElement();
+        if (!path) return;
+
+        const length = path.getTotalLength();
+        path.style.strokeDasharray = length;
+        path.style.strokeDashoffset = length;
+        path.style.transition = 'stroke-dashoffset 900ms cubic-bezier(.18,.72,.22,1)';
+
+        requestAnimationFrame(() => {
+          path.style.strokeDashoffset = '0';
+        });
+      });
+    }
+
     function initMap(w) {
       const mapEl = document.getElementById('route-map');
 
@@ -1163,15 +1254,18 @@ function openModal(idx) {
         const poly = L.polyline(w.route, {
           color,
           weight: 3,
-          opacity: 0.85
+          opacity: 0.85,
+          className: 'dopamine-route-line'
         }).addTo(leafletMap);
+        animateRouteLine(poly);
 
         L.circleMarker(w.route[0], {
           radius: 6,
           fillColor: '#fff',
           color,
           weight: 2,
-          fillOpacity: 1
+          fillOpacity: 1,
+          className: 'dopamine-route-start'
         }).addTo(leafletMap);
 
         L.circleMarker(w.route[w.route.length - 1], {
@@ -1179,7 +1273,8 @@ function openModal(idx) {
           fillColor: color,
           color,
           weight: 2,
-          fillOpacity: 1
+          fillOpacity: 1,
+          className: 'dopamine-route-end'
         }).addTo(leafletMap);
 
         leafletMap.fitBounds(poly.getBounds(), { padding: [24, 24] });
