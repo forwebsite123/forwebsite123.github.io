@@ -386,6 +386,18 @@
       }
     }
 
+    .record-card.is-rippling::before,
+    .record-card.is-rippling::after,
+    .photo-thumb.is-rippling::before,
+    .photo-thumb.is-rippling::after {
+      animation: thumbnailWaterRipple 1.85s cubic-bezier(0.16, 0.72, 0.22, 1) 1;
+    }
+
+    .record-card.is-rippling::after,
+    .photo-thumb.is-rippling::after {
+      animation-delay: 0.32s;
+    }
+
     .video-cell {
       width: 170px;
       height: 170px;
@@ -516,8 +528,12 @@
 
       .record-card:hover::before,
       .record-card:hover::after,
+      .record-card.is-rippling::before,
+      .record-card.is-rippling::after,
       .photo-thumb:hover::before,
-      .photo-thumb:hover::after {
+      .photo-thumb:hover::after,
+      .photo-thumb.is-rippling::before,
+      .photo-thumb.is-rippling::after {
         display: none;
         animation: none;
       }
@@ -668,6 +684,21 @@
       entries.forEach(entry => observer.observe(entry));
     }
 
+    function setupTouchRipple() {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      if (!window.matchMedia('(hover: none), (pointer: coarse)').matches) return;
+
+      document.querySelectorAll('.photo-thumb, .record-card').forEach(target => {
+        target.addEventListener('pointerdown', () => {
+          target.classList.remove('is-rippling');
+          void target.offsetWidth;
+          target.classList.add('is-rippling');
+          clearTimeout(target._rippleTimer);
+          target._rippleTimer = setTimeout(() => target.classList.remove('is-rippling'), 2300);
+        }, { passive: true });
+      });
+    }
+
     function openLightbox(src) {
       const lb = document.getElementById('lightbox');
       const lbImg = document.getElementById('lightbox-img');
@@ -697,6 +728,7 @@
       });
 
       setupEntryReveal();
+      setupTouchRipple();
 
       document.querySelectorAll('.zoomable').forEach(img => {
         img.addEventListener('click', function(ev) {
