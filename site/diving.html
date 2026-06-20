@@ -201,6 +201,16 @@
       grid-template-columns: 280px auto 220px;
       gap: 38px;
       align-items: start;
+      opacity: 0;
+      filter: blur(6px);
+      transform: translateY(10px);
+      transition: opacity 0.9s ease-out, filter 0.9s ease-out, transform 0.9s ease-out;
+    }
+
+    .entry.is-visible {
+      opacity: 1;
+      filter: blur(0);
+      transform: translateY(0);
     }
 
     .left-col,
@@ -419,11 +429,21 @@
       position: fixed;
       inset: 0;
       background: rgba(0, 0, 0, 0.88);
-      display: none;
+      display: flex;
       justify-content: center;
       align-items: center;
       z-index: 9999;
       padding: 26px;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+
+    #lightbox.is-open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
     }
 
     #lightbox img {
@@ -432,6 +452,14 @@
       object-fit: contain;
       background: white;
       box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      filter: blur(10px);
+      transform: scale(0.97);
+      transition: filter 0.5s ease-out, transform 0.5s ease-out;
+    }
+
+    #lightbox.is-open img {
+      filter: blur(0);
+      transform: scale(1);
     }
 
     .close-tip {
@@ -466,11 +494,24 @@
     @media (prefers-reduced-motion: reduce) {
       .dive-bubbles span,
       .title-wrap,
+      .entry,
       .entry-meta,
       .entry-note {
         opacity: 1;
+        filter: none;
         transform: none;
         animation: none;
+        transition: none;
+      }
+
+      #lightbox,
+      #lightbox img {
+        transition: none;
+      }
+
+      #lightbox img {
+        filter: none;
+        transform: none;
       }
 
       .record-card:hover::before,
@@ -606,6 +647,35 @@
       return slug ? `entry-${day}-${slug}` : `entry-${day}`;
     }
 
+    function setupEntryReveal() {
+      const entries = document.querySelectorAll('.entry');
+      if (!entries.length) return;
+
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {
+        entries.forEach(entry => entry.classList.add('is-visible'));
+        return;
+      }
+
+      const observer = new IntersectionObserver(items => {
+        items.forEach(item => {
+          if (item.isIntersecting) {
+            item.target.classList.add('is-visible');
+            observer.unobserve(item.target);
+          }
+        });
+      }, { threshold: 0.15, rootMargin: '0px 0px -6% 0px' });
+
+      entries.forEach(entry => observer.observe(entry));
+    }
+
+    function openLightbox(src) {
+      const lb = document.getElementById('lightbox');
+      const lbImg = document.getElementById('lightbox-img');
+      lbImg.src = src;
+      lb.classList.remove('is-open');
+      requestAnimationFrame(() => lb.classList.add('is-open'));
+    }
+
     async function loadEntries() {
       const res = await fetch('/diving.json');
       const data = await res.json();
@@ -625,18 +695,18 @@
         const id = entryAnchor(e);
         container.innerHTML += `<div class="entry"${id ? ` id="${id}"` : ''}><div class="left-col"><div class="entry-meta"><span class="dot">•</span>${e.date}${e.location ? '<br><span class="entry-location">📍 ' + e.location + '</span>' : ''}</div>${recordHtml}</div><div class="middle-col"><div class="photo-grid ${photoLayout}">${photosHtml}${videosHtml}</div></div><div class="right-col"><div class="entry-note">${e.note || ""}</div></div></div>`;
       });
-      const lb = document.getElementById('lightbox');
-      const lbImg = document.getElementById('lightbox-img');
+
+      setupEntryReveal();
+
       document.querySelectorAll('.zoomable').forEach(img => {
         img.addEventListener('click', function(ev) {
           ev.stopPropagation();
-          lb.style.display = 'flex';
-          lbImg.src = this.src;
+          openLightbox(this.src);
         });
       });
     }
     loadEntries();
-    function closeLightbox() { document.getElementById('lightbox').style.display = 'none'; }
+    function closeLightbox() { document.getElementById('lightbox').classList.remove('is-open'); }
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
   </script>
   <script data-goatcounter="https://kiara-mytrace.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
