@@ -500,20 +500,6 @@
       }
     }
 
-    @keyframes routeMarkerBreathe {
-      0% {
-        opacity: 0.45;
-        stroke-width: 1.5;
-      }
-      58% {
-        opacity: 1;
-        stroke-width: 2.8;
-      }
-      100% {
-        opacity: 1;
-        stroke-width: 2;
-      }
-    }
 
     @keyframes noRouteReveal {
       from {
@@ -592,10 +578,6 @@
     .modal-overlay.open .modal-stat:nth-child(4) { animation-delay: 0.18s; }
     .modal-overlay.open .modal-stat:nth-child(n+5) { animation-delay: 0.22s; }
 
-    .dopamine-route-start,
-    .dopamine-route-end {
-      animation: routeMarkerBreathe 0.75s cubic-bezier(0.18, 0.72, 0.22, 1) both;
-    }
 
     .no-route-msg {
       animation: noRouteReveal 0.35s ease both;
@@ -614,8 +596,6 @@
       .modal-overlay.open .modal,
       .modal-overlay.open .modal-stat,
       .dopamine-route-line,
-      .dopamine-route-start,
-      .dopamine-route-end,
       .no-route-msg {
         opacity: 1;
         transform: none;
@@ -1215,21 +1195,40 @@ function openModal(idx) {
 }
     
     function animateRouteLine(poly) {
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-      requestAnimationFrame(() => {
-        const path = poly.getElement();
-        if (!path) return;
+      const run = () => {
+        const path = poly && poly.getElement && poly.getElement();
+        if (!path || !path.getTotalLength) return;
 
-        const length = path.getTotalLength();
-        path.style.strokeDasharray = length;
-        path.style.strokeDashoffset = length;
-        path.style.transition = 'stroke-dashoffset 900ms cubic-bezier(.18,.72,.22,1)';
+        let length = 0;
+        try {
+          length = path.getTotalLength();
+        } catch (e) {
+          return;
+        }
+
+        if (!length || !Number.isFinite(length)) return;
+
+        path.style.transition = 'none';
+        path.style.strokeDasharray = `${length}`;
+        path.style.strokeDashoffset = `${length}`;
+        path.style.opacity = '0.88';
+
+        // Force browser to apply the initial dash state before animating.
+        path.getBoundingClientRect();
 
         requestAnimationFrame(() => {
+          path.style.transition = 'stroke-dashoffset 1200ms cubic-bezier(.18,.72,.22,1)';
           path.style.strokeDashoffset = '0';
         });
-      });
+      };
+
+      // Leaflet may create/recalculate the SVG path after addTo / fitBounds / invalidateSize.
+      // Run more than once, safely, so later calls catch the stable SVG path.
+      requestAnimationFrame(() => requestAnimationFrame(run));
+      setTimeout(run, 120);
+      setTimeout(run, 360);
     }
 
     function initMap(w) {
@@ -1249,6 +1248,7 @@ function openModal(idx) {
       }).addTo(leafletMap);
 
       const color = getColor(w.typeRaw, w.typeKey);
+      let routePolyline = null;
 
       if (w.route && w.route.length > 1) {
         const poly = L.polyline(w.route, {
@@ -1257,7 +1257,7 @@ function openModal(idx) {
           opacity: 0.85,
           className: 'dopamine-route-line'
         }).addTo(leafletMap);
-        animateRouteLine(poly);
+        routePolyline = poly;
 
         L.circleMarker(w.route[0], {
           radius: 6,
@@ -1278,6 +1278,7 @@ function openModal(idx) {
         }).addTo(leafletMap);
 
         leafletMap.fitBounds(poly.getBounds(), { padding: [24, 24] });
+        animateRouteLine(poly);
       } else if (w.locationPin) {
         L.circleMarker(w.locationPin, {
           radius: 10,
@@ -1303,6 +1304,7 @@ function openModal(idx) {
           leafletMap.invalidateSize();
           if (w.route && w.route.length > 1) {
             leafletMap.fitBounds(L.polyline(w.route).getBounds(), { padding: [24, 24] });
+            animateRouteLine(routePolyline);
           } else if (w.locationPin) {
             leafletMap.setView(w.locationPin, 15);
           }
