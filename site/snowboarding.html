@@ -179,6 +179,17 @@
       margin-top: 10px;
     }
 
+    .photo-grid.photo-layout-2x2 {
+      display: grid;
+      grid-template-columns: repeat(2, 170px);
+      width: max-content;
+    }
+
+    .photo-grid.photo-layout-single {
+      display: block;
+      max-width: 360px;
+    }
+
     .photo-grid img {
       width: 170px;
       height: 170px;
@@ -186,6 +197,12 @@
       background: white;
       cursor: pointer;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .photo-grid.photo-layout-single img {
+      width: 360px;
+      height: 360px;
+      max-width: 100%;
     }
 
     .photo-grid img:hover {
@@ -285,6 +302,25 @@
         height: 120px;
       }
 
+      .photo-grid.photo-layout-2x2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+      }
+
+      .photo-grid.photo-layout-2x2 img {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .photo-grid.photo-layout-single {
+        max-width: none;
+      }
+
+      .photo-grid.photo-layout-single img {
+        width: 100%;
+        height: min(72vw, 360px);
+      }
+
       .record-grid {
         gap: 12px;
         max-width: none;
@@ -369,12 +405,14 @@
       });
       const container = document.getElementById('entries');
       data.entries.forEach(e => {
-        const photosHtml = (e.photos || []).map(p => `<img src="${p}" class="zoomable">`).join('');
+        const photos = e.photos || [];
+        const photoLayout = photos.length === 1 ? 'photo-layout-single' : ((photos.length === 2 || photos.length === 4) ? 'photo-layout-2x2' : 'photo-layout-3x3');
+        const photosHtml = photos.map(p => `<img src="${p}" class="zoomable">`).join('');
         const videosHtml = (e.videos || []).map(bvid => `<div class="video-cell"><iframe src="//player.bilibili.com/player.html?bvid=${bvid}&autoplay=0" allowfullscreen></iframe></div>`).join('');
         const recordImgs = e.record_image ? (Array.isArray(e.record_image) ? e.record_image : [e.record_image]) : [];
         const recordHtml = recordImgs.length ? `<div class="record-grid">${recordImgs.map(ri => `<div class="record-card"><img src="${ri}" alt="record" class="zoomable"></div>`).join('')}</div><div class="record-caption">${e.record_caption || ''}</div>` : '';
         const id = entryAnchor(e);
-        container.innerHTML += `<div class="entry"${id ? ` id="${id}"` : ''}><div class="left-col"><div class="entry-meta"><span class="dot">•</span>${e.date}${e.location ? '<br><span class="entry-location">📍 ' + e.location + '</span>' : ''}</div>${recordHtml}</div><div class="middle-col"><div class="photo-grid">${photosHtml}${videosHtml}</div></div><div class="right-col"><div class="entry-note">${e.note || ""}</div></div></div>`;
+        container.innerHTML += `<div class="entry"${id ? ` id="${id}"` : ''}><div class="left-col"><div class="entry-meta"><span class="dot">•</span>${e.date}${e.location ? '<br><span class="entry-location">📍 ' + e.location + '</span>' : ''}</div>${recordHtml}</div><div class="middle-col"><div class="photo-grid ${photoLayout}">${photosHtml}${videosHtml}</div></div><div class="right-col"><div class="entry-note">${e.note || ""}</div></div></div>`;
       });
       const lb = document.getElementById('lightbox');
       const lbImg = document.getElementById('lightbox-img');
