@@ -14,6 +14,59 @@
       background: #fcfbf8;
       color: #6e4a4a;
       font-family: "Times New Roman", Georgia, serif;
+      overflow-x: hidden;
+    }
+
+    .dive-bubbles {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .dive-bubbles span {
+      position: absolute;
+      left: var(--bubble-left);
+      bottom: -14vh;
+      width: var(--bubble-size);
+      aspect-ratio: 1;
+      border: 1px solid rgba(145, 202, 222, 0.20);
+      border-radius: 50%;
+      opacity: 0;
+      background:
+        radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.30) 0 8%, transparent 24%),
+        radial-gradient(circle, rgba(165, 220, 238, 0.08) 0 48%, transparent 64%);
+      box-shadow:
+        inset 0 0 14px rgba(220, 248, 255, 0.16),
+        0 0 14px rgba(145, 202, 222, 0.10);
+      transform: translate3d(0, 0, 0) scale(0.36);
+      animation: diveBubbleRise var(--bubble-duration) linear infinite;
+      animation-delay: var(--bubble-delay);
+    }
+
+    .dive-bubbles span:nth-child(1) { --bubble-left: 12%; --bubble-size: 18px; --bubble-duration: 29s; --bubble-delay: -6s; --bubble-drift: 26px; }
+    .dive-bubbles span:nth-child(2) { --bubble-left: 28%; --bubble-size: 31px; --bubble-duration: 37s; --bubble-delay: -18s; --bubble-drift: -18px; }
+    .dive-bubbles span:nth-child(3) { --bubble-left: 46%; --bubble-size: 14px; --bubble-duration: 25s; --bubble-delay: -11s; --bubble-drift: 20px; }
+    .dive-bubbles span:nth-child(4) { --bubble-left: 63%; --bubble-size: 26px; --bubble-duration: 34s; --bubble-delay: -23s; --bubble-drift: -28px; }
+    .dive-bubbles span:nth-child(5) { --bubble-left: 78%; --bubble-size: 20px; --bubble-duration: 31s; --bubble-delay: -14s; --bubble-drift: 18px; }
+    .dive-bubbles span:nth-child(6) { --bubble-left: 88%; --bubble-size: 36px; --bubble-duration: 42s; --bubble-delay: -30s; --bubble-drift: -22px; }
+
+    @keyframes diveBubbleRise {
+      0% {
+        opacity: 0;
+        transform: translate3d(0, 0, 0) scale(0.35);
+      }
+      16% {
+        opacity: 0.22;
+      }
+      76% {
+        opacity: 0.14;
+      }
+      100% {
+        opacity: 0;
+        transform: translate3d(var(--bubble-drift), -118vh, 0) scale(1.34);
+      }
     }
 
     .page {
@@ -21,6 +74,7 @@
       margin: 0 auto;
       padding: 28px 28px 90px;
       position: relative;
+      z-index: 1;
     }
 
     .topline {
@@ -213,19 +267,18 @@
       position: absolute;
       left: 50%;
       top: 50%;
-      width: 56%;
+      width: 62%;
       aspect-ratio: 1;
-      border: 2px solid rgba(188, 233, 244, 0.64);
-      border-radius: 45% 55% 51% 49% / 54% 46% 52% 48%;
+      border: 2px solid rgba(175, 225, 238, 0.55);
+      border-radius: 48% 52% 51% 49% / 52% 48% 50% 50%;
       opacity: 0;
       background:
-        radial-gradient(ellipse at 46% 42%, rgba(255, 255, 255, 0.40) 0 8%, transparent 24%),
-        radial-gradient(circle, rgba(205, 242, 250, 0.25) 0 18%, transparent 46%),
-        conic-gradient(from 18deg, transparent 0 15%, rgba(235, 255, 255, 0.38) 20%, transparent 28%, transparent 48%, rgba(150, 222, 238, 0.26) 55%, transparent 66%, transparent 100%);
+        radial-gradient(circle, rgba(214, 244, 250, 0.13) 0 16%, transparent 48%),
+        radial-gradient(circle, transparent 52%, rgba(210, 244, 250, 0.18) 58%, transparent 66%);
       box-shadow:
-        0 0 18px rgba(140, 220, 238, 0.34),
-        inset 0 0 22px rgba(238, 255, 255, 0.28);
-      transform: translate(-50%, -50%) scale(0.20) rotate(-4deg);
+        0 0 14px rgba(140, 215, 235, 0.26),
+        inset 0 0 18px rgba(235, 255, 255, 0.18);
+      transform: translate(-50%, -50%) scale(0.24) rotate(0deg);
       pointer-events: none;
       mix-blend-mode: screen;
       z-index: 2;
@@ -233,30 +286,27 @@
 
     .record-card::after,
     .photo-thumb::after {
-      width: 43%;
-      border-color: rgba(235, 252, 255, 0.55);
-      background:
-        radial-gradient(ellipse at 42% 38%, rgba(255, 255, 255, 0.46) 0 10%, transparent 25%),
-        radial-gradient(circle, transparent 48%, rgba(218, 250, 255, 0.22) 54%, transparent 68%);
+      width: 48%;
+      border-color: rgba(218, 248, 255, 0.46);
       box-shadow:
-        0 0 24px rgba(176, 234, 246, 0.34),
-        inset 0 0 18px rgba(255, 255, 255, 0.26);
+        0 0 20px rgba(170, 230, 244, 0.26),
+        inset 0 0 14px rgba(255, 255, 255, 0.20);
     }
 
     @keyframes thumbnailWaterRipple {
       0% {
-        opacity: 0.68;
-        transform: translate(-50%, -50%) scale(0.20) rotate(-4deg);
+        opacity: 0.56;
+        transform: translate(-50%, -50%) scale(0.24) rotate(0deg);
       }
-      38% {
-        opacity: 0.42;
+      42% {
+        opacity: 0.34;
       }
       72% {
-        opacity: 0.18;
+        opacity: 0.16;
       }
       100% {
         opacity: 0;
-        transform: translate(-50%, -50%) scale(2.85) rotate(7deg);
+        transform: translate(-50%, -50%) scale(2.55) rotate(5deg);
       }
     }
 
@@ -265,12 +315,12 @@
       .record-card:hover::after,
       .photo-thumb:hover::before,
       .photo-thumb:hover::after {
-        animation: thumbnailWaterRipple 3.25s cubic-bezier(0.14, 0.70, 0.20, 1) infinite;
+        animation: thumbnailWaterRipple 2.85s cubic-bezier(0.16, 0.72, 0.22, 1) infinite;
       }
 
       .record-card:hover::after,
       .photo-thumb:hover::after {
-        animation-delay: 1.05s;
+        animation-delay: 0.82s;
       }
     }
 
@@ -305,6 +355,7 @@
       text-align: center;
       margin-top: 100px;
       position: relative;
+      z-index: 1;
       top: -24px;
       font-size: 14px;
       font-style: italic;
@@ -361,6 +412,7 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
+      .dive-bubbles span,
       .title-wrap,
       .entry-meta,
       .entry-note {
@@ -398,6 +450,9 @@
       .page-title { font-size: 42px; }
       .entry-meta { font-size: 24px; }
 
+      .dive-bubbles { opacity: 0.58; }
+      .dive-bubbles span:nth-child(n+4) { display: none; }
+
       .photo-thumb {
         width: calc(33.333% - 14px);
         min-width: 96px;
@@ -414,6 +469,8 @@
   </style>
 </head>
 <body>
+  <div class="dive-bubbles" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+
   <div class="page">
     <div class="topline">
       <div class="site-note">A place to leave traces.</div>
