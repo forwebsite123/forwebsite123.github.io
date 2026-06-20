@@ -1196,10 +1196,24 @@ function openModal(idx) {
     
     function animateRouteLine(poly) {
       if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      if (!poly || poly.__routeDrawStarted) return;
+
+      let attempts = 0;
+      const maxAttempts = 8;
 
       const run = () => {
-        const path = poly && poly.getElement && poly.getElement();
-        if (!path || !path.getTotalLength) return;
+        if (!poly || poly.__routeDrawStarted) return;
+
+        const path = poly.getElement && poly.getElement();
+        if (!path || !path.getTotalLength) {
+          attempts += 1;
+          if (attempts < maxAttempts) {
+            setTimeout(run, 80);
+          }
+          return;
+        }
+
+        if (path.dataset.routeAnimated === '1') return;
 
         let length = 0;
         try {
@@ -1210,25 +1224,26 @@ function openModal(idx) {
 
         if (!length || !Number.isFinite(length)) return;
 
-        path.style.transition = 'none';
-        path.style.strokeDasharray = `${length}`;
-        path.style.strokeDashoffset = `${length}`;
-        path.style.opacity = '0.88';
+        poly.__routeDrawStarted = true;
+        path.dataset.routeAnimated = '1';
 
-        // Force browser to apply the initial dash state before animating.
+        path.style.transition = 'none';
+        path.style.strokeDasharray = String(length);
+        path.style.strokeDashoffset = String(length);
+        path.style.opacity = '0.85';
+
+        // Force browser to apply the initial hidden state before animating.
         path.getBoundingClientRect();
 
         requestAnimationFrame(() => {
-          path.style.transition = 'stroke-dashoffset 1200ms cubic-bezier(.18,.72,.22,1)';
-          path.style.strokeDashoffset = '0';
+          requestAnimationFrame(() => {
+            path.style.transition = 'stroke-dashoffset 2200ms cubic-bezier(.22,.72,.18,1)';
+            path.style.strokeDashoffset = '0';
+          });
         });
       };
 
-      // Leaflet may create/recalculate the SVG path after addTo / fitBounds / invalidateSize.
-      // Run more than once, safely, so later calls catch the stable SVG path.
-      requestAnimationFrame(() => requestAnimationFrame(run));
       setTimeout(run, 120);
-      setTimeout(run, 360);
     }
 
     function initMap(w) {
