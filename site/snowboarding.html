@@ -32,10 +32,10 @@
       width: var(--snow-size);
       aspect-ratio: 1;
       opacity: 0;
-      background: center / contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none'%3E%3Cg stroke='%23d7c89d' stroke-width='3.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg opacity='.88'%3E%3Cpath d='M50 50V10M50 22l-7-8M50 22l7-8M50 36l-5.5-6M50 36l5.5-6'/%3E%3C/g%3E%3Cg opacity='.88' transform='rotate(60 50 50)'%3E%3Cpath d='M50 50V10M50 22l-7-8M50 22l7-8M50 36l-5.5-6M50 36l5.5-6'/%3E%3C/g%3E%3Cg opacity='.88' transform='rotate(120 50 50)'%3E%3Cpath d='M50 50V10M50 22l-7-8M50 22l7-8M50 36l-5.5-6M50 36l5.5-6'/%3E%3C/g%3E%3Cg opacity='.88' transform='rotate(180 50 50)'%3E%3Cpath d='M50 50V10M50 22l-7-8M50 22l7-8M50 36l-5.5-6M50 36l5.5-6'/%3E%3C/g%3E%3Cg opacity='.88' transform='rotate(240 50 50)'%3E%3Cpath d='M50 50V10M50 22l-7-8M50 22l7-8M50 36l-5.5-6M50 36l5.5-6'/%3E%3C/g%3E%3Cg opacity='.88' transform='rotate(300 50 50)'%3E%3Cpath d='M50 50V10M50 22l-7-8M50 22l7-8M50 36l-5.5-6M50 36l5.5-6'/%3E%3C/g%3E%3C/g%3E%3Ccircle cx='50' cy='50' r='4' fill='%23fff8d6' fill-opacity='1'/%3E%3C/svg%3E");
+      background: center / contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none'%3E%3Cg stroke='%238bbfd8' stroke-width='3.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg opacity='.92'%3E%3Cpath d='M50 50V10M50 22l-7-8M50 22l7-8M50 36l-5.5-6M50 36l5.5-6'/%3E%3C/g%3E%3Cg opacity='.92' transform='rotate(60 50 50)'%3E%3Cpath d='M50 50V10M50 22l-7-8M50 22l7-8M50 36l-5.5-6M50 36l5.5-6'/%3E%3C/g%3E%3Cg opacity='.92' transform='rotate(120 50 50)'%3E%3Cpath d='M50 50V10M50 22l-7-8M50 22l7-8M50 36l-5.5-6M50 36l5.5-6'/%3E%3C/g%3E%3Cg opacity='.92' transform='rotate(180 50 50)'%3E%3Cpath d='M50 50V10M50 22l-7-8M50 22l7-8M50 36l-5.5-6M50 36l5.5-6'/%3E%3C/g%3E%3Cg opacity='.92' transform='rotate(240 50 50)'%3E%3Cpath d='M50 50V10M50 22l-7-8M50 22l7-8M50 36l-5.5-6M50 36l5.5-6'/%3E%3C/g%3E%3Cg opacity='.92' transform='rotate(300 50 50)'%3E%3Cpath d='M50 50V10M50 22l-7-8M50 22l7-8M50 36l-5.5-6M50 36l5.5-6'/%3E%3C/g%3E%3C/g%3E%3Ccircle cx='50' cy='50' r='4' fill='%23ffffff' fill-opacity='.94'/%3E%3C/svg%3E");
       filter:
-        drop-shadow(0 0 3px rgba(255, 255, 255, 0.86))
-        drop-shadow(0 0 10px rgba(255, 244, 188, 0.42));
+        drop-shadow(0 0 3px rgba(255, 255, 255, 0.62))
+        drop-shadow(0 0 8px rgba(255, 244, 188, 0.22));
       transform: translate3d(0, 0, 0) rotate(0deg) scale(0.72);
       animation: snowCrystalFall var(--snow-duration) linear infinite;
       animation-delay: var(--snow-delay);
@@ -52,17 +52,17 @@
     }
 
     .snow-flakes span::before {
-      background: radial-gradient(circle at 35% 32%, rgba(255,255,255,0.62) 0%, rgba(255,246,198,0.26) 24%, rgba(255,236,150,0.10) 44%, transparent 70%);
+      background: radial-gradient(circle at 35% 32%, rgba(255,255,255,0.42) 0%, rgba(255,246,198,0.16) 24%, rgba(255,236,150,0.05) 44%, transparent 70%);
       filter: blur(1.5px);
-      opacity: 0.94;
-      transform: scale(1.10);
+      opacity: 0.64;
+      transform: scale(1.08);
     }
 
     .snow-flakes span::after {
-      background: radial-gradient(circle, rgba(255,255,255,0.22) 0%, rgba(255,244,188,0.15) 42%, transparent 74%);
+      background: radial-gradient(circle, rgba(255,255,255,0.10) 0%, rgba(255,244,188,0.08) 42%, transparent 74%);
       filter: blur(6px);
-      opacity: 0.70;
-      transform: scale(1.50);
+      opacity: 0.38;
+      transform: scale(1.45);
     }
 
     .snow-flakes span i,
@@ -335,10 +335,10 @@
       opacity: 0;
       pointer-events: none;
       z-index: 2;
-      background: center / contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none'%3E%3Cg stroke='%23fff7d7' stroke-width='3.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg opacity='.98'%3E%3Cpath d='M50 50V9M50 22l-8-9M50 22l8-9M50 36l-6-7M50 36l6-7'/%3E%3C/g%3E%3Cg opacity='.98' transform='rotate(60 50 50)'%3E%3Cpath d='M50 50V9M50 22l-8-9M50 22l8-9M50 36l-6-7M50 36l6-7'/%3E%3C/g%3E%3Cg opacity='.98' transform='rotate(120 50 50)'%3E%3Cpath d='M50 50V9M50 22l-8-9M50 22l8-9M50 36l-6-7M50 36l6-7'/%3E%3C/g%3E%3Cg opacity='.98' transform='rotate(180 50 50)'%3E%3Cpath d='M50 50V9M50 22l-8-9M50 22l8-9M50 36l-6-7M50 36l6-7'/%3E%3C/g%3E%3Cg opacity='.98' transform='rotate(240 50 50)'%3E%3Cpath d='M50 50V9M50 22l-8-9M50 22l8-9M50 36l-6-7M50 36l6-7'/%3E%3C/g%3E%3Cg opacity='.98' transform='rotate(300 50 50)'%3E%3Cpath d='M50 50V9M50 22l-8-9M50 22l8-9M50 36l-6-7M50 36l6-7'/%3E%3C/g%3E%3C/g%3E%3Ccircle cx='50' cy='50' r='3.5' fill='%23fffdf2' fill-opacity='.98'/%3E%3C/svg%3E");
+      background: center / contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none'%3E%3Cg stroke='%23f4fdff' stroke-width='3.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg opacity='.98'%3E%3Cpath d='M50 50V9M50 22l-8-9M50 22l8-9M50 36l-6-7M50 36l6-7'/%3E%3C/g%3E%3Cg opacity='.98' transform='rotate(60 50 50)'%3E%3Cpath d='M50 50V9M50 22l-8-9M50 22l8-9M50 36l-6-7M50 36l6-7'/%3E%3C/g%3E%3Cg opacity='.98' transform='rotate(120 50 50)'%3E%3Cpath d='M50 50V9M50 22l-8-9M50 22l8-9M50 36l-6-7M50 36l6-7'/%3E%3C/g%3E%3Cg opacity='.98' transform='rotate(180 50 50)'%3E%3Cpath d='M50 50V9M50 22l-8-9M50 22l8-9M50 36l-6-7M50 36l6-7'/%3E%3C/g%3E%3Cg opacity='.98' transform='rotate(240 50 50)'%3E%3Cpath d='M50 50V9M50 22l-8-9M50 22l8-9M50 36l-6-7M50 36l6-7'/%3E%3C/g%3E%3Cg opacity='.98' transform='rotate(300 50 50)'%3E%3Cpath d='M50 50V9M50 22l-8-9M50 22l8-9M50 36l-6-7M50 36l6-7'/%3E%3C/g%3E%3C/g%3E%3Ccircle cx='50' cy='50' r='3.5' fill='%23ffffff' fill-opacity='.98'/%3E%3C/svg%3E");
       filter:
-        drop-shadow(0 0 8px rgba(255,255,255,0.74))
-        drop-shadow(0 0 14px rgba(255,244,188,0.34));
+        drop-shadow(0 0 8px rgba(255,255,255,0.62))
+        drop-shadow(0 0 14px rgba(218,246,255,0.34));
       transform: translate(-50%, -50%) scale(0.22) rotate(0deg);
     }
 
@@ -346,7 +346,7 @@
     .photo-thumb::after {
       width: 52%;
       opacity: 0;
-      filter: drop-shadow(0 0 16px rgba(255, 244, 188, 0.24));
+      filter: drop-shadow(0 0 16px rgba(239, 252, 255, 0.30));
     }
 
     @keyframes thumbnailSnowCrystal {
@@ -362,7 +362,7 @@
       }
       100% {
         opacity: 0;
-        filter: drop-shadow(0 0 18px rgba(255, 244, 188, 0.14)) blur(1px);
+        filter: drop-shadow(0 0 18px rgba(218, 246, 255, 0.14)) blur(1px);
         transform: translate(-50%, -50%) scale(2.25) rotate(28deg);
       }
     }
