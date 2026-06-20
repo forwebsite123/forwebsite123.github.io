@@ -135,6 +135,14 @@
       align-items: start;
     }
 
+    .photo-grid.photo-layout-single {
+      grid-template-columns: 360px;
+    }
+
+    .photo-grid.photo-layout-2x2 {
+      grid-template-columns: repeat(2, 170px);
+    }
+
     .photo-grid img {
       width: 170px;
       height: 170px;
@@ -142,6 +150,11 @@
       background: white;
       cursor: pointer;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .photo-grid.photo-layout-single img {
+      width: 360px;
+      height: 360px;
     }
 
     .photo-grid img:hover {
@@ -235,7 +248,14 @@
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 12px;
       }
+      .photo-grid.photo-layout-single {
+        grid-template-columns: 1fr;
+      }
+      .photo-grid.photo-layout-2x2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
       .photo-grid img { width: 100%; height: 120px; }
+      .photo-grid.photo-layout-single img { height: min(72vw, 360px); }
       .video-cell { width: 100%; height: 120px; }
       .entry-note {
         max-width: none;
@@ -288,9 +308,11 @@
       });
       const container = document.getElementById('entries');
       data.entries.forEach(e => {
-        const photosHtml = (e.photos || []).map(p => `<img src="${p}" class="zoomable">`).join('');
+        const photos = e.photos || [];
+        const photoLayout = photos.length === 1 ? 'photo-layout-single' : ((photos.length === 2 || photos.length === 4) ? 'photo-layout-2x2' : 'photo-layout-3x3');
+        const photosHtml = photos.map(p => `<img src="${p}" class="zoomable">`).join('');
         const videosHtml = (e.videos || []).map(bvid => `<div class="video-cell"><iframe src="//player.bilibili.com/player.html?bvid=${bvid}&autoplay=0" allowfullscreen></iframe></div>`).join('');
-        container.innerHTML += `<div class="entry"><div class="entry-meta"><span class="dot">•</span>${e.date}${e.location ? '<br><span class="entry-location">📍 ' + e.location + '</span>' : ''}</div><div class="middle-col"><div class="photo-grid">${photosHtml}${videosHtml}</div></div><div class="right-col"><div class="entry-note">${e.note || ""}</div></div></div>`;
+        container.innerHTML += `<div class="entry"><div class="entry-meta"><span class="dot">•</span>${e.date}${e.location ? '<br><span class="entry-location">📍 ' + e.location + '</span>' : ''}</div><div class="middle-col"><div class="photo-grid ${photoLayout}">${photosHtml}${videosHtml}</div></div><div class="right-col"><div class="entry-note">${e.note || ""}</div></div></div>`;
       });
       const lb = document.getElementById('lightbox');
       const lbImg = document.getElementById('lightbox-img');
