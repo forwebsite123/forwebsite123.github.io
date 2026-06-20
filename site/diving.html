@@ -28,44 +28,57 @@
     .dive-bubbles span {
       position: absolute;
       left: var(--bubble-left);
-      bottom: -14vh;
+      bottom: -16vh;
       width: var(--bubble-size);
       aspect-ratio: 1;
-      border: 1px solid rgba(145, 202, 222, 0.20);
+      border: 1.5px solid rgba(185, 235, 250, 0.38);
       border-radius: 50%;
       opacity: 0;
       background:
-        radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.30) 0 8%, transparent 24%),
-        radial-gradient(circle, rgba(165, 220, 238, 0.08) 0 48%, transparent 64%);
+        radial-gradient(circle at 31% 26%, rgba(255, 255, 255, 0.66) 0 9%, transparent 20%),
+        radial-gradient(circle at 72% 74%, rgba(255, 194, 226, 0.20) 0 13%, transparent 34%),
+        radial-gradient(circle at 28% 76%, rgba(178, 229, 255, 0.22) 0 16%, transparent 40%),
+        conic-gradient(from 25deg, rgba(172, 222, 255, 0.20), rgba(255, 214, 238, 0.20), rgba(246, 239, 164, 0.17), rgba(188, 242, 232, 0.18), rgba(172, 222, 255, 0.20));
       box-shadow:
-        inset 0 0 14px rgba(220, 248, 255, 0.16),
-        0 0 14px rgba(145, 202, 222, 0.10);
+        inset -6px -8px 18px rgba(82, 154, 190, 0.13),
+        inset 5px 5px 16px rgba(255, 255, 255, 0.34),
+        0 0 18px rgba(130, 205, 232, 0.18);
       transform: translate3d(0, 0, 0) scale(0.36);
       animation: diveBubbleRise var(--bubble-duration) linear infinite;
       animation-delay: var(--bubble-delay);
     }
 
-    .dive-bubbles span:nth-child(1) { --bubble-left: 12%; --bubble-size: 18px; --bubble-duration: 29s; --bubble-delay: -6s; --bubble-drift: 26px; }
-    .dive-bubbles span:nth-child(2) { --bubble-left: 28%; --bubble-size: 31px; --bubble-duration: 37s; --bubble-delay: -18s; --bubble-drift: -18px; }
-    .dive-bubbles span:nth-child(3) { --bubble-left: 46%; --bubble-size: 14px; --bubble-duration: 25s; --bubble-delay: -11s; --bubble-drift: 20px; }
-    .dive-bubbles span:nth-child(4) { --bubble-left: 63%; --bubble-size: 26px; --bubble-duration: 34s; --bubble-delay: -23s; --bubble-drift: -28px; }
-    .dive-bubbles span:nth-child(5) { --bubble-left: 78%; --bubble-size: 20px; --bubble-duration: 31s; --bubble-delay: -14s; --bubble-drift: 18px; }
-    .dive-bubbles span:nth-child(6) { --bubble-left: 88%; --bubble-size: 36px; --bubble-duration: 42s; --bubble-delay: -30s; --bubble-drift: -22px; }
+    .dive-bubbles span::after {
+      content: "";
+      position: absolute;
+      inset: 18%;
+      border-radius: 50%;
+      border-top: 1px solid rgba(255, 255, 255, 0.38);
+      border-left: 1px solid rgba(255, 255, 255, 0.18);
+      opacity: 0.72;
+    }
+
+    .dive-bubbles span:nth-child(1) { --bubble-left: 9%; --bubble-size: 34px; --bubble-duration: 28s; --bubble-delay: -6s; --bubble-drift: 34px; }
+    .dive-bubbles span:nth-child(2) { --bubble-left: 23%; --bubble-size: 58px; --bubble-duration: 36s; --bubble-delay: -18s; --bubble-drift: -24px; }
+    .dive-bubbles span:nth-child(3) { --bubble-left: 42%; --bubble-size: 28px; --bubble-duration: 24s; --bubble-delay: -11s; --bubble-drift: 24px; }
+    .dive-bubbles span:nth-child(4) { --bubble-left: 61%; --bubble-size: 48px; --bubble-duration: 33s; --bubble-delay: -23s; --bubble-drift: -34px; }
+    .dive-bubbles span:nth-child(5) { --bubble-left: 77%; --bubble-size: 38px; --bubble-duration: 30s; --bubble-delay: -14s; --bubble-drift: 22px; }
+    .dive-bubbles span:nth-child(6) { --bubble-left: 88%; --bubble-size: 66px; --bubble-duration: 41s; --bubble-delay: -30s; --bubble-drift: -28px; }
 
     @keyframes diveBubbleRise {
       0% {
         opacity: 0;
-        transform: translate3d(0, 0, 0) scale(0.35);
+        transform: translate3d(0, 0, 0) scale(0.34);
       }
-      16% {
-        opacity: 0.22;
+      14% {
+        opacity: 0.44;
       }
-      76% {
-        opacity: 0.14;
+      78% {
+        opacity: 0.28;
       }
       100% {
         opacity: 0;
-        transform: translate3d(var(--bubble-drift), -118vh, 0) scale(1.34);
+        transform: translate3d(var(--bubble-drift), -120vh, 0) scale(1.42);
       }
     }
 
@@ -450,7 +463,7 @@
       .page-title { font-size: 42px; }
       .entry-meta { font-size: 24px; }
 
-      .dive-bubbles { opacity: 0.58; }
+      .dive-bubbles { opacity: 0.82; }
       .dive-bubbles span:nth-child(n+4) { display: none; }
 
       .photo-thumb {
