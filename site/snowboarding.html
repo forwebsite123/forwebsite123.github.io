@@ -20,7 +20,7 @@
     .snow-flakes {
       position: fixed;
       inset: 0;
-      z-index: 0;
+      z-index: 1;
       pointer-events: none;
       overflow: hidden;
     }
@@ -32,11 +32,11 @@
       width: var(--snow-size);
       aspect-ratio: 1;
       opacity: 0;
-      background: center / contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none'%3E%3Cg stroke='%23d8f5ff' stroke-width='3.1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg opacity='.96'%3E%3Cpath d='M50 50V10M50 22l-7-8M50 22l7-8M50 36l-5.5-6M50 36l5.5-6'/%3E%3C/g%3E%3Cg opacity='.96' transform='rotate(60 50 50)'%3E%3Cpath d='M50 50V10M50 22l-7-8M50 22l7-8M50 36l-5.5-6M50 36l5.5-6'/%3E%3C/g%3E%3Cg opacity='.96' transform='rotate(120 50 50)'%3E%3Cpath d='M50 50V10M50 22l-7-8M50 22l7-8M50 36l-5.5-6M50 36l5.5-6'/%3E%3C/g%3E%3Cg opacity='.96' transform='rotate(180 50 50)'%3E%3Cpath d='M50 50V10M50 22l-7-8M50 22l7-8M50 36l-5.5-6M50 36l5.5-6'/%3E%3C/g%3E%3Cg opacity='.96' transform='rotate(240 50 50)'%3E%3Cpath d='M50 50V10M50 22l-7-8M50 22l7-8M50 36l-5.5-6M50 36l5.5-6'/%3E%3C/g%3E%3Cg opacity='.96' transform='rotate(300 50 50)'%3E%3Cpath d='M50 50V10M50 22l-7-8M50 22l7-8M50 36l-5.5-6M50 36l5.5-6'/%3E%3C/g%3E%3C/g%3E%3Ccircle cx='50' cy='50' r='3.8' fill='%23ffffff' fill-opacity='.96'/%3E%3C/svg%3E");
+      background: center / contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none'%3E%3Cg stroke='%238bbfd8' stroke-width='3.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg opacity='.92'%3E%3Cpath d='M50 50V10M50 22l-7-8M50 22l7-8M50 36l-5.5-6M50 36l5.5-6'/%3E%3C/g%3E%3Cg opacity='.92' transform='rotate(60 50 50)'%3E%3Cpath d='M50 50V10M50 22l-7-8M50 22l7-8M50 36l-5.5-6M50 36l5.5-6'/%3E%3C/g%3E%3Cg opacity='.92' transform='rotate(120 50 50)'%3E%3Cpath d='M50 50V10M50 22l-7-8M50 22l7-8M50 36l-5.5-6M50 36l5.5-6'/%3E%3C/g%3E%3Cg opacity='.92' transform='rotate(180 50 50)'%3E%3Cpath d='M50 50V10M50 22l-7-8M50 22l7-8M50 36l-5.5-6M50 36l5.5-6'/%3E%3C/g%3E%3Cg opacity='.92' transform='rotate(240 50 50)'%3E%3Cpath d='M50 50V10M50 22l-7-8M50 22l7-8M50 36l-5.5-6M50 36l5.5-6'/%3E%3C/g%3E%3Cg opacity='.92' transform='rotate(300 50 50)'%3E%3Cpath d='M50 50V10M50 22l-7-8M50 22l7-8M50 36l-5.5-6M50 36l5.5-6'/%3E%3C/g%3E%3C/g%3E%3Ccircle cx='50' cy='50' r='4' fill='%23ffffff' fill-opacity='1'/%3E%3C/svg%3E");
       filter:
-        drop-shadow(0 0 4px rgba(255, 255, 255, 0.65))
-        drop-shadow(0 0 10px rgba(194, 235, 255, 0.45))
-        drop-shadow(0 0 18px rgba(159, 219, 247, 0.22));
+        drop-shadow(0 0 3px rgba(255, 255, 255, 0.78))
+        drop-shadow(0 0 9px rgba(173, 222, 246, 0.52))
+        drop-shadow(0 0 20px rgba(92, 167, 205, 0.28));
       transform: translate3d(0, 0, 0) rotate(0deg) scale(0.72);
       animation: snowCrystalFall var(--snow-duration) linear infinite;
       animation-delay: var(--snow-delay);
@@ -53,17 +53,17 @@
     }
 
     .snow-flakes span::before {
-      background: radial-gradient(circle at 35% 32%, rgba(255,255,255,0.42) 0%, rgba(220,244,255,0.18) 22%, rgba(178,226,248,0.08) 40%, transparent 68%);
-      filter: blur(2px);
-      opacity: 0.9;
-      transform: scale(1.08);
+      background: radial-gradient(circle at 35% 32%, rgba(255,255,255,0.58) 0%, rgba(204,238,255,0.26) 24%, rgba(121,194,225,0.13) 44%, transparent 70%);
+      filter: blur(1.5px);
+      opacity: 0.96;
+      transform: scale(1.10);
     }
 
     .snow-flakes span::after {
-      background: radial-gradient(circle, rgba(255,255,255,0.10) 0%, rgba(190,232,250,0.12) 38%, transparent 72%);
-      filter: blur(6px);
-      opacity: 0.65;
-      transform: scale(1.45);
+      background: radial-gradient(circle, rgba(255,255,255,0.20) 0%, rgba(159,218,245,0.20) 42%, transparent 74%);
+      filter: blur(7px);
+      opacity: 0.86;
+      transform: scale(1.58);
     }
 
     .snow-flakes span i,
@@ -71,16 +71,16 @@
       display: none;
     }
 
-    .snow-flakes span:nth-child(1) { --snow-left: 8%; --snow-size: 22px; --snow-duration: 42s; --snow-delay: -8s; --snow-drift: 34px; --snow-wave-a: -10px; --snow-wave-b: 18px; --snow-wave-c: -8px; --snow-spin: 115deg; }
-    .snow-flakes span:nth-child(2) { --snow-left: 18%; --snow-size: 16px; --snow-duration: 36s; --snow-delay: -18s; --snow-drift: -24px; --snow-wave-a: 14px; --snow-wave-b: -16px; --snow-wave-c: 8px; --snow-spin: -90deg; }
-    .snow-flakes span:nth-child(3) { --snow-left: 30%; --snow-size: 30px; --snow-duration: 50s; --snow-delay: -28s; --snow-drift: 42px; --snow-wave-a: -16px; --snow-wave-b: 20px; --snow-wave-c: -12px; --snow-spin: 140deg; }
-    .snow-flakes span:nth-child(4) { --snow-left: 43%; --snow-size: 18px; --snow-duration: 39s; --snow-delay: -13s; --snow-drift: -30px; --snow-wave-a: 12px; --snow-wave-b: -20px; --snow-wave-c: 10px; --snow-spin: -120deg; }
-    .snow-flakes span:nth-child(5) { --snow-left: 55%; --snow-size: 25px; --snow-duration: 46s; --snow-delay: -34s; --snow-drift: 28px; --snow-wave-a: -12px; --snow-wave-b: 16px; --snow-wave-c: -10px; --snow-spin: 100deg; }
-    .snow-flakes span:nth-child(6) { --snow-left: 66%; --snow-size: 15px; --snow-duration: 33s; --snow-delay: -6s; --snow-drift: -22px; --snow-wave-a: 10px; --snow-wave-b: -14px; --snow-wave-c: 8px; --snow-spin: -80deg; }
-    .snow-flakes span:nth-child(7) { --snow-left: 76%; --snow-size: 34px; --snow-duration: 54s; --snow-delay: -24s; --snow-drift: 36px; --snow-wave-a: -18px; --snow-wave-b: 22px; --snow-wave-c: -12px; --snow-spin: 150deg; }
-    .snow-flakes span:nth-child(8) { --snow-left: 86%; --snow-size: 21px; --snow-duration: 41s; --snow-delay: -16s; --snow-drift: -32px; --snow-wave-a: 12px; --snow-wave-b: -18px; --snow-wave-c: 10px; --snow-spin: -110deg; }
-    .snow-flakes span:nth-child(9) { --snow-left: 94%; --snow-size: 17px; --snow-duration: 37s; --snow-delay: -30s; --snow-drift: -26px; --snow-wave-a: 8px; --snow-wave-b: -16px; --snow-wave-c: 8px; --snow-spin: 85deg; }
-    .snow-flakes span:nth-child(10) { --snow-left: 3%; --snow-size: 28px; --snow-duration: 48s; --snow-delay: -39s; --snow-drift: 30px; --snow-wave-a: -14px; --snow-wave-b: 18px; --snow-wave-c: -10px; --snow-spin: -130deg; }
+    .snow-flakes span:nth-child(1) { --snow-left: 8%; --snow-size: 28px; --snow-duration: 42s; --snow-delay: -8s; --snow-drift: 34px; --snow-wave-a: -10px; --snow-wave-b: 18px; --snow-wave-c: -8px; --snow-spin: 115deg; }
+    .snow-flakes span:nth-child(2) { --snow-left: 18%; --snow-size: 21px; --snow-duration: 36s; --snow-delay: -18s; --snow-drift: -24px; --snow-wave-a: 14px; --snow-wave-b: -16px; --snow-wave-c: 8px; --snow-spin: -90deg; }
+    .snow-flakes span:nth-child(3) { --snow-left: 30%; --snow-size: 40px; --snow-duration: 50s; --snow-delay: -28s; --snow-drift: 42px; --snow-wave-a: -16px; --snow-wave-b: 20px; --snow-wave-c: -12px; --snow-spin: 140deg; }
+    .snow-flakes span:nth-child(4) { --snow-left: 43%; --snow-size: 25px; --snow-duration: 39s; --snow-delay: -13s; --snow-drift: -30px; --snow-wave-a: 12px; --snow-wave-b: -20px; --snow-wave-c: 10px; --snow-spin: -120deg; }
+    .snow-flakes span:nth-child(5) { --snow-left: 55%; --snow-size: 34px; --snow-duration: 46s; --snow-delay: -34s; --snow-drift: 28px; --snow-wave-a: -12px; --snow-wave-b: 16px; --snow-wave-c: -10px; --snow-spin: 100deg; }
+    .snow-flakes span:nth-child(6) { --snow-left: 66%; --snow-size: 20px; --snow-duration: 33s; --snow-delay: -6s; --snow-drift: -22px; --snow-wave-a: 10px; --snow-wave-b: -14px; --snow-wave-c: 8px; --snow-spin: -80deg; }
+    .snow-flakes span:nth-child(7) { --snow-left: 76%; --snow-size: 46px; --snow-duration: 54s; --snow-delay: -24s; --snow-drift: 36px; --snow-wave-a: -18px; --snow-wave-b: 22px; --snow-wave-c: -12px; --snow-spin: 150deg; }
+    .snow-flakes span:nth-child(8) { --snow-left: 86%; --snow-size: 29px; --snow-duration: 41s; --snow-delay: -16s; --snow-drift: -32px; --snow-wave-a: 12px; --snow-wave-b: -18px; --snow-wave-c: 10px; --snow-spin: -110deg; }
+    .snow-flakes span:nth-child(9) { --snow-left: 94%; --snow-size: 23px; --snow-duration: 37s; --snow-delay: -30s; --snow-drift: -26px; --snow-wave-a: 8px; --snow-wave-b: -16px; --snow-wave-c: 8px; --snow-spin: 85deg; }
+    .snow-flakes span:nth-child(10) { --snow-left: 3%; --snow-size: 38px; --snow-duration: 48s; --snow-delay: -39s; --snow-drift: 30px; --snow-wave-a: -14px; --snow-wave-b: 18px; --snow-wave-c: -10px; --snow-spin: -130deg; }
 
     @keyframes snowCrystalFall {
       0% {
@@ -88,7 +88,7 @@
         transform: translate3d(0, -12vh, 0) rotate(0deg) scale(0.68);
       }
       12% {
-        opacity: 0.94;
+        opacity: 1;
       }
       30% {
         transform: translate3d(var(--snow-wave-a), 28vh, 0) rotate(calc(var(--snow-spin) * 0.30)) scale(0.86);
@@ -97,7 +97,7 @@
         transform: translate3d(var(--snow-wave-b), 56vh, 0) rotate(calc(var(--snow-spin) * 0.54)) scale(1);
       }
       78% {
-        opacity: 0.62;
+        opacity: 0.80;
         transform: translate3d(var(--snow-wave-c), 88vh, 0) rotate(calc(var(--snow-spin) * 0.78)) scale(1.05);
       }
       100% {
@@ -111,7 +111,7 @@
       margin: 0 auto;
       padding: 28px 28px 90px;
       position: relative;
-      z-index: 1;
+      z-index: 2;
     }
 
     .topline {
@@ -425,7 +425,7 @@
       text-align: center;
       margin-top: 100px;
       position: relative;
-      z-index: 1;
+      z-index: 2;
       top: -24px;
       font-size: 14px;
       font-style: italic;
@@ -532,7 +532,7 @@
       .page-title { font-size: 42px; }
       .entry-meta { font-size: 24px; }
 
-      .snow-flakes { opacity: 0.85; }
+      .snow-flakes { opacity: 0.95; }
       .snow-flakes span:nth-child(n+6) { display: none; }
 
       .photo-thumb {
