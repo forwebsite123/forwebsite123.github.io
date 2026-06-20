@@ -14,6 +14,99 @@
       background: #fcfbf8;
       color: #6e4a4a;
       font-family: "Times New Roman", Georgia, serif;
+      overflow-x: hidden;
+    }
+
+    .snow-flakes {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .snow-flakes span {
+      position: absolute;
+      left: var(--snow-left);
+      top: -14vh;
+      width: var(--snow-size);
+      aspect-ratio: 1;
+      opacity: 0;
+      transform: translate3d(0, 0, 0) rotate(0deg) scale(0.72);
+      animation: snowCrystalFall var(--snow-duration) linear infinite;
+      animation-delay: var(--snow-delay);
+      will-change: transform, opacity;
+    }
+
+    .snow-flakes span::before,
+    .snow-flakes span::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0 12%, rgba(220, 246, 255, 0.20) 12% 32%, rgba(255, 255, 255, 0.72) 48% 52%, rgba(220, 246, 255, 0.20) 68% 88%, transparent 88% 100%);
+      box-shadow: 0 0 8px rgba(211, 242, 255, 0.22);
+      transform-origin: center;
+    }
+
+    .snow-flakes span::before {
+      transform: translate(-50%, -50%) rotate(0deg);
+    }
+
+    .snow-flakes span::after {
+      transform: translate(-50%, -50%) rotate(60deg);
+    }
+
+    .snow-flakes span i,
+    .snow-flakes span b {
+      display: none;
+    }
+
+    .snow-flakes span {
+      background:
+        linear-gradient(90deg, transparent 0 12%, rgba(220, 246, 255, 0.18) 12% 32%, rgba(255, 255, 255, 0.62) 48% 52%, rgba(220, 246, 255, 0.18) 68% 88%, transparent 88% 100%),
+        radial-gradient(circle, rgba(255, 255, 255, 0.78) 0 9%, rgba(221, 247, 255, 0.20) 10% 18%, transparent 20%);
+      background-repeat: no-repeat;
+      background-position: center, center;
+      background-size: 100% 1px, 100% 100%;
+      filter: drop-shadow(0 0 7px rgba(201, 236, 255, 0.18));
+    }
+
+    .snow-flakes span:nth-child(1) { --snow-left: 8%; --snow-size: 15px; --snow-duration: 42s; --snow-delay: -8s; --snow-drift: 34px; --snow-wave-a: -10px; --snow-wave-b: 18px; --snow-wave-c: -8px; --snow-spin: 115deg; }
+    .snow-flakes span:nth-child(2) { --snow-left: 18%; --snow-size: 10px; --snow-duration: 36s; --snow-delay: -18s; --snow-drift: -24px; --snow-wave-a: 14px; --snow-wave-b: -16px; --snow-wave-c: 8px; --snow-spin: -90deg; }
+    .snow-flakes span:nth-child(3) { --snow-left: 30%; --snow-size: 20px; --snow-duration: 50s; --snow-delay: -28s; --snow-drift: 42px; --snow-wave-a: -16px; --snow-wave-b: 20px; --snow-wave-c: -12px; --snow-spin: 140deg; }
+    .snow-flakes span:nth-child(4) { --snow-left: 43%; --snow-size: 12px; --snow-duration: 39s; --snow-delay: -13s; --snow-drift: -30px; --snow-wave-a: 12px; --snow-wave-b: -20px; --snow-wave-c: 10px; --snow-spin: -120deg; }
+    .snow-flakes span:nth-child(5) { --snow-left: 55%; --snow-size: 17px; --snow-duration: 46s; --snow-delay: -34s; --snow-drift: 28px; --snow-wave-a: -12px; --snow-wave-b: 16px; --snow-wave-c: -10px; --snow-spin: 100deg; }
+    .snow-flakes span:nth-child(6) { --snow-left: 66%; --snow-size: 9px; --snow-duration: 33s; --snow-delay: -6s; --snow-drift: -22px; --snow-wave-a: 10px; --snow-wave-b: -14px; --snow-wave-c: 8px; --snow-spin: -80deg; }
+    .snow-flakes span:nth-child(7) { --snow-left: 76%; --snow-size: 22px; --snow-duration: 54s; --snow-delay: -24s; --snow-drift: 36px; --snow-wave-a: -18px; --snow-wave-b: 22px; --snow-wave-c: -12px; --snow-spin: 150deg; }
+    .snow-flakes span:nth-child(8) { --snow-left: 86%; --snow-size: 14px; --snow-duration: 41s; --snow-delay: -16s; --snow-drift: -32px; --snow-wave-a: 12px; --snow-wave-b: -18px; --snow-wave-c: 10px; --snow-spin: -110deg; }
+    .snow-flakes span:nth-child(9) { --snow-left: 94%; --snow-size: 11px; --snow-duration: 37s; --snow-delay: -30s; --snow-drift: -26px; --snow-wave-a: 8px; --snow-wave-b: -16px; --snow-wave-c: 8px; --snow-spin: 85deg; }
+    .snow-flakes span:nth-child(10) { --snow-left: 3%; --snow-size: 18px; --snow-duration: 48s; --snow-delay: -39s; --snow-drift: 30px; --snow-wave-a: -14px; --snow-wave-b: 18px; --snow-wave-c: -10px; --snow-spin: -130deg; }
+
+    @keyframes snowCrystalFall {
+      0% {
+        opacity: 0;
+        transform: translate3d(0, -12vh, 0) rotate(0deg) scale(0.68);
+      }
+      12% {
+        opacity: 0.62;
+      }
+      30% {
+        transform: translate3d(var(--snow-wave-a), 28vh, 0) rotate(calc(var(--snow-spin) * 0.30)) scale(0.86);
+      }
+      54% {
+        transform: translate3d(var(--snow-wave-b), 56vh, 0) rotate(calc(var(--snow-spin) * 0.54)) scale(1);
+      }
+      78% {
+        opacity: 0.38;
+        transform: translate3d(var(--snow-wave-c), 88vh, 0) rotate(calc(var(--snow-spin) * 0.78)) scale(1.05);
+      }
+      100% {
+        opacity: 0;
+        transform: translate3d(var(--snow-drift), 118vh, 0) rotate(var(--snow-spin)) scale(1.12);
+      }
     }
 
     .page {
@@ -21,6 +114,7 @@
       margin: 0 auto;
       padding: 28px 28px 90px;
       position: relative;
+      z-index: 1;
     }
 
     .topline {
@@ -112,6 +206,16 @@
       grid-template-columns: 280px auto 220px;
       gap: 38px;
       align-items: start;
+      opacity: 0.32;
+      filter: blur(4px);
+      transform: translateY(10px);
+      transition: opacity 0.9s ease-out, filter 0.9s ease-out, transform 0.9s ease-out;
+    }
+
+    .entry.is-visible {
+      opacity: 1;
+      filter: blur(0);
+      transform: translateY(0);
     }
 
     .left-col,
@@ -143,6 +247,7 @@
       aspect-ratio: 3 / 4;
       display: block;
       overflow: hidden;
+      position: relative;
       border: 1px solid rgba(122, 87, 87, 0.18);
       background: white;
       box-shadow: 0 8px 24px rgba(122, 87, 87, 0.06);
@@ -190,24 +295,112 @@
       max-width: 360px;
     }
 
-    .photo-grid img {
+    .photo-thumb {
       width: 170px;
       height: 170px;
-      object-fit: cover;
+      display: block;
+      position: relative;
+      overflow: hidden;
       background: white;
       cursor: pointer;
+      flex: 0 0 auto;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
-    .photo-grid.photo-layout-single img {
+    .photo-grid.photo-layout-single .photo-thumb {
       width: 360px;
       height: 360px;
       max-width: 100%;
     }
 
-    .photo-grid img:hover {
+    .photo-thumb img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    .photo-thumb:hover {
       transform: translateY(-3px);
       box-shadow: 0 12px 28px rgba(122, 87, 87, 0.12);
+    }
+
+    .record-card::before,
+    .record-card::after,
+    .photo-thumb::before,
+    .photo-thumb::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 66%;
+      aspect-ratio: 1;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 2;
+      filter: drop-shadow(0 0 12px rgba(218, 246, 255, 0.24));
+      transform: translate(-50%, -50%) scale(0.22) rotate(0deg);
+    }
+
+    .record-card::before,
+    .photo-thumb::before {
+      clip-path: polygon(50% 0%, 58% 34%, 92% 16%, 66% 43%, 100% 50%, 66% 57%, 92% 84%, 58% 66%, 50% 100%, 42% 66%, 8% 84%, 34% 57%, 0% 50%, 34% 43%, 8% 16%, 42% 34%);
+      background:
+        radial-gradient(circle, rgba(255, 255, 255, 0.58) 0 9%, rgba(223, 248, 255, 0.28) 12% 22%, transparent 27%),
+        conic-gradient(from 30deg, rgba(218, 246, 255, 0.38), rgba(255, 255, 255, 0.56), rgba(188, 226, 246, 0.28), rgba(255, 255, 255, 0.48), rgba(218, 246, 255, 0.38));
+    }
+
+    .record-card::after,
+    .photo-thumb::after {
+      width: 50%;
+      border: 1.5px solid rgba(232, 250, 255, 0.52);
+      border-radius: 30% 70% 32% 68% / 70% 30% 68% 32%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.18) 0 18%, transparent 60%);
+    }
+
+    @keyframes thumbnailSnowCrystal {
+      0% {
+        opacity: 0.64;
+        transform: translate(-50%, -50%) scale(0.24) rotate(0deg);
+      }
+      38% {
+        opacity: 0.34;
+      }
+      72% {
+        opacity: 0.14;
+      }
+      100% {
+        opacity: 0;
+        filter: drop-shadow(0 0 18px rgba(218, 246, 255, 0.12)) blur(1.5px);
+        transform: translate(-50%, -50%) scale(2.35) rotate(24deg);
+      }
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .record-card:hover::before,
+      .record-card:hover::after,
+      .photo-thumb:hover::before,
+      .photo-thumb:hover::after {
+        animation: thumbnailSnowCrystal 2.55s cubic-bezier(0.16, 0.72, 0.22, 1) infinite;
+      }
+
+      .record-card:hover::after,
+      .photo-thumb:hover::after {
+        animation-delay: 0.52s;
+      }
+    }
+
+    .record-card.is-snowing::before,
+    .record-card.is-snowing::after,
+    .photo-thumb.is-snowing::before,
+    .photo-thumb.is-snowing::after {
+      animation: thumbnailSnowCrystal 1.85s cubic-bezier(0.16, 0.72, 0.22, 1) 1;
+    }
+
+    .record-card.is-snowing::after,
+    .photo-thumb.is-snowing::after {
+      animation-delay: 0.28s;
     }
 
     .video-cell {
@@ -241,6 +434,7 @@
       text-align: center;
       margin-top: 100px;
       position: relative;
+      z-index: 1;
       top: -24px;
       font-size: 14px;
       font-style: italic;
@@ -252,11 +446,21 @@
       position: fixed;
       inset: 0;
       background: rgba(0, 0, 0, 0.88);
-      display: none;
+      display: flex;
       justify-content: center;
       align-items: center;
       z-index: 9999;
       padding: 26px;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+
+    #lightbox.is-open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
     }
 
     #lightbox img {
@@ -265,6 +469,14 @@
       object-fit: contain;
       background: white;
       box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      filter: blur(10px);
+      transform: scale(0.97);
+      transition: filter 0.5s ease-out, transform 0.5s ease-out;
+    }
+
+    #lightbox.is-open img {
+      filter: blur(0);
+      transform: scale(1);
     }
 
     .close-tip {
@@ -274,6 +486,39 @@
       color: rgba(255,255,255,0.84);
       font-size: 14px;
       letter-spacing: 1px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .snow-flakes span,
+      .entry {
+        opacity: 1;
+        filter: none;
+        transform: none;
+        animation: none;
+        transition: none;
+      }
+
+      #lightbox,
+      #lightbox img {
+        transition: none;
+      }
+
+      #lightbox img {
+        filter: none;
+        transform: none;
+      }
+
+      .record-card:hover::before,
+      .record-card:hover::after,
+      .record-card.is-snowing::before,
+      .record-card.is-snowing::after,
+      .photo-thumb:hover::before,
+      .photo-thumb:hover::after,
+      .photo-thumb.is-snowing::before,
+      .photo-thumb.is-snowing::after {
+        display: none;
+        animation: none;
+      }
     }
 
     @media (max-width: 1100px) {
@@ -296,7 +541,10 @@
       .page-title { font-size: 42px; }
       .entry-meta { font-size: 24px; }
 
-      .photo-grid img {
+      .snow-flakes { opacity: 0.72; }
+      .snow-flakes span:nth-child(n+6) { display: none; }
+
+      .photo-thumb {
         width: calc(33.333% - 14px);
         min-width: 96px;
         height: 120px;
@@ -307,7 +555,7 @@
         width: 100%;
       }
 
-      .photo-grid.photo-layout-2x2 img {
+      .photo-grid.photo-layout-2x2 .photo-thumb {
         width: 100%;
         min-width: 0;
       }
@@ -316,7 +564,7 @@
         max-width: none;
       }
 
-      .photo-grid.photo-layout-single img {
+      .photo-grid.photo-layout-single .photo-thumb {
         width: 100%;
         height: min(72vw, 360px);
       }
@@ -331,6 +579,8 @@
   </style>
 </head>
 <body>
+  <div class="snow-flakes" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+
   <div class="page">
     <div class="topline">
       <div class="site-note">A place to leave traces.</div>
@@ -395,6 +645,50 @@
       return slug ? `entry-${day}-${slug}` : `entry-${day}`;
     }
 
+    function setupEntryReveal() {
+      const entries = document.querySelectorAll('.entry');
+      if (!entries.length) return;
+
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {
+        entries.forEach(entry => entry.classList.add('is-visible'));
+        return;
+      }
+
+      const observer = new IntersectionObserver(items => {
+        items.forEach(item => {
+          if (item.isIntersecting) {
+            item.target.classList.add('is-visible');
+            observer.unobserve(item.target);
+          }
+        });
+      }, { threshold: 0.15, rootMargin: '0px 0px -6% 0px' });
+
+      entries.forEach(entry => observer.observe(entry));
+    }
+
+    function setupTouchSnowCrystal() {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      if (!window.matchMedia('(hover: none), (pointer: coarse)').matches) return;
+
+      document.querySelectorAll('.photo-thumb, .record-card').forEach(target => {
+        target.addEventListener('pointerdown', () => {
+          target.classList.remove('is-snowing');
+          void target.offsetWidth;
+          target.classList.add('is-snowing');
+          clearTimeout(target._snowTimer);
+          target._snowTimer = setTimeout(() => target.classList.remove('is-snowing'), 2200);
+        }, { passive: true });
+      });
+    }
+
+    function openLightbox(src) {
+      const lb = document.getElementById('lightbox');
+      const lbImg = document.getElementById('lightbox-img');
+      lbImg.src = src;
+      lb.classList.remove('is-open');
+      requestAnimationFrame(() => lb.classList.add('is-open'));
+    }
+
     async function loadEntries() {
       const res = await fetch('/snowboarding.json');
       const data = await res.json();
@@ -407,25 +701,26 @@
       data.entries.forEach(e => {
         const photos = e.photos || [];
         const photoLayout = photos.length === 1 ? 'photo-layout-single' : ((photos.length === 2 || photos.length === 4) ? 'photo-layout-2x2' : 'photo-layout-3x3');
-        const photosHtml = photos.map(p => `<img src="${p}" class="zoomable">`).join('');
+        const photosHtml = photos.map(p => `<span class="photo-thumb"><img src="${p}" class="zoomable"></span>`).join('');
         const videosHtml = (e.videos || []).map(bvid => `<div class="video-cell"><iframe src="//player.bilibili.com/player.html?bvid=${bvid}&autoplay=0" allowfullscreen></iframe></div>`).join('');
         const recordImgs = e.record_image ? (Array.isArray(e.record_image) ? e.record_image : [e.record_image]) : [];
         const recordHtml = recordImgs.length ? `<div class="record-grid">${recordImgs.map(ri => `<div class="record-card"><img src="${ri}" alt="record" class="zoomable"></div>`).join('')}</div><div class="record-caption">${e.record_caption || ''}</div>` : '';
         const id = entryAnchor(e);
         container.innerHTML += `<div class="entry"${id ? ` id="${id}"` : ''}><div class="left-col"><div class="entry-meta"><span class="dot">•</span>${e.date}${e.location ? '<br><span class="entry-location">📍 ' + e.location + '</span>' : ''}</div>${recordHtml}</div><div class="middle-col"><div class="photo-grid ${photoLayout}">${photosHtml}${videosHtml}</div></div><div class="right-col"><div class="entry-note">${e.note || ""}</div></div></div>`;
       });
-      const lb = document.getElementById('lightbox');
-      const lbImg = document.getElementById('lightbox-img');
+
+      setupEntryReveal();
+      setupTouchSnowCrystal();
+
       document.querySelectorAll('.zoomable').forEach(img => {
         img.addEventListener('click', function(ev) {
           ev.stopPropagation();
-          lb.style.display = 'flex';
-          lbImg.src = this.src;
+          openLightbox(this.src);
         });
       });
     }
     loadEntries();
-    function closeLightbox() { document.getElementById('lightbox').style.display = 'none'; }
+    function closeLightbox() { document.getElementById('lightbox').classList.remove('is-open'); }
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
   </script>
   <script data-goatcounter="https://kiara-mytrace.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
