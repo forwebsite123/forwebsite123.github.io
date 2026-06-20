@@ -143,6 +143,7 @@
       aspect-ratio: 3 / 4;
       display: block;
       overflow: hidden;
+      position: relative;
       border: 1px solid rgba(122, 87, 87, 0.18);
       background: white;
       box-shadow: 0 8px 24px rgba(122, 87, 87, 0.06);
@@ -179,18 +180,75 @@
       margin-top: 10px;
     }
 
-    .photo-grid img {
+    .photo-thumb {
       width: 170px;
       height: 170px;
-      object-fit: cover;
+      display: block;
+      position: relative;
+      overflow: hidden;
       background: white;
       cursor: pointer;
+      flex: 0 0 auto;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
-    .photo-grid img:hover {
+    .photo-thumb img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    .photo-thumb:hover {
       transform: translateY(-3px);
       box-shadow: 0 12px 28px rgba(122, 87, 87, 0.12);
+    }
+
+    .record-card::before,
+    .record-card::after,
+    .photo-thumb::before,
+    .photo-thumb::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 74%;
+      aspect-ratio: 1;
+      border: 1px solid rgba(160, 205, 220, 0.34);
+      border-radius: 50%;
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.26);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    @keyframes thumbnailWaterRipple {
+      0% {
+        opacity: 0.32;
+        transform: translate(-50%, -50%) scale(0.26);
+      }
+      58% {
+        opacity: 0.16;
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(2.15);
+      }
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .record-card:hover::before,
+      .record-card:hover::after,
+      .photo-thumb:hover::before,
+      .photo-thumb:hover::after {
+        animation: thumbnailWaterRipple 1.85s ease-out infinite;
+      }
+
+      .record-card:hover::after,
+      .photo-thumb:hover::after {
+        animation-delay: 0.52s;
+      }
     }
 
     .video-cell {
@@ -240,52 +298,9 @@
       align-items: center;
       z-index: 9999;
       padding: 26px;
-      overflow: hidden;
-    }
-
-    .lightbox-ripple {
-      position: absolute;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .lightbox-ripple span {
-      position: absolute;
-      width: min(42vmin, 360px);
-      aspect-ratio: 1;
-      border: 1px solid rgba(158, 204, 220, 0.22);
-      border-radius: 50%;
-      opacity: 0;
-      transform: scale(0.22);
-    }
-
-    #lightbox.ripple-on .lightbox-ripple span {
-      animation: lightboxWaterRipple 2.25s ease-out both;
-    }
-
-    #lightbox.ripple-on .lightbox-ripple span:nth-child(2) { animation-delay: 0.36s; }
-    #lightbox.ripple-on .lightbox-ripple span:nth-child(3) { animation-delay: 0.72s; }
-
-    @keyframes lightboxWaterRipple {
-      0% {
-        opacity: 0.28;
-        transform: scale(0.22);
-      }
-      48% {
-        opacity: 0.16;
-      }
-      100% {
-        opacity: 0;
-        transform: scale(2.9);
-      }
     }
 
     #lightbox img {
-      position: relative;
-      z-index: 1;
       max-width: 92vw;
       max-height: 90vh;
       object-fit: contain;
@@ -297,7 +312,6 @@
       position: absolute;
       top: 24px;
       right: 28px;
-      z-index: 2;
       color: rgba(255,255,255,0.84);
       font-size: 14px;
       letter-spacing: 1px;
@@ -332,7 +346,10 @@
         animation: none;
       }
 
-      #lightbox.ripple-on .lightbox-ripple span {
+      .record-card:hover::before,
+      .record-card:hover::after,
+      .photo-thumb:hover::before,
+      .photo-thumb:hover::after {
         display: none;
         animation: none;
       }
@@ -358,7 +375,7 @@
       .page-title { font-size: 42px; }
       .entry-meta { font-size: 24px; }
 
-      .photo-grid img {
+      .photo-thumb {
         width: calc(33.333% - 14px);
         min-width: 96px;
         height: 120px;
@@ -402,7 +419,6 @@
   </div>
 
   <div id="lightbox" onclick="closeLightbox()">
-    <div class="lightbox-ripple" aria-hidden="true"><span></span><span></span><span></span></div>
     <div class="close-tip">tap anywhere to close</div>
     <img id="lightbox-img" src="" alt="large preview">
   </div>
@@ -439,16 +455,6 @@
       return slug ? `entry-${day}-${slug}` : `entry-${day}`;
     }
 
-    function triggerLightboxRipple() {
-      const lb = document.getElementById('lightbox');
-      if (!lb || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
-      lb.classList.remove('ripple-on');
-      void lb.offsetWidth;
-      lb.classList.add('ripple-on');
-      window.clearTimeout(lb._rippleTimer);
-      lb._rippleTimer = window.setTimeout(() => lb.classList.remove('ripple-on'), 2800);
-    }
-
     async function loadEntries() {
       const res = await fetch('/diving.json');
       const data = await res.json();
@@ -459,7 +465,7 @@
       });
       const container = document.getElementById('entries');
       data.entries.forEach(e => {
-        const photosHtml = (e.photos || []).map(p => `<img src="${p}" class="zoomable">`).join('');
+        const photosHtml = (e.photos || []).map(p => `<span class="photo-thumb"><img src="${p}" class="zoomable"></span>`).join('');
         const videosHtml = (e.videos || []).map(bvid => `<div class="video-cell"><iframe src="//player.bilibili.com/player.html?bvid=${bvid}&autoplay=0" allowfullscreen></iframe></div>`).join('');
         const recordImgs = e.record_image ? (Array.isArray(e.record_image) ? e.record_image : [e.record_image]) : [];
         const recordHtml = recordImgs.length ? `<div class="record-grid">${recordImgs.map(ri => `<div class="record-card"><img src="${ri}" class="zoomable"></div>`).join('')}</div><div class="record-caption">${e.record_caption || ''}</div>` : '';
@@ -473,16 +479,11 @@
           ev.stopPropagation();
           lb.style.display = 'flex';
           lbImg.src = this.src;
-          triggerLightboxRipple();
         });
       });
     }
     loadEntries();
-    function closeLightbox() {
-      const lb = document.getElementById('lightbox');
-      lb.classList.remove('ripple-on');
-      lb.style.display = 'none';
-    }
+    function closeLightbox() { document.getElementById('lightbox').style.display = 'none'; }
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
   </script>
   <script data-goatcounter="https://kiara-mytrace.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
