@@ -1195,8 +1195,20 @@ function openModal(idx) {
 }
     
     function animateRouteLine(poly) {
-      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      if (!poly || poly.__routeDrawStarted) return;
+      if (!poly) return;
+
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        poly.setStyle({ opacity: 0.85 });
+        return;
+      }
+
+      if (poly.__routeDrawStarted) {
+        const path = poly.getElement && poly.getElement();
+        if (path && path.dataset.routeAnimated === '1') {
+          path.style.opacity = '0.85';
+        }
+        return;
+      }
 
       let attempts = 0;
       const maxAttempts = 8;
@@ -1213,7 +1225,10 @@ function openModal(idx) {
           return;
         }
 
-        if (path.dataset.routeAnimated === '1') return;
+        if (path.dataset.routeAnimated === '1') {
+          path.style.opacity = '0.85';
+          return;
+        }
 
         let length = 0;
         try {
@@ -1228,16 +1243,17 @@ function openModal(idx) {
         path.dataset.routeAnimated = '1';
 
         path.style.transition = 'none';
+        path.style.opacity = '0';
         path.style.strokeDasharray = String(length);
         path.style.strokeDashoffset = String(length);
-        path.style.opacity = '0.85';
 
         // Force browser to apply the initial hidden state before animating.
         path.getBoundingClientRect();
 
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
-            path.style.transition = 'stroke-dashoffset 2200ms cubic-bezier(.22,.72,.18,1)';
+            path.style.transition = 'stroke-dashoffset 2200ms cubic-bezier(.22,.72,.18,1), opacity 220ms ease';
+            path.style.opacity = '0.85';
             path.style.strokeDashoffset = '0';
           });
         });
@@ -1269,7 +1285,7 @@ function openModal(idx) {
         const poly = L.polyline(w.route, {
           color,
           weight: 3,
-          opacity: 0.85,
+          opacity: 0,
           className: 'dopamine-route-line'
         }).addTo(leafletMap);
         routePolyline = poly;
