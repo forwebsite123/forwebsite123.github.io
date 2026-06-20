@@ -1,0 +1,246 @@
+name: Apply dopamine receipt animations
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/apply-dopamine-animations.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Patch dopamine receipts page
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          path = Path('site/dopamine-receipts.html')
+          text = path.read_text(encoding='utf-8')
+
+          css_marker = '/* Receipt Pulse / dopamine ledger animation layer */'
+          if css_marker not in text:
+              css = r'''
+
+    /* Receipt Pulse / dopamine ledger animation layer */
+    @keyframes receiptPaperIn {
+      0% { opacity: 0; transform: translateY(12px); filter: blur(2px); }
+      100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+    }
+
+    @keyframes receiptPulseGlow {
+      0%, 100% { box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+      45% { box-shadow: 0 14px 30px rgba(122,87,87,0.075); }
+    }
+
+    .data-section.visible .stats-bar,
+    .data-section.visible .filter-row,
+    .data-section.visible .footer-note {
+      animation: receiptPaperIn .68s cubic-bezier(.18,.72,.22,1) both;
+    }
+
+    .data-section.visible .filter-row { animation-delay: .08s; }
+
+    .stat-cell {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-cell::after {
+      content: '';
+      position: absolute;
+      left: 20%;
+      right: 20%;
+      bottom: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(139,94,94,.22), transparent);
+      opacity: 0;
+      transition: opacity .32s ease;
+    }
+
+    .stat-cell:hover::after { opacity: 1; }
+
+    .stat-value {
+      transition: text-shadow .28s ease, color .28s ease;
+    }
+
+    .stat-cell:hover .stat-value {
+      text-shadow: 0 8px 22px rgba(139,94,94,.14);
+    }
+
+    .filter-btn {
+      transition: border-color .18s ease, color .18s ease, background .18s ease, transform .14s ease, box-shadow .18s ease;
+    }
+
+    .filter-btn:active {
+      transform: translateY(1px) scale(.985);
+      box-shadow: inset 0 2px 5px rgba(107,79,79,.10);
+    }
+
+    .filter-btn.active {
+      box-shadow: 0 6px 16px rgba(107,79,79,.08);
+    }
+
+    .grid .card {
+      opacity: 0;
+      animation: receiptPaperIn .62s cubic-bezier(.18,.72,.22,1) both;
+      animation-delay: var(--receipt-delay, 0ms);
+      transition: box-shadow .28s ease, transform .2s ease, border-color .28s ease, background .28s ease;
+    }
+
+    .grid .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0;
+      background:
+        radial-gradient(ellipse at 18% 12%, rgba(255,255,255,.62), transparent 46%),
+        linear-gradient(115deg, transparent 0%, rgba(255,250,247,.28) 38%, rgba(255,255,255,.44) 50%, transparent 68%);
+      transform: translateX(-72%);
+      transition: opacity .32s ease, transform .74s cubic-bezier(.18,.72,.22,1);
+    }
+
+    .grid .card:hover::before,
+    .grid .card:focus-within::before {
+      opacity: 1;
+      transform: translateX(72%);
+    }
+
+    .grid .card > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .grid .card:hover {
+      border-color: rgba(139,94,94,.22);
+      background: rgba(255,255,255,.82);
+      box-shadow: 0 14px 30px rgba(122,87,87,.08);
+      transform: translateY(-3px);
+    }
+
+    .card-duration {
+      transform-origin: left center;
+      transition: transform .28s ease, text-shadow .28s ease;
+    }
+
+    .grid .card:hover .card-duration {
+      transform: translateY(-1px) scale(1.015);
+      text-shadow: 0 8px 18px rgba(139,94,94,.12);
+    }
+
+    .modal-overlay.open .modal {
+      animation: receiptPaperIn .36s cubic-bezier(.18,.72,.22,1) both;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .data-section.visible .stats-bar,
+      .data-section.visible .filter-row,
+      .data-section.visible .footer-note,
+      .grid .card,
+      .modal-overlay.open .modal {
+        opacity: 1 !important;
+        animation: none !important;
+        filter: none !important;
+        transform: none !important;
+      }
+
+      .grid .card::before,
+      .stat-cell::after {
+        transition: none !important;
+      }
+    }
+'''
+              marker = '    @media (max-width: 860px) {'
+              if marker not in text:
+                  raise SystemExit('CSS insertion marker not found')
+              text = text.replace(marker, css + '\n' + marker, 1)
+
+          old_stats = '''      document.getElementById('stats-bar').innerHTML = `
+        <div class="stat-cell"><div class="stat-label">运动次数</div><div class="stat-value">${ws.length}</div></div>
+        <div class="stat-cell"><div class="stat-label">总时长</div><div class="stat-value">${Math.round(totalMin / 60)}<span style="font-size:18px;color:var(--muted)"> h</span></div></div>
+        <div class="stat-cell"><div class="stat-label">消耗热量</div><div class="stat-value">${Math.round(totalCal / 1000)}<span style="font-size:18px;color:var(--muted)"> k</span></div></div>
+        <div class="stat-cell"><div class="stat-label">有路线记录</div><div class="stat-value">${withRoute}</div></div>
+      `;'''
+          new_stats = '''      document.getElementById('stats-bar').innerHTML = `
+        <div class="stat-cell"><div class="stat-label">运动次数</div><div class="stat-value" data-count-to="${ws.length}">${ws.length}</div></div>
+        <div class="stat-cell"><div class="stat-label">总时长</div><div class="stat-value" data-count-to="${Math.round(totalMin / 60)}" data-count-suffix="h">${Math.round(totalMin / 60)}<span style="font-size:18px;color:var(--muted)"> h</span></div></div>
+        <div class="stat-cell"><div class="stat-label">消耗热量</div><div class="stat-value" data-count-to="${Math.round(totalCal / 1000)}" data-count-suffix="k">${Math.round(totalCal / 1000)}<span style="font-size:18px;color:var(--muted)"> k</span></div></div>
+        <div class="stat-cell"><div class="stat-label">有路线记录</div><div class="stat-value" data-count-to="${withRoute}">${withRoute}</div></div>
+      `;
+      requestAnimationFrame(animateReceiptNumbers);'''
+          if old_stats in text and 'data-count-to="${ws.length}"' not in text:
+              text = text.replace(old_stats, new_stats, 1)
+
+          helper_marker = '''    }
+
+    function renderFilters(ws) {'''
+          if 'function animateReceiptNumbers()' not in text:
+              helper = r'''    }
+
+    function animateReceiptNumbers() {
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      document.querySelectorAll('.stat-value[data-count-to]').forEach((el) => {
+        const target = Number(el.dataset.countTo || 0);
+        const suffix = el.dataset.countSuffix || '';
+        const suffixHtml = suffix ? `<span style="font-size:18px;color:var(--muted)"> ${suffix}</span>` : '';
+        const start = performance.now();
+        const duration = 640;
+        const ease = (t) => 1 - Math.pow(1 - t, 3);
+        const draw = (now) => {
+          const progress = Math.min(1, (now - start) / duration);
+          const value = Math.round(target * ease(progress));
+          el.innerHTML = `${value}${suffixHtml}`;
+          if (progress < 1) requestAnimationFrame(draw);
+        };
+        requestAnimationFrame(draw);
+      });
+    }
+
+    function renderFilters(ws) {'''
+              if helper_marker not in text:
+                  raise SystemExit('Helper insertion marker not found')
+              text = text.replace(helper_marker, helper, 1)
+
+          if 'clean.map((w, cardIndex) => {' not in text:
+              text = text.replace('      grid.innerHTML = clean.map(w => {', '      grid.innerHTML = clean.map((w, cardIndex) => {', 1)
+
+          old_card = '''          <div class="card${w.hasRoute ? ' has-route' : ''}" onclick="openModal(${idx})">'''
+          new_card = '''          <div class="card${w.hasRoute ? ' has-route' : ''}" style="--receipt-delay:${Math.min(cardIndex, 10) * 55}ms" onclick="openModal(${idx})">'''
+          if old_card in text and '--receipt-delay:${Math.min(cardIndex, 10) * 55}ms' not in text:
+              text = text.replace(old_card, new_card, 1)
+
+          old_end_grid = '''      }).join('');
+    }
+
+function openModal(idx) {'''
+          new_end_grid = '''      }).join('');
+      requestAnimationFrame(() => animateReceiptNumbers());
+    }
+
+function openModal(idx) {'''
+          if old_end_grid in text and 'requestAnimationFrame(() => animateReceiptNumbers());\n    }\n\nfunction openModal' not in text:
+              text = text.replace(old_end_grid, new_end_grid, 1)
+
+          if css_marker not in text:
+              raise SystemExit('Patch failed: CSS marker missing')
+          path.write_text(text, encoding='utf-8')
+          Path('.github/workflows/apply-dopamine-animations.yml').unlink(missing_ok=True)
+          PY
+      - name: Commit patched page
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A site/dopamine-receipts.html .github/workflows/apply-dopamine-animations.yml
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Add dopamine receipts animations"
+            git push
+          fi
