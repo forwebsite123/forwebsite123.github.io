@@ -5,6 +5,8 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🌿%3C/text%3E%3C/svg%3E">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dopamine Receipts</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 
@@ -1194,6 +1196,27 @@ function openModal(idx) {
   setTimeout(() => initMap(w), 150);
 }
     
+    function sampleRouteCoords(routeCoords, maxPoints) {
+      if (!Array.isArray(routeCoords) || routeCoords.length <= maxPoints) return routeCoords;
+      const sampled = [];
+      const lastIndex = routeCoords.length - 1;
+
+      for (let i = 0; i < maxPoints; i += 1) {
+        const index = Math.round((i / (maxPoints - 1)) * lastIndex);
+        const point = routeCoords[index];
+        const prev = sampled[sampled.length - 1];
+        if (!prev || prev[0] !== point[0] || prev[1] !== point[1]) {
+          sampled.push(point);
+        }
+      }
+
+      if (sampled[sampled.length - 1] !== routeCoords[lastIndex]) {
+        sampled.push(routeCoords[lastIndex]);
+      }
+
+      return sampled;
+    }
+
     function animateRouteLine(poly, routeCoords, endMarker) {
       if (!poly || !Array.isArray(routeCoords) || routeCoords.length < 2) return;
 
@@ -1212,12 +1235,15 @@ function openModal(idx) {
       if (poly.__routeDrawStarted) return;
       poly.__routeDrawStarted = true;
 
+      const maxAnimatedPoints = window.matchMedia && window.matchMedia('(max-width: 700px)').matches ? 90 : 140;
+      const animatedCoords = sampleRouteCoords(routeCoords, maxAnimatedPoints);
       const duration = 2400;
       const start = performance.now();
-      const total = routeCoords.length;
+      const total = animatedCoords.length;
+      let lastCount = 0;
 
       poly.setStyle({ opacity: 0.85 });
-      poly.setLatLngs([routeCoords[0], routeCoords[0]]);
+      poly.setLatLngs([animatedCoords[0], animatedCoords[0]]);
 
       if (endMarker) {
         endMarker.setStyle({
@@ -1233,18 +1259,23 @@ function openModal(idx) {
         const eased = ease(progress);
         const count = Math.max(2, Math.ceil(eased * total));
 
-        poly.setLatLngs(routeCoords.slice(0, count));
+        if (count !== lastCount) {
+          poly.setLatLngs(animatedCoords.slice(0, count));
+          lastCount = count;
+        }
 
         if (progress < 1) {
           requestAnimationFrame(draw);
         } else {
-          poly.setLatLngs(routeCoords);
-          if (endMarker) {
-            endMarker.setStyle({
-              opacity: 1,
-              fillOpacity: 1
-            });
-          }
+          poly.setLatLngs(animatedCoords);
+          setTimeout(() => {
+            if (endMarker) {
+              endMarker.setStyle({
+                opacity: 1,
+                fillOpacity: 1
+              });
+            }
+          }, 80);
         }
       };
 
