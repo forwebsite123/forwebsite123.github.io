@@ -501,41 +501,30 @@
       box-shadow: 0 4px 12px rgba(139, 94, 94, 0.12);
     }
 
-    .grid .card {
-      animation: receiptFadeUp 0.52s ease both;
+    .grid .card.receipt-card-pending {
+      opacity: 0;
+      transform: translateY(22px) scale(0.985);
+      filter: blur(1.2px);
     }
 
-    .grid .card:nth-child(1) { animation-delay: 0.03s; }
-    .grid .card:nth-child(2) { animation-delay: 0.08s; }
-    .grid .card:nth-child(3) { animation-delay: 0.13s; }
-    .grid .card:nth-child(4) { animation-delay: 0.18s; }
-    .grid .card:nth-child(5) { animation-delay: 0.23s; }
-    .grid .card:nth-child(6) { animation-delay: 0.28s; }
-    .grid .card:nth-child(n+7) { animation-delay: 0.32s; }
-
-    .grid .card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
-      background: linear-gradient(115deg, transparent 0%, rgba(255,255,255,0.08) 36%, rgba(255,255,255,0.42) 50%, rgba(255,255,255,0.08) 64%, transparent 100%);
-      transform: translateX(-120%);
-      transition: transform 0.55s ease;
-    }
-
-    .grid .card > * {
-      position: relative;
-      z-index: 1;
+    .grid .card.receipt-card-visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+      transition:
+        opacity 0.72s cubic-bezier(0.18, 0.72, 0.22, 1),
+        transform 0.72s cubic-bezier(0.18, 0.72, 0.22, 1),
+        filter 0.72s cubic-bezier(0.18, 0.72, 0.22, 1),
+        box-shadow 0.24s ease,
+        border-color 0.24s ease,
+        background 0.24s ease;
+      transition-delay: var(--receipt-delay, 0ms), var(--receipt-delay, 0ms), var(--receipt-delay, 0ms), 0ms, 0ms, 0ms;
     }
 
     .grid .card:hover {
-      box-shadow: 0 10px 26px rgba(0,0,0,0.075);
+      border-color: rgba(139, 94, 94, 0.22);
+      box-shadow: 0 9px 22px rgba(0,0,0,0.065);
       transform: translateY(-3px);
-    }
-
-    .grid .card:hover::before {
-      transform: translateX(120%);
     }
 
     .grid .card .card-duration {
@@ -553,30 +542,13 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .data-section.visible .stats-bar,
-      .data-section.visible .filter-row,
-      .grid .card,
-      .modal-overlay.open .modal {
-        animation: none;
+      .grid .card.receipt-card-pending,
+      .grid .card.receipt-card-visible {
+        opacity: 1;
         transform: none;
         filter: none;
-      }
-
-      .filter-btn:active,
-      .grid .card:hover,
-      .grid .card:hover .card-duration {
-        transform: none;
-      }
-
-      .filter-btn.active,
-      .grid .card:hover {
-        box-shadow: none;
-      }
-
-      .grid .card::before {
         transition: none;
-        transform: none;
-        background: transparent;
+        animation: none;
       }
     }
 
@@ -879,6 +851,43 @@
           </div>
         `;
       }).join('');
+
+      setupReceiptCardReveal(grid);
+    }
+
+    function setupReceiptCardReveal(grid) {
+      const cards = Array.from(grid.querySelectorAll('.card'));
+      if (!cards.length) return;
+
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      cards.forEach((card, index) => {
+        const delay = Math.min(index * 90, 540);
+        card.style.setProperty('--receipt-delay', `${delay}ms`);
+        card.classList.add('receipt-card-pending');
+      });
+
+      if (reduceMotion) {
+        cards.forEach(card => card.classList.add('receipt-card-visible'));
+        return;
+      }
+
+      if (!('IntersectionObserver' in window)) {
+        requestAnimationFrame(() => {
+          cards.forEach(card => card.classList.add('receipt-card-visible'));
+        });
+        return;
+      }
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add('receipt-card-visible');
+          observer.unobserve(entry.target);
+        });
+      }, { threshold: 0.18, rootMargin: '0px 0px -8% 0px' });
+
+      cards.forEach(card => observer.observe(card));
     }
 
 function openModal(idx) {
