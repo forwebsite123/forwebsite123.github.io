@@ -213,18 +213,19 @@
       position: absolute;
       left: 50%;
       top: 50%;
-      width: 62%;
+      width: 56%;
       aspect-ratio: 1;
-      border: 2px solid rgba(175, 225, 238, 0.55);
-      border-radius: 48% 52% 51% 49% / 52% 48% 50% 50%;
+      border: 2px solid rgba(188, 233, 244, 0.64);
+      border-radius: 45% 55% 51% 49% / 54% 46% 52% 48%;
       opacity: 0;
       background:
-        radial-gradient(circle, rgba(214, 244, 250, 0.13) 0 16%, transparent 48%),
-        radial-gradient(circle, transparent 52%, rgba(210, 244, 250, 0.18) 58%, transparent 66%);
+        radial-gradient(ellipse at 46% 42%, rgba(255, 255, 255, 0.40) 0 8%, transparent 24%),
+        radial-gradient(circle, rgba(205, 242, 250, 0.25) 0 18%, transparent 46%),
+        conic-gradient(from 18deg, transparent 0 15%, rgba(235, 255, 255, 0.38) 20%, transparent 28%, transparent 48%, rgba(150, 222, 238, 0.26) 55%, transparent 66%, transparent 100%);
       box-shadow:
-        0 0 14px rgba(140, 215, 235, 0.26),
-        inset 0 0 18px rgba(235, 255, 255, 0.18);
-      transform: translate(-50%, -50%) scale(0.24) rotate(0deg);
+        0 0 18px rgba(140, 220, 238, 0.34),
+        inset 0 0 22px rgba(238, 255, 255, 0.28);
+      transform: translate(-50%, -50%) scale(0.20) rotate(-4deg);
       pointer-events: none;
       mix-blend-mode: screen;
       z-index: 2;
@@ -232,27 +233,30 @@
 
     .record-card::after,
     .photo-thumb::after {
-      width: 48%;
-      border-color: rgba(218, 248, 255, 0.46);
+      width: 43%;
+      border-color: rgba(235, 252, 255, 0.55);
+      background:
+        radial-gradient(ellipse at 42% 38%, rgba(255, 255, 255, 0.46) 0 10%, transparent 25%),
+        radial-gradient(circle, transparent 48%, rgba(218, 250, 255, 0.22) 54%, transparent 68%);
       box-shadow:
-        0 0 20px rgba(170, 230, 244, 0.26),
-        inset 0 0 14px rgba(255, 255, 255, 0.20);
+        0 0 24px rgba(176, 234, 246, 0.34),
+        inset 0 0 18px rgba(255, 255, 255, 0.26);
     }
 
     @keyframes thumbnailWaterRipple {
       0% {
-        opacity: 0.56;
-        transform: translate(-50%, -50%) scale(0.24) rotate(0deg);
+        opacity: 0.68;
+        transform: translate(-50%, -50%) scale(0.20) rotate(-4deg);
       }
-      42% {
-        opacity: 0.34;
+      38% {
+        opacity: 0.42;
       }
       72% {
-        opacity: 0.16;
+        opacity: 0.18;
       }
       100% {
         opacity: 0;
-        transform: translate(-50%, -50%) scale(2.55) rotate(5deg);
+        transform: translate(-50%, -50%) scale(2.85) rotate(7deg);
       }
     }
 
@@ -261,12 +265,12 @@
       .record-card:hover::after,
       .photo-thumb:hover::before,
       .photo-thumb:hover::after {
-        animation: thumbnailWaterRipple 2.85s cubic-bezier(0.16, 0.72, 0.22, 1) infinite;
+        animation: thumbnailWaterRipple 3.25s cubic-bezier(0.14, 0.70, 0.20, 1) infinite;
       }
 
       .record-card:hover::after,
       .photo-thumb:hover::after {
-        animation-delay: 0.82s;
+        animation-delay: 1.05s;
       }
     }
 
