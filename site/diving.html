@@ -31,18 +31,18 @@
       bottom: -18vh;
       width: var(--bubble-size);
       aspect-ratio: 1;
-      border: 1px solid rgba(218, 250, 255, 0.09);
+      border: 1px solid rgba(218, 250, 255, 0.10);
       border-radius: 50%;
       opacity: 0;
       background:
-        radial-gradient(circle at 28% 24%, rgba(255, 255, 255, 0.70) 0 8%, transparent 18%),
-        radial-gradient(circle at 72% 72%, rgba(255, 180, 222, 0.20) 0 14%, transparent 34%),
-        radial-gradient(circle at 25% 78%, rgba(123, 211, 252, 0.20) 0 16%, transparent 42%),
-        conic-gradient(from 28deg, rgba(112, 204, 255, 0.22), rgba(255, 196, 234, 0.23), rgba(255, 240, 142, 0.17), rgba(145, 246, 229, 0.18), rgba(112, 204, 255, 0.22));
+        radial-gradient(circle at 28% 24%, rgba(255, 255, 255, 0.76) 0 8%, transparent 18%),
+        radial-gradient(circle at 72% 72%, rgba(255, 180, 222, 0.24) 0 14%, transparent 34%),
+        radial-gradient(circle at 25% 78%, rgba(123, 211, 252, 0.23) 0 16%, transparent 42%),
+        conic-gradient(from 28deg, rgba(112, 204, 255, 0.26), rgba(255, 196, 234, 0.27), rgba(255, 240, 142, 0.20), rgba(145, 246, 229, 0.22), rgba(112, 204, 255, 0.26));
       box-shadow:
-        inset -10px -12px 24px rgba(56, 126, 168, 0.14),
-        inset 8px 8px 22px rgba(255, 255, 255, 0.34),
-        0 0 26px rgba(112, 199, 235, 0.18);
+        inset -10px -12px 24px rgba(56, 126, 168, 0.17),
+        inset 8px 8px 22px rgba(255, 255, 255, 0.40),
+        0 0 26px rgba(112, 199, 235, 0.22);
       transform: translate3d(0, 0, 0) scale(0.34);
       animation: diveBubbleRise var(--bubble-duration) linear infinite;
       animation-delay: var(--bubble-delay);
@@ -55,9 +55,9 @@
       inset: 7%;
       border-radius: 50%;
       background:
-        linear-gradient(135deg, rgba(255, 255, 255, 0.20), transparent 34%),
-        radial-gradient(circle at 78% 24%, rgba(255, 220, 244, 0.18) 0 10%, transparent 30%);
-      opacity: 0.66;
+        linear-gradient(135deg, rgba(255, 255, 255, 0.24), transparent 34%),
+        radial-gradient(circle at 78% 24%, rgba(255, 220, 244, 0.22) 0 10%, transparent 30%);
+      opacity: 0.76;
     }
 
     .dive-bubbles span::after {
@@ -65,9 +65,9 @@
       position: absolute;
       inset: 18%;
       border-radius: 50%;
-      border-top: 1.5px solid rgba(255, 255, 255, 0.38);
-      border-left: 1.5px solid rgba(255, 255, 255, 0.18);
-      opacity: 0.58;
+      border-top: 1.5px solid rgba(255, 255, 255, 0.46);
+      border-left: 1.5px solid rgba(255, 255, 255, 0.22);
+      opacity: 0.70;
     }
 
     .dive-bubbles span:nth-child(1) { --bubble-left: 8%; --bubble-size: 52px; --bubble-duration: 30s; --bubble-delay: -6s; --bubble-drift: 38px; --bubble-wave-a: -10px; --bubble-wave-b: 16px; --bubble-wave-c: -6px; --bubble-wave-d: 24px; }
