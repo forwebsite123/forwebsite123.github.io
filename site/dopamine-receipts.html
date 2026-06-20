@@ -1194,72 +1194,61 @@ function openModal(idx) {
   setTimeout(() => initMap(w), 150);
 }
     
-    function animateRouteLine(poly) {
-      if (!poly) return;
+    function animateRouteLine(poly, routeCoords, endMarker) {
+      if (!poly || !Array.isArray(routeCoords) || routeCoords.length < 2) return;
 
       if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        poly.setLatLngs(routeCoords);
         poly.setStyle({ opacity: 0.85 });
-        return;
-      }
-
-      if (poly.__routeDrawStarted) {
-        const path = poly.getElement && poly.getElement();
-        if (path && path.dataset.routeAnimated === '1') {
-          path.style.opacity = '0.85';
-        }
-        return;
-      }
-
-      let attempts = 0;
-      const maxAttempts = 8;
-
-      const run = () => {
-        if (!poly || poly.__routeDrawStarted) return;
-
-        const path = poly.getElement && poly.getElement();
-        if (!path || !path.getTotalLength) {
-          attempts += 1;
-          if (attempts < maxAttempts) {
-            setTimeout(run, 80);
-          }
-          return;
-        }
-
-        if (path.dataset.routeAnimated === '1') {
-          path.style.opacity = '0.85';
-          return;
-        }
-
-        let length = 0;
-        try {
-          length = path.getTotalLength();
-        } catch (e) {
-          return;
-        }
-
-        if (!length || !Number.isFinite(length)) return;
-
-        poly.__routeDrawStarted = true;
-        path.dataset.routeAnimated = '1';
-
-        path.style.transition = 'none';
-        path.style.opacity = '0';
-        path.style.strokeDasharray = String(length);
-        path.style.strokeDashoffset = String(length);
-
-        // Force browser to apply the initial hidden state before animating.
-        path.getBoundingClientRect();
-
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            path.style.transition = 'stroke-dashoffset 2200ms cubic-bezier(.22,.72,.18,1), opacity 220ms ease';
-            path.style.opacity = '0.85';
-            path.style.strokeDashoffset = '0';
+        if (endMarker) {
+          endMarker.setStyle({
+            opacity: 1,
+            fillOpacity: 1
           });
+        }
+        return;
+      }
+
+      if (poly.__routeDrawStarted) return;
+      poly.__routeDrawStarted = true;
+
+      const duration = 2400;
+      const start = performance.now();
+      const total = routeCoords.length;
+
+      poly.setStyle({ opacity: 0.85 });
+      poly.setLatLngs([routeCoords[0], routeCoords[0]]);
+
+      if (endMarker) {
+        endMarker.setStyle({
+          opacity: 0,
+          fillOpacity: 0
         });
+      }
+
+      const ease = (t) => 1 - Math.pow(1 - t, 3);
+
+      const draw = (now) => {
+        const progress = Math.min(1, (now - start) / duration);
+        const eased = ease(progress);
+        const count = Math.max(2, Math.ceil(eased * total));
+
+        poly.setLatLngs(routeCoords.slice(0, count));
+
+        if (progress < 1) {
+          requestAnimationFrame(draw);
+        } else {
+          poly.setLatLngs(routeCoords);
+          if (endMarker) {
+            endMarker.setStyle({
+              opacity: 1,
+              fillOpacity: 1
+            });
+          }
+        }
       };
 
-      setTimeout(run, 120);
+      requestAnimationFrame(draw);
     }
 
     function initMap(w) {
@@ -1280,12 +1269,13 @@ function openModal(idx) {
 
       const color = getColor(w.typeRaw, w.typeKey);
       let routePolyline = null;
+      let endMarker = null;
 
       if (w.route && w.route.length > 1) {
-        const poly = L.polyline(w.route, {
+        const poly = L.polyline([w.route[0], w.route[0]], {
           color,
           weight: 3,
-          opacity: 0,
+          opacity: 0.85,
           className: 'dopamine-route-line'
         }).addTo(leafletMap);
         routePolyline = poly;
@@ -1299,17 +1289,18 @@ function openModal(idx) {
           className: 'dopamine-route-start'
         }).addTo(leafletMap);
 
-        L.circleMarker(w.route[w.route.length - 1], {
+        endMarker = L.circleMarker(w.route[w.route.length - 1], {
           radius: 6,
           fillColor: color,
           color,
           weight: 2,
-          fillOpacity: 1,
+          opacity: 0,
+          fillOpacity: 0,
           className: 'dopamine-route-end'
         }).addTo(leafletMap);
 
-        leafletMap.fitBounds(poly.getBounds(), { padding: [24, 24] });
-        animateRouteLine(poly);
+        leafletMap.fitBounds(L.latLngBounds(w.route), { padding: [24, 24] });
+        animateRouteLine(poly, w.route, endMarker);
       } else if (w.locationPin) {
         L.circleMarker(w.locationPin, {
           radius: 10,
@@ -1334,8 +1325,8 @@ function openModal(idx) {
           if (!leafletMap) return;
           leafletMap.invalidateSize();
           if (w.route && w.route.length > 1) {
-            leafletMap.fitBounds(L.polyline(w.route).getBounds(), { padding: [24, 24] });
-            animateRouteLine(routePolyline);
+            leafletMap.fitBounds(L.latLngBounds(w.route), { padding: [24, 24] });
+            animateRouteLine(routePolyline, w.route, endMarker);
           } else if (w.locationPin) {
             leafletMap.setView(w.locationPin, 15);
           }
