@@ -240,9 +240,52 @@
       align-items: center;
       z-index: 9999;
       padding: 26px;
+      overflow: hidden;
+    }
+
+    .lightbox-ripple {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .lightbox-ripple span {
+      position: absolute;
+      width: min(42vmin, 360px);
+      aspect-ratio: 1;
+      border: 1px solid rgba(158, 204, 220, 0.22);
+      border-radius: 50%;
+      opacity: 0;
+      transform: scale(0.22);
+    }
+
+    #lightbox.ripple-on .lightbox-ripple span {
+      animation: lightboxWaterRipple 2.25s ease-out both;
+    }
+
+    #lightbox.ripple-on .lightbox-ripple span:nth-child(2) { animation-delay: 0.36s; }
+    #lightbox.ripple-on .lightbox-ripple span:nth-child(3) { animation-delay: 0.72s; }
+
+    @keyframes lightboxWaterRipple {
+      0% {
+        opacity: 0.28;
+        transform: scale(0.22);
+      }
+      48% {
+        opacity: 0.16;
+      }
+      100% {
+        opacity: 0;
+        transform: scale(2.9);
+      }
     }
 
     #lightbox img {
+      position: relative;
+      z-index: 1;
       max-width: 92vw;
       max-height: 90vh;
       object-fit: contain;
@@ -254,6 +297,7 @@
       position: absolute;
       top: 24px;
       right: 28px;
+      z-index: 2;
       color: rgba(255,255,255,0.84);
       font-size: 14px;
       letter-spacing: 1px;
@@ -285,6 +329,11 @@
       .entry-note {
         opacity: 1;
         transform: none;
+        animation: none;
+      }
+
+      #lightbox.ripple-on .lightbox-ripple span {
+        display: none;
         animation: none;
       }
     }
@@ -353,6 +402,7 @@
   </div>
 
   <div id="lightbox" onclick="closeLightbox()">
+    <div class="lightbox-ripple" aria-hidden="true"><span></span><span></span><span></span></div>
     <div class="close-tip">tap anywhere to close</div>
     <img id="lightbox-img" src="" alt="large preview">
   </div>
@@ -389,6 +439,16 @@
       return slug ? `entry-${day}-${slug}` : `entry-${day}`;
     }
 
+    function triggerLightboxRipple() {
+      const lb = document.getElementById('lightbox');
+      if (!lb || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+      lb.classList.remove('ripple-on');
+      void lb.offsetWidth;
+      lb.classList.add('ripple-on');
+      window.clearTimeout(lb._rippleTimer);
+      lb._rippleTimer = window.setTimeout(() => lb.classList.remove('ripple-on'), 2800);
+    }
+
     async function loadEntries() {
       const res = await fetch('/diving.json');
       const data = await res.json();
@@ -413,11 +473,16 @@
           ev.stopPropagation();
           lb.style.display = 'flex';
           lbImg.src = this.src;
+          triggerLightboxRipple();
         });
       });
     }
     loadEntries();
-    function closeLightbox() { document.getElementById('lightbox').style.display = 'none'; }
+    function closeLightbox() {
+      const lb = document.getElementById('lightbox');
+      lb.classList.remove('ripple-on');
+      lb.style.display = 'none';
+    }
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
   </script>
   <script data-goatcounter="https://kiara-mytrace.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
