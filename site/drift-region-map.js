@@ -1,7 +1,7 @@
 (function(){
   const REGION_MAP_BOUNDS = {
     china: { x: 73, y: 17, width: 63, height: 38, padding: 20 },
-    asia: { x: 22, y: -10, width: 158, height: 87, padding: 28 },
+    asia: { x: 22, y: -10, width: 157.4, height: 87, padding: 20 },
     europe: { x: -24, y: 34.5, width: 79, height: 36.5, padding: 24 },
     africa: { x: -18, y: -35, width: 69, height: 71, padding: 26 },
     northAmerica: { x: -168, y: 8, width: 115, height: 68, padding: 28 },
@@ -26,10 +26,18 @@
     africa: [[[36,-6],[36,-2],[37,2],[38,7],[38,10],[37,12],[35,11],[33,12],[32,18],[31.5,25],[31.5,30],[31,34],[28,33.5],[24,35.5],[22,37],[18,39],[15,43],[12.5,44.5],[11.5,44.5],[11,49],[10,51],[5,49],[1,43],[-4,41],[-7,41],[-12,42],[-17,38],[-24,37],[-29,33],[-35,27],[-35,18],[-30,15],[-23,13],[-17,11],[-6,12],[-5,8.5],[0,8],[4,6],[5,2],[6,-3],[5,-9],[8,-15],[11,-17.5],[15,-18],[21,-18],[27,-14],[33,-9],[36,-6]],[[-11.5,49],[-16,50.5],[-20,48.5],[-24,47.5],[-26,47.5],[-24,43.5],[-20,43.5],[-16,45],[-11.5,49]]],
     asia: [[[41,29],[44,43],[47,46],[50,50],[53,53],[56,55],[60,50],[64,45],[67,42],[69,50],[70,55],[73,65],[76,80],[77,100],[75,115],[73,130],[71,145],[72,152],[71,165],[70,178],[69,180],[66,180],[64,178],[62,173],[62,165],[56,162],[52,155],[50,153],[47,143],[46,140],[44,136],[43,133],[42.5,131],[41,130],[39,129.5],[37,129.5],[35.5,129.5],[34,129],[34,127],[34,126],[35,125.5],[37,126],[38,125.5],[39.5,124.5],[40,124],[39,122.5],[38,122],[36,121],[34,120.5],[32,122],[30,122.5],[28,121],[25,119.5],[22,114.5],[21,110.5],[18,109.5],[16,109.5],[12,109.5],[10,108],[8,107],[6,106],[3,105],[1.5,104.5],[1,104],[1,103.5],[3,101],[6,99],[8,97.5],[10,98.5],[13,98.5],[15,97.5],[16,97],[17,94.5],[19,93.5],[21,92.5],[22,92],[22,88],[20,86],[18,83.5],[16,81.5],[13,79.5],[10,79],[8,76.5],[6.5,75.5],[8,74.5],[10,75.5],[15,73],[20,72.5],[22,69],[25,66.5],[25.5,63],[25.5,60],[26.5,57],[24,58],[22,59.5],[18,55],[15,51],[13,47],[12.5,45],[12.5,44.5],[15,43],[18,41],[21,39.5],[24,37.5],[27,36],[29.5,35],[31,34],[32,35],[34,36],[36,36],[36,22],[37,23],[38,24],[39,26],[41,29]],[[6,94.5],[4,96.5],[2,98.5],[0,100],[-1.5,101.5],[-3,103.5],[-5.5,105],[-6.5,106.5],[-7.5,108.5],[-8,111],[-8,114],[-7.5,115],[-6,114],[-4.5,111],[-3.5,108],[-1.5,105],[0,104],[1,103.5],[3,101],[5,98],[6,94.5]],[[30,129],[32,129],[33,129.5],[34,130.5],[35,132],[36,134],[37,135.5],[38,137],[39,138.5],[40,138.5],[41,139],[42,139.5],[43,140],[45,141],[46,146],[44,146.5],[42,145],[41,143],[40,142],[39,142],[38,141],[37,140],[36,139],[35,138],[34,136],[33,135],[32,133],[31,132],[30,129]],[[21.5,119.5],[23,122],[25.5,122.5],[26,121.5],[24.5,120],[21.5,119.5]]],
     oceania: [[[-11,131],[-11.5,136],[-13,137],[-13,140],[-11,142],[-10,143],[-13.5,144],[-16,146],[-19,149],[-24,153],[-28,154],[-33,153],[-37,150],[-39,147],[-39,144],[-37,140],[-35,137],[-34,135],[-35,134],[-34,131],[-32,128],[-33,124],[-34,121],[-35,116],[-32,114],[-27,113],[-23,113.5],[-20,115.5],[-19,119],[-16,122],[-14,125],[-13,128],[-11,131]],[[-40,144],[-41,145],[-42,146.5],[-43.5,148],[-43.5,149],[-42,149],[-41,147.5],[-40,146],[-40,144]],[[-34,172],[-36,175],[-38,177],[-39,178],[-41,176],[-42,174],[-44,172],[-44,170],[-46,168],[-47,167],[-46,166],[-44,168],[-42,170],[-40,172],[-38,174],[-36,174],[-34,172]],[[-3,141],[-1,142],[0,143],[-1,145],[-3,148],[-5,150],[-6,152],[-7,155],[-6,156],[-8,155],[-9,153],[-10,151],[-9.5,148],[-8,145],[-5,142],[-3,141]]],
-    antarctica: [[[-63,-180],[-66,-160],[-70,-135],[-73,-110],[-75,-80],[-78,-45],[-80,-10],[-78,25],[-75,55],[-72,85],[-69,115],[-66,145],[-63,180],[-70,180],[-78,160],[-84,120],[-85,60],[-85,0],[-85,-60],[-84,-120],[-78,-160],[-70,-180],[-63,-180]]]
+    antarctica: []
   };
   function clamp(v,min,max){ return Math.min(max,Math.max(min,v)); }
-  function boundsFor(c){ const b=REGION_MAP_BOUNDS[c]; const pad=b.padding/111; return [[b.y-pad,b.x-pad],[b.y+b.height+pad,b.x+b.width+pad]]; }
+  function boundsFor(c){
+    const b=REGION_MAP_BOUNDS[c];
+    const pad=b.padding/111;
+    const west=clamp(b.x-pad,-180,180);
+    const east=clamp(b.x+b.width+pad,-180,180);
+    const south=clamp(b.y-pad,-85,85);
+    const north=clamp(b.y+b.height+pad,-85,85);
+    return [[south,west],[north,east]];
+  }
   function safeBoundsFor(c){ return L.latLngBounds(boundsFor(c)); }
   function clampMap(map, region){ map.panInsideBounds(safeBoundsFor(region), { animate:false }); }
   function clientPoint(e, el){ const r=el.getBoundingClientRect(); return L.point(e.clientX-r.left, e.clientY-r.top); }
@@ -72,20 +80,21 @@
   function icon(){ return L.divIcon({className:'drift-marker-shell',html:'<div class="drift-point"><span class="drift-point-halo"></span><span class="drift-point-core"></span></div>',iconSize:[20,20],iconAnchor:[10,10],popupAnchor:[0,-10]}); }
   function esc(s){return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
   function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
-  function previews(items){ const n=clamp(items.length,3,5); return shuffle(items).slice(0,n); }
+  function previews(items){ if(!items.length) return []; const n=clamp(items.length, Math.min(3, items.length), 5); return shuffle(items).slice(0,n); }
   function navigate(url){ document.body.classList.add('drift-region-leaving'); document.querySelector('.leaflet-popup.drift-preview')?.classList.add('is-picking-up'); setTimeout(()=>{ location.href=url; }, matchMedia('(prefers-reduced-motion: reduce)').matches ? 40 : 220); }
-  function popup(point, imgs){ return `<div class="drift-preview-card"><h4><a href="${esc(point.page)}">${esc(point.title)}</a></h4><div class="drift-preview-images">${imgs.map(src=>`<img src="${esc(src)}" alt="${esc(point.title)}" data-page="${esc(point.page)}">`).join('')}</div></div>`; }
+  function popup(point, imgs){ const images=imgs.length ? `<div class="drift-preview-images">${imgs.map(src=>`<img src="${esc(src)}" alt="${esc(point.title)}" data-page="${esc(point.page)}">`).join('')}</div>` : '<p class="drift-preview-empty">Open this fragment</p>'; return `<div class="drift-preview-card"><h4><a href="${esc(point.page)}">${esc(point.title)}</a></h4>${images}</div>`; }
   async function init(card){
     if (!window.L) return; const region=card.dataset.region; const el=card.querySelector('.region-map-leaflet');
     const map=L.map(el,{zoomControl:false,attributionControl:false,scrollWheelZoom:false,touchZoom:false,dragging:false,doubleClickZoom:false,boxZoom:false,keyboard:false,zoomSnap:.1,zoomDelta:.55,maxBounds:safeBoundsFor(region),maxBoundsViscosity:1,worldCopyJump:false});
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{subdomains:'abc', noWrap:true, maxNativeZoom:19, maxZoom:19}).addTo(map);
-    (SHAPES[region] || []).forEach(s=>L.polygon(s,{color:'#9c6e6e',weight:1.6,fillColor:'#d8b7aa',fillOpacity:.34,interactive:false}).addTo(map));
+    (SHAPES[region] || []).forEach(s=>L.polygon(s,{color:'#9c6e6e',weight:1.35,fillColor:'#d8b7aa',fillOpacity:.22,interactive:false}).addTo(map));
     map.fitBounds(safeBoundsFor(region),{animate:false,padding:[12,12]}); map.setMinZoom(map.getBoundsZoom(safeBoundsFor(region),false)); map.setMaxZoom(map.getMinZoom()+1.38); map.setZoom(map.getMinZoom(),{animate:false}); clampMap(map, region); installTouchGestures(card, map, region);
     const [photosRes, markersRes]=await Promise.all([fetch('/photos.json'),fetch('/map-markers.json')]); const photos=await photosRes.json(); const markerData=await markersRes.json();
-    const allowed=REGION_PAGES[region]||new Set(); markerData.markers.filter(m=>allowed.has(m.page)).forEach(point=>{ const imgs=photos.items.filter(i=>i.page===point.page&&i.image).map(i=>i.image); const marker=L.marker([point.lat,point.lng],{icon:icon(),riseOnHover:true}).addTo(map); const refresh=()=>marker.setPopupContent(popup(point,previews(imgs))); marker.bindPopup(popup(point,previews(imgs)),{className:'drift-preview',closeButton:false,autoPan:true,keepInView:true}); marker.on('mouseover',()=>{ refresh(); marker.openPopup(); marker.getElement()?.querySelector('.drift-point')?.classList.add('is-hovered'); }); marker.on('mouseout',()=>marker.getElement()?.querySelector('.drift-point')?.classList.remove('is-hovered')); marker.on('click',e=>{ if(matchMedia('(hover: hover) and (pointer: fine)').matches) navigate(point.page); else { refresh(); marker.openPopup(); } }); });
+    const allowed=REGION_PAGES[region]||new Set(); let activeTouchPage=''; markerData.markers.filter(m=>allowed.has(m.page)).forEach(point=>{ const imgs=photos.items.filter(i=>i.page===point.page&&i.image).map(i=>i.image); const marker=L.marker([point.lat,point.lng],{icon:icon(),riseOnHover:true}).addTo(map); const pointEl=()=>marker.getElement()?.querySelector('.drift-point'); const refresh=()=>marker.setPopupContent(popup(point,previews(imgs))); marker.bindPopup(popup(point,previews(imgs)),{className:'drift-preview',closeButton:false,autoPan:true,keepInView:true}); marker.on('mouseover',()=>{ activeTouchPage=''; refresh(); marker.openPopup(); pointEl()?.classList.add('is-hovered'); }); marker.on('mouseout',()=>pointEl()?.classList.remove('is-hovered')); marker.on('popupopen',()=>pointEl()?.classList.add('is-active')); marker.on('popupclose',()=>pointEl()?.classList.remove('is-active')); marker.on('click',()=>{ if(matchMedia('(hover: hover) and (pointer: fine)').matches){ navigate(point.page); return; } if(activeTouchPage===point.page && marker.isPopupOpen()){ navigate(point.page); return; } activeTouchPage=point.page; refresh(); marker.openPopup(); }); });
     el.addEventListener('click',e=>{ const img=e.target.closest('.drift-preview-images img'); const link=e.target.closest('.drift-preview-card h4 a'); if(img||link){ e.preventDefault(); navigate((img&&img.dataset.page)||(link&&link.getAttribute('href'))); } });
-    card.querySelector('[data-region-map-zoom="in"]')?.addEventListener('click',()=>map.setZoom(clamp(map.getZoom()+.55,map.getMinZoom(),map.getMaxZoom()),{animate:!matchMedia('(prefers-reduced-motion: reduce)').matches}));
-    card.querySelector('[data-region-map-zoom="out"]')?.addEventListener('click',()=>map.setZoom(clamp(map.getZoom()-.55,map.getMinZoom(),map.getMaxZoom()),{animate:!matchMedia('(prefers-reduced-motion: reduce)').matches}));
+    const buttonZoom=delta=>{ map.setZoom(clamp(map.getZoom()+delta,map.getMinZoom(),map.getMaxZoom()),{animate:!matchMedia('(prefers-reduced-motion: reduce)').matches}); setTimeout(()=>clampMap(map, region), 0); };
+    card.querySelector('[data-region-map-zoom="in"]')?.addEventListener('click',()=>buttonZoom(.55));
+    card.querySelector('[data-region-map-zoom="out"]')?.addEventListener('click',()=>buttonZoom(-.55));
     map.on('zoomend moveend',()=>clampMap(map, region));
     requestAnimationFrame(()=>card.classList.add('is-visible'));
   }
