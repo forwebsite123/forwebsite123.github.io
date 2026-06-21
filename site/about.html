@@ -487,16 +487,16 @@
       欢迎来到我的个人网站👏。这个网站始于 2026 年初，是我 22 岁的生日礼物。域名由一位曾看过同一片海底世界，却在陆地上走散的朋友赠与。最初，它承载着关于咖啡店和极限运动的共鸣和生日祝福；如今，它已慢慢注入了我自己的灵魂，成为我存放光影与思考的坐标。
       </p>
 
-      <p class="about-reveal">
+      <p class="about-typewriter about-reveal">
       生日那天，他说：“有了这个，你就可以在互联网上留下自己的痕迹咯。”于是那时我就想好，它要叫 “A place to leave traces”。
 刚收到这份礼物时，我内心有些错愕。它太特殊了，以至于我一时间不知道该如何起笔。社交平台已经太多，我要让它变得不一样。如果说 IG 和朋友圈记录的是转瞬即逝的Moments，那这个网站就该是一座慢时间的数字纪念馆，用来珍藏那些更本质、更安静、也更长久的东西。这里记载着大部分我成年后的故事和摄影作品。
       </p>
 
-      <p class="about-reveal">
+      <p class="about-typewriter about-reveal">
       可惜，有些同行最终还是会走到各自的岔路口。那段关系后来停在了它该停下的地方，但这个网站没有停在那里。后来，我开始一点点理解它、修改它、扩展它，也在每一次更新里重新确认：它早已不再只属于那段故事，而属于我自己了。他把框架留给了我，我在里面填满了我自己的生命。
       </p>
 
-      <p class="about-reveal">
+      <p class="about-typewriter about-reveal">
       也许这就是礼物最好的结局 —— 送礼的人离开之后，它依然在生长。
       </p>
       <p class="about-signoff about-reveal">
@@ -587,15 +587,35 @@
       output.textContent += ch;
       i += 1;
 
-      var delay = 20;
-      if (/[，。；：！？,.!?;:]/.test(ch)) delay = 95;
-      if (ch === '\n') delay = 190;
+      var delay = /[\u4e00-\u9fff]/.test(ch) ? 42 : 30;
+      if (/[，、,.]/.test(ch)) delay = 130;
+      if (/[。；：！？.!?;:]/.test(ch)) delay = 210;
+      if (ch === '\n') delay = 320;
 
       window.setTimeout(next, delay);
     }
 
     el.classList.add('is-visible');
     window.setTimeout(next, 260);
+  }
+
+
+  function typeTextQueue(elements, done) {
+    var index = 0;
+
+    function runNext() {
+      if (index >= elements.length) {
+        if (done) done();
+        return;
+      }
+
+      typeText(elements[index], function () {
+        index += 1;
+        window.setTimeout(runNext, 360);
+      });
+    }
+
+    runNext();
   }
 
   function setupLeaveTransition() {
@@ -618,11 +638,12 @@
     readyPage();
 
     var revealItems = Array.prototype.slice.call(document.querySelectorAll('.about-reveal'));
-    var typewriter = document.querySelector('.about-typewriter');
+    var typewriters = Array.prototype.slice.call(document.querySelectorAll('.about-typewriter'));
+    var firstTypewriter = typewriters[0];
 
     if (reduceMotion) {
       revealItems.forEach(function (el) { el.classList.add('is-visible'); });
-      if (typewriter) typewriter.classList.add('is-complete');
+      typewriters.forEach(function (el) { el.classList.add('is-complete'); });
       setupLeaveTransition();
       return;
     }
@@ -632,25 +653,28 @@
     var seenTypewriter = false;
 
     revealItems.forEach(function (el) {
-      if (el === typewriter) {
+      if (el === firstTypewriter) {
         seenTypewriter = true;
         return;
       }
-      if (!seenTypewriter) beforeTypewriter.push(el);
-      else afterTypewriter.push(el);
+      if (!seenTypewriter && !el.classList.contains('about-typewriter')) {
+        beforeTypewriter.push(el);
+      } else if (!el.classList.contains('about-typewriter')) {
+        afterTypewriter.push(el);
+      }
     });
 
     beforeTypewriter.forEach(function (el, index) {
       reveal(el, 180 + index * 130);
     });
 
-    var startTypingDelay = 520 + beforeTypewriter.length * 130;
+    var startTypingDelay = 650 + beforeTypewriter.length * 150;
 
-    if (typewriter) {
+    if (typewriters.length) {
       window.setTimeout(function () {
-        typeText(typewriter, function () {
+        typeTextQueue(typewriters, function () {
           afterTypewriter.forEach(function (el, index) {
-            reveal(el, 180 + index * 150);
+            reveal(el, 260 + index * 170);
           });
         });
       }, startTypingDelay);
