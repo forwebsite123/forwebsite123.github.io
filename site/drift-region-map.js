@@ -19,6 +19,16 @@
     oceania: new Set(['australia.html']),
     antarctica: new Set()
   };
+  const REGION_MAX_ZOOM_DELTA = {
+    china: 4.0,
+    asia: 3.4,
+    europe: 3.6,
+    africa: 3.2,
+    northAmerica: 3.2,
+    southAmerica: 3.4,
+    oceania: 3.5,
+    antarctica: 2.2
+  };
   const SHAPES = {
     northAmerica: [[[65,-168],[69,-164],[71,-156],[71,-141],[73,-130],[76,-118],[76,-94],[74,-83],[70,-72],[64,-64],[58,-57],[52,-55],[47,-53],[44,-59],[43,-66],[41,-70],[37,-75],[33,-78],[30,-81],[25,-80],[25,-84],[29,-89],[30,-92],[29,-95],[26,-97],[22,-98],[19,-96],[17,-91],[15,-88],[11,-84],[9,-80],[8,-77],[16,-96],[20,-105],[23,-110],[28,-114],[32,-117],[37,-122],[43,-125],[47,-124],[49,-127],[55,-132],[58,-137],[60,-149],[62,-155],[63,-163],[65,-168]]],
     southAmerica: [[[12,-72],[11,-74],[9,-77],[8,-77],[11,-71],[11,-67],[10,-62],[8,-58],[5,-53],[2,-50],[0,-49],[-2,-44],[-5,-35],[-8,-35],[-13,-38],[-18,-40],[-23,-43],[-28,-48],[-33,-53],[-38,-58],[-42,-63],[-46,-66],[-50,-68],[-53,-69],[-55,-67],[-56,-66],[-54,-72],[-51,-75],[-47,-76],[-43,-74],[-38,-74],[-33,-72],[-27,-71],[-22,-70],[-18,-71],[-14,-76],[-10,-78],[-5,-81],[-2,-80],[1,-78],[5,-77],[8,-77],[10,-76],[12,-72]]],
@@ -85,15 +95,15 @@
   function popup(point, imgs){ const images=imgs.length ? `<div class="drift-preview-images">${imgs.map(src=>`<a class="drift-preview-link" href="${esc(point.page)}" aria-label="Open ${esc(point.title)}"><img src="${esc(src)}" alt="${esc(point.title)}"></a>`).join('')}</div>` : '<p class="drift-preview-empty">Open this fragment</p>'; return `<div class="drift-preview-card"><h4><a class="drift-preview-title-link" href="${esc(point.page)}">${esc(point.title)}</a></h4>${images}</div>`; }
   async function init(card){
     if (!window.L) return; const region=card.dataset.region; const el=card.querySelector('.region-map-leaflet');
-    const map=L.map(el,{zoomControl:false,attributionControl:false,scrollWheelZoom:false,touchZoom:true,dragging:true,doubleClickZoom:false,boxZoom:false,keyboard:false,zoomSnap:.1,zoomDelta:.55,maxBounds:safeBoundsFor(region),maxBoundsViscosity:1,worldCopyJump:false});
+    const map=L.map(el,{zoomControl:false,attributionControl:false,scrollWheelZoom:true,touchZoom:true,dragging:true,doubleClickZoom:false,boxZoom:false,keyboard:false,zoomSnap:.1,zoomDelta:.75,maxBounds:safeBoundsFor(region),maxBoundsViscosity:1,worldCopyJump:false});
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{subdomains:'abc', noWrap:false, maxNativeZoom:19, maxZoom:19}).addTo(map);
     (SHAPES[region] || []).forEach(s=>L.polygon(s,{color:'#9c6e6e',weight:1.35,fillColor:'#d8b7aa',fillOpacity:.12,interactive:false}).addTo(map));
-    map.fitBounds(safeBoundsFor(region),{animate:false,padding:[12,12]}); map.setMinZoom(map.getBoundsZoom(safeBoundsFor(region),false)); map.setMaxZoom(map.getMinZoom()+1.38); map.setZoom(map.getMinZoom(),{animate:false}); clampMap(map, region);
+    map.fitBounds(safeBoundsFor(region),{animate:false,padding:[12,12]}); map.setMinZoom(map.getBoundsZoom(safeBoundsFor(region),false)); map.setMaxZoom(map.getMinZoom()+(REGION_MAX_ZOOM_DELTA[region] || 3.2)); map.setZoom(map.getMinZoom(),{animate:false}); map.scrollWheelZoom.enable(); clampMap(map, region);
     const [photosRes, markersRes]=await Promise.all([fetch('/photos.json'),fetch('/map-markers.json')]); const photos=await photosRes.json(); const markerData=await markersRes.json();
     const allowed=REGION_PAGES[region]||new Set(); let activeTouchPage=''; markerData.markers.filter(m=>allowed.has(m.page)).forEach(point=>{ const imgs=photos.items.filter(i=>i.page===point.page&&i.image).map(i=>i.image); const marker=L.marker([point.lat,point.lng],{icon:icon(),riseOnHover:true}).addTo(map); const pointEl=()=>marker.getElement()?.querySelector('.drift-point'); const refresh=()=>marker.setPopupContent(popup(point,previews(imgs))); marker.bindPopup(popup(point,previews(imgs)),{className:'drift-preview',closeButton:false,autoPan:true,keepInView:true}); marker.on('mouseover',()=>{ activeTouchPage=''; refresh(); marker.openPopup(); pointEl()?.classList.add('is-hovered'); }); marker.on('mouseout',()=>pointEl()?.classList.remove('is-hovered')); marker.on('popupopen',()=>pointEl()?.classList.add('is-active')); marker.on('popupclose',()=>pointEl()?.classList.remove('is-active')); marker.on('click',()=>{ if(matchMedia('(hover: hover) and (pointer: fine)').matches){ navigate(point.page); return; } if(activeTouchPage===point.page && marker.isPopupOpen()){ navigate(point.page); return; } activeTouchPage=point.page; refresh(); marker.openPopup(); }); });
     const buttonZoom=delta=>{ map.setZoom(clamp(map.getZoom()+delta,map.getMinZoom(),map.getMaxZoom()),{animate:!matchMedia('(prefers-reduced-motion: reduce)').matches}); setTimeout(()=>clampMap(map, region), 0); };
-    card.querySelector('[data-region-map-zoom="in"]')?.addEventListener('click',()=>buttonZoom(.55));
-    card.querySelector('[data-region-map-zoom="out"]')?.addEventListener('click',()=>buttonZoom(-.55));
+    card.querySelector('[data-region-map-zoom="in"]')?.addEventListener('click',()=>buttonZoom(.75));
+    card.querySelector('[data-region-map-zoom="out"]')?.addEventListener('click',()=>buttonZoom(-.75));
     map.on('zoomend moveend',()=>clampMap(map, region));
     requestAnimationFrame(()=>card.classList.add('is-visible'));
   }
