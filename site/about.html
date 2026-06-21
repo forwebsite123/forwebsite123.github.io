@@ -578,12 +578,12 @@
     var carry = 0;
 
     function delayFor(ch) {
-      if (ch === '\n') return 260;
-      if (/[。！？!?]/.test(ch)) return 150;
-      if (/[，、,.；;：:]/.test(ch)) return 92;
-      if (/\s/.test(ch)) return 34;
-      if (/[\u4e00-\u9fff]/.test(ch)) return 52;
-      return 38;
+      if (ch === '\n') return 360;
+      if (/[。！？!?]/.test(ch)) return 240;
+      if (/[，、,.；;：:]/.test(ch)) return 150;
+      if (/\s/.test(ch)) return 46;
+      if (/[\u4e00-\u9fff]/.test(ch)) return 72;
+      return 52;
     }
 
     function frame(now) {
@@ -602,7 +602,7 @@
 
       if (i >= original.length) {
         el.classList.add('is-complete');
-        if (done) window.setTimeout(done, 420);
+        if (done) window.setTimeout(done, 720);
         return;
       }
 
@@ -612,7 +612,7 @@
     el.classList.add('is-visible');
     window.setTimeout(function () {
       requestAnimationFrame(frame);
-    }, 360);
+    }, 160);
   }
 
 
@@ -627,7 +627,7 @@
 
       typeText(elements[index], function () {
         index += 1;
-        window.setTimeout(runNext, 520);
+        window.setTimeout(runNext, 820);
       });
     }
 
@@ -684,13 +684,13 @@
       reveal(el, 180 + index * 130);
     });
 
-    var startTypingDelay = 820 + beforeTypewriter.length * 180;
+    var startTypingDelay = 360 + beforeTypewriter.length * 90;
 
     if (typewriters.length) {
       window.setTimeout(function () {
         typeTextQueue(typewriters, function () {
           afterTypewriter.forEach(function (el, index) {
-            reveal(el, 380 + index * 220);
+            reveal(el, 720 + index * 320);
           });
         });
       }, startTypingDelay);
