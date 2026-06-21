@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🌿%3C/text%3E%3C/svg%3E">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="/drift-region-map.css" />
   <title>North America</title>
 
   <style>
@@ -173,6 +176,24 @@
 
     <h1 class="title">North America</h1>
 
+    <section class="region-map-card" data-region="northAmerica">
+      <div class="region-map-header">
+        <span class="region-map-kicker">Drift Coordinates</span>
+        <span class="region-map-hint">Zoom closer. Drag within this fragment.</span>
+      </div>
+
+      <div class="region-map-viewport">
+        <div class="region-map-inner">
+          <div class="region-map-leaflet" aria-label="northAmerica drift map"></div>
+        </div>
+      </div>
+
+      <div class="region-map-controls">
+        <button type="button" data-region-map-zoom="out" aria-label="Zoom out">−</button>
+        <button type="button" data-region-map-zoom="in" aria-label="Zoom in">＋</button>
+      </div>
+    </section>
+
     <div class="country-section">
       <div class="country-grid">
         <a href="canada.html" class="country-card">
@@ -195,6 +216,9 @@ Searching for a sound we hadn’t heard before.”
   </div>
   <script data-goatcounter="https://kiara-mytrace.goatcounter.com/count"
         async src="https://gc.zgo.at/count.js"></script>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/drift-region-map.js"></script>
   <script src="/search.js"></script>
 </body>
 </html>
