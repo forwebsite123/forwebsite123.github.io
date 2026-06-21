@@ -1,6 +1,6 @@
 .region-map-card {
-  width: min(100%, 980px);
-  max-width: 980px;
+  width: min(100%, 920px);
+  max-width: 920px;
   margin: 0 auto 34px;
   padding: 18px 18px 16px;
   border: 1px solid rgba(168, 122, 122, 0.16);
@@ -15,8 +15,9 @@
 .region-map-header { display:flex; justify-content:space-between; gap:16px; align-items:center; margin-bottom:12px; color:rgba(122,87,87,.68); font-size:14px; }
 .region-map-kicker { color:#8b5e5e; font-style:italic; font-size:18px; }
 .region-map-hint { font-style:italic; }
-.region-map-viewport { position:relative; overflow:hidden; border-radius:16px; height:clamp(280px, 38vw, 430px); max-height:430px; background:#eef1eb; touch-action:none; }
+.region-map-viewport { position:relative; overflow:hidden; border-radius:16px; height:clamp(280px, 36vw, 420px); max-height:420px; background:#eef1eb; touch-action:none; }
 .region-map-inner, .region-map-leaflet { width:100%; height:100%; }
+.region-map-viewport, .region-map-leaflet { touch-action:none; }
 .region-map-inner { will-change: transform; transform-origin:center center; backface-visibility:hidden; }
 .region-map-inner.is-dragging { transition:none; cursor:grabbing; }
 .region-map-inner.is-settling { transition:transform .42s cubic-bezier(.16,1,.3,1); }
