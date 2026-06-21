@@ -1,0 +1,127 @@
+body.drift-page-enter {
+  opacity: 0;
+  filter: blur(4px);
+  transform: translateY(8px);
+}
+
+body.drift-page-ready {
+  opacity: 1;
+  filter: blur(0);
+  transform: translateY(0);
+  transition:
+    opacity .9s ease,
+    filter .9s ease,
+    transform .9s ease;
+}
+
+body.drift-page-leaving {
+  opacity: .68;
+  filter: blur(3px);
+  transform: translateY(-5px);
+  transition:
+    opacity .24s ease,
+    filter .24s ease,
+    transform .24s ease;
+}
+
+.drift-reveal {
+  opacity: 0;
+  filter: blur(4px);
+  transform: translateY(12px);
+  transition:
+    opacity .82s cubic-bezier(.16, 1, .3, 1),
+    filter .82s cubic-bezier(.16, 1, .3, 1),
+    transform .82s cubic-bezier(.16, 1, .3, 1);
+  will-change: opacity, filter, transform;
+}
+
+.drift-reveal.is-visible {
+  opacity: 1;
+  filter: blur(0);
+  transform: translateY(0);
+}
+
+.drift-card-reveal {
+  opacity: 0;
+  filter: blur(4px);
+  transform: translateY(14px) scale(.985);
+  transition:
+    opacity .78s cubic-bezier(.16, 1, .3, 1),
+    filter .78s cubic-bezier(.16, 1, .3, 1),
+    transform .78s cubic-bezier(.16, 1, .3, 1),
+    box-shadow .28s ease,
+    border-color .28s ease,
+    background .28s ease;
+}
+
+.drift-card-reveal.is-visible {
+  opacity: 1;
+  filter: blur(0);
+  transform: translateY(0) scale(1);
+}
+
+.drift-card-reveal:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 14px 30px rgba(122, 87, 87, .09);
+  background: rgba(255,255,255,.58);
+}
+
+.drift-map-reveal {
+  opacity: 0;
+  filter: blur(5px);
+  transform: translateY(16px);
+  transition:
+    opacity .95s cubic-bezier(.16, 1, .3, 1),
+    filter .95s cubic-bezier(.16, 1, .3, 1),
+    transform .95s cubic-bezier(.16, 1, .3, 1);
+}
+
+.drift-map-reveal.is-visible {
+  opacity: 1;
+  filter: blur(0);
+  transform: translateY(0);
+}
+
+.drift-photo-reveal {
+  opacity: 0;
+  filter: blur(5px);
+  transform: translateY(12px) scale(.985);
+  transition:
+    opacity .78s cubic-bezier(.16, 1, .3, 1),
+    filter .78s cubic-bezier(.16, 1, .3, 1),
+    transform .78s cubic-bezier(.16, 1, .3, 1);
+}
+
+.drift-photo-reveal.is-visible {
+  opacity: 1;
+  filter: blur(0);
+  transform: translateY(0) scale(1);
+}
+
+.drift-photo-reveal:hover {
+  transform: translateY(-2px) scale(1.008);
+}
+
+.drift-picking-up {
+  transform: translateY(-3px) scale(1.025) !important;
+  filter: blur(0) !important;
+  transition:
+    transform .22s ease,
+    filter .22s ease !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.drift-page-enter,
+  body.drift-page-ready,
+  body.drift-page-leaving,
+  .drift-reveal,
+  .drift-card-reveal,
+  .drift-map-reveal,
+  .drift-photo-reveal {
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}

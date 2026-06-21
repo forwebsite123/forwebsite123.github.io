@@ -7,6 +7,7 @@
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="/drift-region-map.css" />
+  <link rel="stylesheet" href="/drift-page-transitions.css">
   <title>Africa</title>
 
   <style>
@@ -165,34 +166,34 @@
 </head>
 <body>
   <div class="page">
-    <div class="topbar">
+    <div class="topbar drift-reveal">
       <div class="top-left">
-        <div class="site-note">A place to leave traces.</div>
-        <a href="Drift-coordinates.html" class="back">← Back</a>
+        <div class="site-note drift-reveal">A place to leave traces.</div>
+        <a href="Drift-coordinates.html" class="back drift-reveal">← Back</a>
       </div>
 
     <a href="#" class="search-btn" aria-label="Search" id="search-icon">⌕</a>
     </div>
 
-    <h1 class="title">Africa</h1>
+    <h1 class="title drift-reveal">Africa</h1>
 
     <div class="country-section">
       <div class="country-grid">
-        <a href="tanzania.html" class="country-card">
+        <a href="tanzania.html" class="country-card drift-card-reveal">
           <div class="country-name">坦桑尼亚</div>
         </a>
-        <a href="egypt.html" class="country-card">
+        <a href="egypt.html" class="country-card drift-card-reveal">
           <div class="country-name">埃及</div>
         </a>
       </div>
 
 
-      <div class="country-note">
+      <div class="country-note drift-reveal">
        “去过的地方，遇见的人，都成了生命里的一部分。期待开启下一次非洲之行。”
       </div>
     </div>
 
-    <section class="region-map-card" data-region="africa">
+    <section class="region-map-card drift-map-reveal" data-region="africa">
       <div class="region-map-header">
         <span class="region-map-kicker">Drift Coordinates</span>
         <span class="region-map-hint">Zoom closer. Drag within this fragment.</span>
@@ -210,7 +211,7 @@
       </div>
     </section>
 
-    <div class="footer-note">
+    <div class="footer-note drift-reveal">
       “捕光者笔记。”
     </div>
   </div>
@@ -219,6 +220,7 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="/drift-region-map.js"></script>
+  <script src="/drift-page-transitions.js"></script>
   <script src="/search.js"></script>
 </body>
 </html>
