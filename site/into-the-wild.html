@@ -30,6 +30,8 @@
       opacity: 0.44;
       pointer-events: none;
       z-index: 0;
+      animation: wildDrift 70s ease-in-out infinite;
+      will-change: transform;
     }
 
     body::after {
@@ -39,6 +41,16 @@
       background: rgba(252, 251, 248, 0.18);
       pointer-events: none;
       z-index: 0;
+      animation: wildLight 54s ease-in-out infinite;
+    }
+
+    @keyframes wildDrift {
+      0%, 100% { transform: scale(1) translate(0, 0); }
+      50%      { transform: scale(1.035) translate(-10px, -6px); }
+    }
+    @keyframes wildLight {
+      0%, 100% { opacity: .12; }
+      50%      { opacity: .26; }
     }
 
     .page {
@@ -135,7 +147,42 @@
         padding: 30px 40px;
       }
     }
-  </style>
+
+.topbar, h1, .card, .note {
+  opacity: 0;
+  transform: translateY(8px);
+  filter: blur(4px);
+  transition: opacity .9s ease-out, transform .9s ease-out, filter .9s ease-out;
+}
+.topbar.is-visible, h1.is-visible, .card.is-visible, .note.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .topbar, h1, .card, .note {
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}
+
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: .6s;
+  animation-timing-function: ease-in-out;
+}
+::view-transition-old(root) { animation-name: vt-fade-out; }
+::view-transition-new(root) { animation-name: vt-fade-in; }
+
+@keyframes vt-fade-out { from{opacity:1;filter:blur(0)} to{opacity:0;filter:blur(6px)} }
+@keyframes vt-fade-in  { from{opacity:0;filter:blur(6px)} to{opacity:1;filter:blur(0)} }
+</style>
 </head>
 
 <body>
@@ -168,5 +215,32 @@
  <script data-goatcounter="https://kiara-mytrace.goatcounter.com/count"
         async src="https://gc.zgo.at/count.js"></script>
   <script src="/search.js"></script>
+<script>
+  (function () {
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var revealEls = [].slice.call(document.querySelectorAll('.topbar, h1, .card, .note'));
+
+    if (reduceMotion) {
+      revealEls.forEach(function (el) { el.classList.add('is-visible'); });
+      return;
+    }
+
+    var cards = [].slice.call(document.querySelectorAll('.card'));
+    cards.forEach(function (card, i) {
+      card.style.transitionDelay = (i * 90) + 'ms';
+    });
+
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+
+    revealEls.forEach(function (el) { io.observe(el); });
+  })();
+</script>
 </body>
 </html>
