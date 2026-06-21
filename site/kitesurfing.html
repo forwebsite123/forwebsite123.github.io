@@ -11,9 +11,9 @@
 
     .wind-field { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
     .wind-field::before, .wind-field::after { content: ""; position: absolute; }
-    .wind-field::before { width: 96vw; height: 30vh; left: -48vw; top: -18vh; border-radius: 999px; background: radial-gradient(ellipse at 54% 42%, rgba(255,255,255,.50) 0%, rgba(255,255,255,.28) 24%, transparent 52%), linear-gradient(90deg, transparent 0%, rgba(124,191,214,.10) 16%, rgba(162,216,230,.20) 32%, rgba(255,255,255,.34) 49%, rgba(132,199,220,.22) 68%, transparent 100%); box-shadow: inset 0 18px 26px rgba(255,255,255,.26), inset 0 -18px 32px rgba(116,180,204,.15), 0 18px 54px rgba(122,184,205,.14); filter: blur(2.8px); transform: rotate(-32deg); transform-origin: center; animation: diagonalWindBand 52s linear infinite; }
+    .wind-field::before { width: 96vw; height: 30vh; left: -48vw; top: -18vh; border-radius: 999px; background: radial-gradient(ellipse at 54% 42%, rgba(255,255,255,.50) 0%, rgba(255,255,255,.28) 24%, transparent 52%), linear-gradient(90deg, transparent 0%, rgba(124,191,214,.10) 16%, rgba(162,216,230,.20) 32%, rgba(255,255,255,.34) 49%, rgba(132,199,220,.22) 68%, transparent 100%); box-shadow: inset 0 18px 26px rgba(255,255,255,.26), inset 0 -18px 32px rgba(116,180,204,.15), 0 18px 54px rgba(122,184,205,.14); filter: blur(2.8px); transform: rotate(-32deg); transform-origin: center; animation: diagonalWindBand 48s linear infinite; }
     .wind-field::after { inset: 0; background: linear-gradient(0deg, rgba(145,210,220,.16) 0%, rgba(255,255,255,.12) 28%, transparent 56%); animation: seaSurfaceBreath 42s ease-in-out infinite; }
-    @keyframes diagonalWindBand { 0% { opacity: .68; left: -48vw; top: -18vh; } 50% { opacity: .68; left: 42vw; top: 58vh; } 100% { opacity: .68; left: -48vw; top: -18vh; } }
+    @keyframes diagonalWindBand { 0% { opacity: .50; left: -48vw; top: -18vh; } 50% { opacity: .80; left: 42vw; top: 58vh; } 100% { opacity: .50; left: -48vw; top: -18vh; } }
     @keyframes seaSurfaceBreath { 0%,100% { opacity: .24; transform: translateY(2vh); } 50% { opacity: .46; transform: translateY(-1.5vh); } }
 
     .page { max-width: 1280px; margin: 0 auto; padding: 28px 28px 90px; position: relative; z-index: 1; }
