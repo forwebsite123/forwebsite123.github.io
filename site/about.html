@@ -601,7 +601,6 @@
       return;
     }
 
-    aboutActiveTypingEl = el;
     el.textContent = '';
 
     var output = document.createElement('span');
@@ -692,9 +691,7 @@
 
   var autoScrollRAF = null;
   var autoScrollLastTime = 0;
-  var AUTO_SCROLL_SPEED = 0.014; // 仅在打字全部结束、朝最终页底滑动时使用
-  var aboutActiveTypingEl = null; // 当前正在打字的段落，滚动会跟着它走
-  var AUTO_SCROLL_FOLLOW_FRACTION = 0.62; // 让正在打字的段落底部停留在视口高度的这个比例位置，越大留白越多
+  var AUTO_SCROLL_SPEED = 0.032; // 每毫秒滚动的像素数，约等于每秒 32px，觉得快慢不合适直接改这个数字
 
   function handleAutoScrollInterrupt(event) {
     if (event.type === 'keydown') {
@@ -733,19 +730,7 @@
         return;
       }
 
-      var target;
-      if (aboutActiveTypingEl) {
-        var rect = aboutActiveTypingEl.getBoundingClientRect();
-        var desired = window.scrollY + rect.bottom - window.innerHeight * AUTO_SCROLL_FOLLOW_FRACTION;
-        target = Math.min(Math.max(desired, 0), maxScroll);
-        var diff = target - window.scrollY;
-        if (diff > 0.5) {
-          window.scrollBy(0, diff * 0.12);
-        }
-      } else {
-        window.scrollBy(0, AUTO_SCROLL_SPEED * delta);
-      }
-
+      window.scrollBy(0, AUTO_SCROLL_SPEED * delta);
       autoScrollRAF = requestAnimationFrame(step);
     }
 
@@ -792,7 +777,6 @@
       window.setTimeout(function () {
         startAutoScroll();
         typeTextQueue(typewriters, function () {
-          aboutActiveTypingEl = null;
           afterTypewriter.forEach(function (el, index) {
             reveal(el, 720 + index * 320);
           });
