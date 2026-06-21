@@ -304,6 +304,24 @@
       animation: aboutCursorFade .7s ease forwards;
     }
 
+    .section .about-typewriter {
+      margin-top: 0 !important;
+      margin-bottom: 0.72em !important;
+      line-height: 1.88 !important;
+    }
+
+    .section .about-typewriter + .about-typewriter {
+      margin-top: 0 !important;
+    }
+
+    .section .about-typewriter.is-complete {
+      margin-bottom: 0.72em !important;
+    }
+
+    .section .about-typewriter:last-of-type {
+      margin-bottom: 1.05em !important;
+    }
+
     @keyframes aboutCursorBlink {
       0%, 100% { opacity: .28; }
       45%, 55% { opacity: .9; }
@@ -584,8 +602,8 @@
 
     function delayFor(ch) {
       if (ch === '\n') return 300;
-      if (/[。！？!?]/.test(ch)) return 230;
-      if (/[，、,.；;：:]/.test(ch)) return 145;
+      if (/[。！？!?]/.test(ch)) return 250;
+      if (/[，、,.；;：:]/.test(ch)) return 160;
       if (/\s/.test(ch)) return 52;
       if (/[\u4e00-\u9fff]/.test(ch)) return 82;
       return 58;
