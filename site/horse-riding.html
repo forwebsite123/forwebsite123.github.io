@@ -10,8 +10,8 @@
     body { margin: 0; background: #fcfbf8; color: #6e4a4a; font-family: "Times New Roman", Georgia, serif; overflow-x: hidden; }
     .horizon-glow { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
     .horizon-glow::before, .horizon-glow::after { content: ""; position: absolute; inset: 0; }
-    .horizon-glow::before { background: linear-gradient(180deg, rgba(148,190,220,.34) 0%, rgba(176,205,225,.16) 34%, transparent 64%); animation: horizonDawn 72s ease-in-out infinite; }
-    .horizon-glow::after { background: linear-gradient(0deg, rgba(255,166,94,.32) 0%, rgba(255,196,142,.15) 36%, transparent 66%); animation: horizonDusk 72s ease-in-out infinite; }
+    .horizon-glow::before { background: linear-gradient(180deg, rgba(148,190,220,.34) 0%, rgba(176,205,225,.16) 34%, transparent 64%); animation: horizonDawn 48s ease-in-out infinite; }
+    .horizon-glow::after { background: linear-gradient(0deg, rgba(255,166,94,.32) 0%, rgba(255,196,142,.15) 36%, transparent 66%); animation: horizonDusk 48s ease-in-out infinite; }
     @keyframes horizonDawn { 0%, 100% { opacity: .96; } 50% { opacity: .06; } }
     @keyframes horizonDusk { 0%, 100% { opacity: .08; } 50% { opacity: .96; } }
     .page { max-width: 1280px; margin: 0 auto; padding: 28px 28px 90px; position: relative; z-index: 1; }
