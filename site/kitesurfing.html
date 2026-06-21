@@ -10,11 +10,11 @@
     body { margin: 0; background: #fcfbf8; color: #6e4a4a; font-family: "Times New Roman", Georgia, serif; overflow-x: hidden; }
 
     .wind-field { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
-    .wind-field::before, .wind-field::after { content: ""; position: absolute; inset: 0; }
-    .wind-field::before { background: linear-gradient(105deg, transparent 0%, rgba(192,224,232,.11) 28%, rgba(255,255,255,.20) 46%, transparent 68%); animation: seaWindGlow 72s ease-in-out infinite; }
-    .wind-field::after { background: linear-gradient(0deg, rgba(173,216,224,.10) 0%, rgba(255,255,255,.08) 28%, transparent 56%); animation: seaSurfaceBreath 60s ease-in-out infinite; }
-    @keyframes seaWindGlow { 0%,100% { opacity: .24; transform: translateX(-8vw); } 50% { opacity: .50; transform: translateX(12vw); } }
-    @keyframes seaSurfaceBreath { 0%,100% { opacity: .20; } 50% { opacity: .42; } }
+    .wind-field::before, .wind-field::after { content: ""; position: absolute; inset: -8%; }
+    .wind-field::before { background: radial-gradient(ellipse at 18% 76%, rgba(172,218,230,.24) 0%, rgba(255,255,255,.18) 30%, transparent 58%), linear-gradient(110deg, transparent 0%, rgba(155,211,228,.24) 30%, rgba(255,255,255,.34) 48%, transparent 70%); animation: seaWindGlow 34s ease-in-out infinite; }
+    .wind-field::after { background: linear-gradient(0deg, rgba(145,210,220,.22) 0%, rgba(255,255,255,.16) 32%, transparent 60%); animation: seaSurfaceBreath 28s ease-in-out infinite; }
+    @keyframes seaWindGlow { 0%,100% { opacity: .34; transform: translate3d(-10vw, 2vh, 0) rotate(-1deg); } 50% { opacity: .78; transform: translate3d(16vw, -2vh, 0) rotate(1deg); } }
+    @keyframes seaSurfaceBreath { 0%,100% { opacity: .28; transform: translateY(3vh); } 50% { opacity: .62; transform: translateY(-2vh); } }
 
     .page { max-width: 1280px; margin: 0 auto; padding: 28px 28px 90px; position: relative; z-index: 1; }
     .topline { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 36px; }
@@ -54,7 +54,7 @@
     #lightbox img { max-width: 92vw; max-height: 90vh; object-fit: contain; background: white; box-shadow: 0 20px 60px rgba(0,0,0,.4); filter: blur(10px); transform: scale(.97); transition: filter .5s ease-out, transform .5s ease-out; }
     #lightbox.is-open img { filter: blur(0); transform: scale(1); }
     .close-tip { position: absolute; top: 24px; right: 28px; color: rgba(255,255,255,.84); font-size: 14px; letter-spacing: 1px; }
-    @media (prefers-reduced-motion: reduce) { .wind-field::before, .wind-field::after, .title-wrap, .entry { opacity: 1; filter: none; transform: none; animation: none; transition: none; } .photo-thumb img, .photo-thumb::after, #lightbox, #lightbox img { transition: none; } .photo-thumb:hover img, .photo-thumb.is-wind-lift img, #lightbox img { filter: none; transform: none; } .photo-thumb::after { display: none; } }
+    @media (prefers-reduced-motion: reduce) { .wind-field::before, .wind-field::after, .title-wrap, .entry { opacity: 1; filter: none; transform: none; animation: none; transition: none; } .wind-field::before, .wind-field::after { opacity: .34; } .photo-thumb img, .photo-thumb::after, #lightbox, #lightbox img { transition: none; } .photo-thumb:hover img, .photo-thumb.is-wind-lift img, #lightbox img { filter: none; transform: none; } .photo-thumb::after { display: none; } }
     @media (max-width: 760px) { .layout { grid-template-columns: 1fr; } .timeline-side { display: none; } .entry { grid-template-columns: 1fr; row-gap: 16px; } .right-col { padding-top: 0; margin-left: 0; } .entry-meta { grid-column: span 1; font-size: 24px; } .page-title { font-size: 42px; } .photo-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; } .photo-grid.photo-layout-single { grid-template-columns: 1fr; } .photo-grid.photo-layout-2x2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .photo-thumb, .photo-grid.photo-layout-single .photo-thumb { width: 100%; height: 120px; } .photo-grid.photo-layout-single .photo-thumb { height: min(72vw, 360px); } .video-cell { width: 100%; height: 120px; } .entry-note { max-width: none; padding-left: 18px; } }
   </style>
 </head>
