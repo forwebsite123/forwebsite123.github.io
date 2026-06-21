@@ -11,9 +11,9 @@
 
     .wind-field { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
     .wind-field::before, .wind-field::after { content: ""; position: absolute; }
-    .wind-field::before { width: 150vw; height: 34vh; left: -64vw; top: -18vh; border-radius: 999px; background: linear-gradient(90deg, transparent 0%, rgba(162,216,230,.12) 22%, rgba(255,255,255,.34) 48%, rgba(158,214,228,.20) 66%, transparent 100%); filter: blur(2px); transform-origin: center; animation: diagonalWindBand 34s ease-in-out infinite; }
+    .wind-field::before { width: 96vw; height: 30vh; left: -74vw; top: -28vh; border-radius: 999px; background: linear-gradient(90deg, transparent 0%, rgba(162,216,230,.12) 22%, rgba(255,255,255,.34) 48%, rgba(158,214,228,.20) 66%, transparent 100%); filter: blur(2px); transform: rotate(-32deg); transform-origin: center; animation: diagonalWindBand 34s ease-in-out infinite; }
     .wind-field::after { inset: 0; background: linear-gradient(0deg, rgba(145,210,220,.16) 0%, rgba(255,255,255,.12) 28%, transparent 56%); animation: seaSurfaceBreath 32s ease-in-out infinite; }
-    @keyframes diagonalWindBand { 0%,100% { opacity: .32; transform: translate3d(-8vw, -8vh, 0) rotate(-32deg); } 50% { opacity: .78; transform: translate3d(34vw, 34vh, 0) rotate(-32deg); } }
+    @keyframes diagonalWindBand { 0% { opacity: .30; left: -74vw; top: -28vh; } 45% { opacity: .78; left: 48vw; top: 62vh; } 55% { opacity: .78; left: 48vw; top: 62vh; } 78% { opacity: .56; left: -8vw; top: 20vh; } 100% { opacity: .30; left: -74vw; top: -28vh; } }
     @keyframes seaSurfaceBreath { 0%,100% { opacity: .24; transform: translateY(2vh); } 50% { opacity: .46; transform: translateY(-1.5vh); } }
 
     .page { max-width: 1280px; margin: 0 auto; padding: 28px 28px 90px; position: relative; z-index: 1; }
