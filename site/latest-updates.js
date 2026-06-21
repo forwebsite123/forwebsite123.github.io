@@ -773,7 +773,7 @@
     }
 
     list.innerHTML = updates.slice(0, MAX_UPDATES).map((update, i) => `
-      <li class="update-item" style="transition-delay:${i * 70}ms">
+      <li class="update-item" style="transition-delay:${i * 110}ms">
         <a class="update-link" href="${escapeAttribute(update.href)}">
           <span class="update-icon" aria-hidden="true">${escapeHtml(update.icon)}</span>
           <span class="update-text"><span class="update-category">${escapeHtml(update.label)}</span>${escapeHtml(update.title)}</span>
