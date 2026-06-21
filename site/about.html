@@ -725,10 +725,12 @@
       autoScrollLastTime = now;
 
       var maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      if (window.scrollY < maxScroll) {
-        window.scrollBy(0, AUTO_SCROLL_SPEED * delta);
+      if (window.scrollY >= maxScroll - 1) {
+        stopAutoScroll();
+        return;
       }
 
+      window.scrollBy(0, AUTO_SCROLL_SPEED * delta);
       autoScrollRAF = requestAnimationFrame(step);
     }
 
@@ -775,7 +777,6 @@
       window.setTimeout(function () {
         startAutoScroll();
         typeTextQueue(typewriters, function () {
-          stopAutoScroll();
           afterTypewriter.forEach(function (el, index) {
             reveal(el, 720 + index * 320);
           });
