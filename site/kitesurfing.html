@@ -11,9 +11,34 @@
 
     .wind-field { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
     .wind-field::before, .wind-field::after { content: ""; position: absolute; }
-    .wind-field::before { width: 96vw; height: 30vh; left: -48vw; top: -18vh; border-radius: 999px; background: radial-gradient(ellipse at 54% 42%, rgba(255,255,255,.50) 0%, rgba(255,255,255,.28) 24%, transparent 52%), linear-gradient(90deg, transparent 0%, rgba(124,191,214,.10) 16%, rgba(162,216,230,.20) 32%, rgba(255,255,255,.34) 49%, rgba(132,199,220,.22) 68%, transparent 100%); box-shadow: inset 0 18px 26px rgba(255,255,255,.26), inset 0 -18px 32px rgba(116,180,204,.15), 0 18px 54px rgba(122,184,205,.14); filter: blur(2.8px); transform: rotate(-32deg); transform-origin: center; animation: diagonalWindBand 48s linear infinite; }
+    .wind-field::before {
+      width: 96vw;
+      height: 30vh;
+      border-radius: 999px;
+      background:
+        radial-gradient(ellipse at 54% 42%, rgba(255,255,255,.50) 0%, rgba(255,255,255,.28) 24%, transparent 52%),
+        linear-gradient(90deg, transparent 0%, rgba(124,191,214,.10) 16%, rgba(162,216,230,.20) 32%, rgba(255,255,255,.34) 49%, rgba(132,199,220,.22) 68%, transparent 100%);
+      box-shadow:
+        inset 0 18px 26px rgba(255,255,255,.26),
+        inset 0 -18px 32px rgba(116,180,204,.15),
+        0 18px 54px rgba(122,184,205,.14);
+      filter: blur(2.8px);
+      transform: rotate(-32deg);
+      transform-origin: center;
+      opacity: 0;
+      left: -55vw;
+      top: -20vh;
+    }
     .wind-field::after { inset: 0; background: linear-gradient(0deg, rgba(145,210,220,.16) 0%, rgba(255,255,255,.12) 28%, transparent 56%); animation: seaSurfaceBreath 42s ease-in-out infinite; }
-    @keyframes diagonalWindBand { 0% { opacity: .50; left: -48vw; top: -18vh; } 50% { opacity: .80; left: 42vw; top: 58vh; } 100% { opacity: .50; left: -48vw; top: -18vh; } }
+    .wind-field.is-sweeping::before {
+      animation: diagonalWindSweep 3.4s cubic-bezier(.16,.84,.44,1) 1;
+    }
+    @keyframes diagonalWindSweep {
+      0%   { opacity: 0;   left: -55vw; top: -20vh; }
+      35%  { opacity: .62; left: -8vw;  top: 8vh; }
+      70%  { opacity: .78; left: 30vw;  top: 46vh; }
+      100% { opacity: 0;   left: 62vw;  top: 72vh; }
+    }
     @keyframes seaSurfaceBreath { 0%,100% { opacity: .24; transform: translateY(2vh); } 50% { opacity: .46; transform: translateY(-1.5vh); } }
 
     .page { max-width: 1280px; margin: 0 auto; padding: 28px 28px 90px; position: relative; z-index: 1; }
@@ -71,9 +96,26 @@
     function revealTitle(){const title=document.querySelector('.title-wrap');if(!title)return;if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){title.classList.add('is-visible');return;}requestAnimationFrame(()=>title.classList.add('is-visible'));}
     function setupEntryReveal(){const entries=document.querySelectorAll('.entry');if(!entries.length)return;if(window.matchMedia('(prefers-reduced-motion: reduce)').matches||!('IntersectionObserver'in window)){entries.forEach(entry=>entry.classList.add('is-visible'));return;}const observer=new IntersectionObserver(items=>{items.forEach(item=>{if(item.isIntersecting){item.target.classList.add('is-visible');observer.unobserve(item.target);}});},{threshold:.15,rootMargin:'0px 0px -6% 0px'});entries.forEach(entry=>observer.observe(entry));}
     function setupTouchWindLift(){if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;if(!window.matchMedia('(hover: none), (pointer: coarse)').matches)return;document.querySelectorAll('.photo-thumb').forEach(target=>{target.addEventListener('pointerdown',()=>{target.classList.remove('is-wind-lift');void target.offsetWidth;target.classList.add('is-wind-lift');clearTimeout(target._windTimer);target._windTimer=setTimeout(()=>target.classList.remove('is-wind-lift'),1450);},{passive:true});});}
+    function setupWindSweep(){
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+      const field = document.querySelector('.wind-field');
+      if (!field) return;
+
+      function runSweep(){
+        field.classList.remove('is-sweeping');
+        void field.offsetWidth;
+        field.classList.add('is-sweeping');
+
+        const wait = 12000 + Math.random() * 10000;
+        setTimeout(runSweep, 3400 + wait);
+      }
+
+      setTimeout(runSweep, 2000 + Math.random() * 2000);
+    }
     function openLightbox(src){const lb=document.getElementById('lightbox');const lbImg=document.getElementById('lightbox-img');lbImg.src=src;lb.classList.remove('is-open');requestAnimationFrame(()=>lb.classList.add('is-open'));}
     async function loadEntries(){const res=await fetch('/kitesurfing.json');const data=await res.json();data.entries.sort((a,b)=>{const da=(a.date||'').replace(/\./g,'');const db=(b.date||'').replace(/\./g,'');return db.localeCompare(da);});const container=document.getElementById('entries');data.entries.forEach(e=>{const photos=e.photos||[];const photoLayout=photos.length===1?'photo-layout-single':((photos.length===2||photos.length===4)?'photo-layout-2x2':'photo-layout-3x3');const photosHtml=photos.map(p=>`<span class="photo-thumb"><img src="${p}" class="zoomable"></span>`).join('');const videosHtml=(e.videos||[]).map(bvid=>`<div class="video-cell"><iframe src="//player.bilibili.com/player.html?bvid=${bvid}&autoplay=0" allowfullscreen></iframe></div>`).join('');container.innerHTML+=`<div class="entry"><div class="entry-meta"><span class="dot">•</span>${e.date}${e.location?'<br><span class="entry-location">📍 '+e.location+'</span>':''}</div><div class="middle-col"><div class="photo-grid ${photoLayout}">${photosHtml}${videosHtml}</div></div><div class="right-col"><div class="entry-note">${e.note||''}</div></div></div>`;});setupEntryReveal();setupTouchWindLift();document.querySelectorAll('.zoomable').forEach(img=>{img.addEventListener('click',function(ev){ev.stopPropagation();openLightbox(this.src);});});}
-    revealTitle();loadEntries();function closeLightbox(){document.getElementById('lightbox').classList.remove('is-open');}document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox();});
+    revealTitle();loadEntries();setupWindSweep();function closeLightbox(){document.getElementById('lightbox').classList.remove('is-open');}document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox();});
   </script>
   <script data-goatcounter="https://kiara-mytrace.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
   <script src="/search.js"></script>
