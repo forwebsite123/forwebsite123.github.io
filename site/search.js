@@ -205,10 +205,10 @@
     transform: translate(-50%, -50%) scale(.45);
     background:
       radial-gradient(circle,
-        rgba(255,253,238,.88) 0%,
-        rgba(255,240,190,.52) 34%,
-        rgba(236,196,118,.24) 58%,
-        rgba(236,196,118,0) 76%);
+        rgba(255,252,240,.60) 0%,
+        rgba(252,242,215,.26) 34%,
+        rgba(236,205,145,.11) 58%,
+        rgba(236,205,145,0) 76%);
     opacity: 0;
     pointer-events: none;
     z-index: -1;
@@ -218,12 +218,12 @@
   .search-btn:hover,
   .search-icon:hover {
     text-shadow:
-      0 0 6px rgba(255,253,238,.84),
-      0 0 16px rgba(255,240,190,.58),
-      0 0 30px rgba(236,196,118,.34);
+      0 0 5px rgba(255,252,240,.54),
+      0 0 12px rgba(252,242,215,.32),
+      0 0 22px rgba(236,205,145,.16);
     filter:
-      drop-shadow(0 0 9px rgba(255,240,190,.46))
-      drop-shadow(0 0 18px rgba(236,196,118,.24));
+      drop-shadow(0 0 7px rgba(252,242,215,.24))
+      drop-shadow(0 0 12px rgba(236,205,145,.10));
     transform: translateY(-1px);
   }
 
@@ -235,16 +235,16 @@
 
   @keyframes siteSearchIconGlowSpread {
     0% {
-      opacity: .9;
+      opacity: .62;
       transform: translate(-50%, -50%) scale(.45);
     }
     72% {
-      opacity: .30;
-      transform: translate(-50%, -50%) scale(1.36);
+      opacity: .14;
+      transform: translate(-50%, -50%) scale(1.22);
     }
     100% {
       opacity: 0;
-      transform: translate(-50%, -50%) scale(1.68);
+      transform: translate(-50%, -50%) scale(1.48);
     }
   }
 
@@ -266,12 +266,10 @@
     .search-icon:hover {
       transform: none;
       text-shadow:
-        0 0 6px rgba(255,253,238,.84),
-        0 0 16px rgba(255,240,190,.58),
-        0 0 30px rgba(236,196,118,.34);
+        0 0 5px rgba(255,252,240,.48),
+        0 0 12px rgba(252,242,215,.26);
       filter:
-        drop-shadow(0 0 9px rgba(255,240,190,.46))
-        drop-shadow(0 0 18px rgba(236,196,118,.24));
+        drop-shadow(0 0 7px rgba(252,242,215,.20));
     }
   }
 `;
