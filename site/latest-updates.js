@@ -772,8 +772,8 @@
       return;
     }
 
-    list.innerHTML = updates.slice(0, MAX_UPDATES).map((update) => `
-      <li class="update-item">
+    list.innerHTML = updates.slice(0, MAX_UPDATES).map((update, i) => `
+      <li class="update-item" style="transition-delay:${i * 70}ms">
         <a class="update-link" href="${escapeAttribute(update.href)}">
           <span class="update-icon" aria-hidden="true">${escapeHtml(update.icon)}</span>
           <span class="update-text"><span class="update-category">${escapeHtml(update.label)}</span>${escapeHtml(update.title)}</span>
@@ -781,6 +781,16 @@
         <time class="update-date" datetime="${formatMachineDate(update.date)}">${formatDisplayDate(update.date)}</time>
       </li>
     `).join('');
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      list.querySelectorAll('.update-item').forEach((li) => li.classList.add('is-visible'));
+      return;
+    }
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        list.querySelectorAll('.update-item').forEach((li) => li.classList.add('is-visible'));
+      });
+    });
   }
 
   Promise.allSettled(UPDATE_SOURCES.map((source) =>
