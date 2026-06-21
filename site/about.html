@@ -279,6 +279,11 @@
 
     .about-typewriter {
       position: relative;
+      margin-bottom: 0.72em;
+    }
+
+    .about-typewriter + .about-typewriter {
+      margin-top: 0.28em;
     }
 
     .about-typewriter .typewriter-output {
@@ -578,12 +583,12 @@
     var carry = 0;
 
     function delayFor(ch) {
-      if (ch === '\n') return 360;
-      if (/[。！？!?]/.test(ch)) return 240;
-      if (/[，、,.；;：:]/.test(ch)) return 150;
-      if (/\s/.test(ch)) return 46;
-      if (/[\u4e00-\u9fff]/.test(ch)) return 72;
-      return 52;
+      if (ch === '\n') return 300;
+      if (/[。！？!?]/.test(ch)) return 230;
+      if (/[，、,.；;：:]/.test(ch)) return 145;
+      if (/\s/.test(ch)) return 52;
+      if (/[\u4e00-\u9fff]/.test(ch)) return 82;
+      return 58;
     }
 
     function frame(now) {
@@ -602,7 +607,7 @@
 
       if (i >= original.length) {
         el.classList.add('is-complete');
-        if (done) window.setTimeout(done, 720);
+        if (done) window.setTimeout(done, 520);
         return;
       }
 
@@ -627,7 +632,7 @@
 
       typeText(elements[index], function () {
         index += 1;
-        window.setTimeout(runNext, 820);
+        window.setTimeout(runNext, 560);
       });
     }
 
