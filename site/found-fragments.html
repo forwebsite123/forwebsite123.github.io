@@ -198,7 +198,19 @@
       display: block;
       background: #fff;
       cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      filter: brightness(calc(1 - var(--wear, 0) * 0.07)) contrast(calc(1 - var(--wear, 0) * 0.05));
+      transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.8s ease-out;
+    }
+    .zoomable.is-lifted {
+      animation: fragmentLift .5s ease-out;
+    }
+    @keyframes fragmentLift {
+      0%   { transform: translateY(0) scale(1); box-shadow: 0 0 0 rgba(122,87,87,0); }
+      30%  { transform: translateY(-6px) scale(1.03); box-shadow: 0 10px 18px rgba(122,87,87,.18); }
+      100% { transform: translateY(0) scale(1); box-shadow: 0 0 0 rgba(122,87,87,0); }
+    }
+    @media (prefers-reduced-motion: reduce){
+      .zoomable.is-lifted { animation: none !important; }
     }
 
     .thumb-row img:hover {
@@ -260,17 +272,56 @@
       font-style: italic;
       letter-spacing: 1px;
       color: rgba(122, 87, 87, 0.7);
+      position: relative;
+    }
+    .ticket-stamp {
+      position: absolute;
+      top: -10px;
+      right: calc(50% - 220px);
+      font-size: 13px;
+      font-style: normal;
+      letter-spacing: .2em;
+      color: rgba(122, 87, 87, .30);
+      border: 1px dashed rgba(122, 87, 87, .30);
+      border-radius: 3px;
+      padding: 5px 10px;
+      transform: rotate(-7deg) scale(.85);
+      opacity: 0;
+      transition: opacity 1s ease-out, transform 1s ease-out;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .ticket-stamp.is-stamped {
+      opacity: 1;
+      transform: rotate(-7deg) scale(1);
+    }
+    @media (max-width: 760px) {
+      .ticket-stamp {
+        position: static;
+        display: inline-block;
+        margin-top: 10px;
+        right: auto;
+      }
     }
 
     #lightbox {
       position: fixed;
       inset: 0;
       background: rgba(0, 0, 0, 0.88);
-      display: none;
+      display: flex;
       justify-content: center;
       align-items: center;
       z-index: 9999;
       padding: 24px;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity .4s ease, visibility .4s ease;
+    }
+    #lightbox.is-open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
     }
 
     #lightbox img {
@@ -279,6 +330,16 @@
       object-fit: contain;
       background: white;
       box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      filter: blur(10px);
+      transform: scale(.97);
+      transition: filter .5s ease-out, transform .5s ease-out;
+    }
+    #lightbox.is-open img {
+      filter: blur(0);
+      transform: scale(1);
+    }
+    @media (prefers-reduced-motion: reduce){
+      #lightbox, #lightbox img { transition: none !important; }
     }
 
     .close-tip {
@@ -288,6 +349,12 @@
       color: rgba(255,255,255,0.84);
       font-size: 14px;
       letter-spacing: 1px;
+    }
+
+    .entry{opacity:0;transform:translateY(10px);filter:blur(5px);transition:opacity 1s ease-out,transform 1s ease-out,filter 1s ease-out}
+    .entry.is-visible{opacity:1;transform:translateY(0);filter:blur(0)}
+    @media (prefers-reduced-motion: reduce){
+      .entry{transition:none!important;opacity:1!important;transform:none!important;filter:none!important}
     }
 
     @media (max-width: 1100px) {
@@ -367,8 +434,9 @@
 
       <div class="entries" id="entries"></div>
 
-      <div class="footer-note">
+      <div class="footer-note" id="footer-note">
       “随便看，不用买票，但记得带走好心情。”
+      <div class="ticket-stamp" id="ticket-stamp" aria-hidden="true">已入场</div>
       </div>
     </div>
   </div>
@@ -388,17 +456,61 @@
     return `entry-${date.toISOString().slice(0, 10)}`;
   }
 
+  const WEAR_KEY_PREFIX = 'ff-wear:';
+  const WEAR_MAX = 8;
+
+  function getWearCount(src) {
+    try {
+      const raw = localStorage.getItem(WEAR_KEY_PREFIX + src);
+      return raw ? (parseInt(raw, 10) || 0) : 0;
+    } catch (err) {
+      return 0;
+    }
+  }
+
+  function applyWearState(img) {
+    const wear = Math.min(getWearCount(img.src) / WEAR_MAX, 1);
+    img.style.setProperty('--wear', wear.toFixed(3));
+  }
+
+  function bumpWearCount(img) {
+    const next = getWearCount(img.src) + 1;
+    try { localStorage.setItem(WEAR_KEY_PREFIX + img.src, String(next)); } catch (err) {}
+    img.style.setProperty('--wear', Math.min(next / WEAR_MAX, 1).toFixed(3));
+  }
+
+  function setupTicketStamp() {
+    const stamp = document.getElementById('ticket-stamp');
+    const footerNote = document.getElementById('footer-note');
+    if (!stamp || !footerNote) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      stamp.classList.add('is-stamped');
+      return;
+    }
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          stamp.classList.add('is-stamped');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.6 });
+    io.observe(footerNote);
+  }
+
   async function loadEntries() {
     const res = await fetch('/found-fragments.json');
     const data = await res.json();
     data.entries.sort((a, b) => { const da = (a.date||'').replace(/\./g,''); const db = (b.date||'').replace(/\./g,''); return db.localeCompare(da); });
     const container = document.getElementById('entries');
+    let cumulativeDelay = 0;
     data.entries.forEach(e => {
+      cumulativeDelay += 60 + Math.random() * 260;
       const photosHtml = (e.photos || []).map(p => `<img src="${p}" alt="" class="zoomable">`).join('');
       const videosHtml = (e.videos || []).map(bvid => `<div class="video-thumb"><iframe src="//player.bilibili.com/player.html?bvid=${bvid}&autoplay=0" allowfullscreen></iframe></div>`).join('');
       const tagsHtml = (e.tags || []).map(t => `<a href="tag.html?tag=${t}&page=found-fragments.html" class="tag">${t}</a>`).join('');
       container.innerHTML += `
-        <div class="entry"${entryAnchor(e) ? ` id="${entryAnchor(e)}"` : ''}>
+        <div class="entry"${entryAnchor(e) ? ` id="${entryAnchor(e)}"` : ''} style="transition-delay:${Math.round(cumulativeDelay)}ms">
           <div class="entry-left">
             <div class="date-line"><div class="date-text">${e.date}</div></div>
             <div class="thumb-row">${photosHtml}${videosHtml}</div>
@@ -411,14 +523,42 @@
           </div>
         </div>`;
     });
+
     const lb = document.getElementById('lightbox');
     const lbImg = document.getElementById('lightbox-img');
     document.querySelectorAll('.zoomable').forEach(img => {
-      img.addEventListener('click', function(ev) { ev.stopPropagation(); lb.style.display='flex'; lbImg.src=this.src; lbImg.alt=this.alt||''; });
+      applyWearState(img);
+      img.addEventListener('click', function(ev) {
+        ev.stopPropagation();
+        img.classList.remove('is-lifted');
+        void img.offsetWidth;
+        img.classList.add('is-lifted');
+        bumpWearCount(img);
+        lb.classList.add('is-open');
+        lbImg.src = this.src;
+        lbImg.alt = this.alt || '';
+      });
     });
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document.querySelectorAll('.entry').forEach(el => el.classList.add('is-visible'));
+    } else {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          document.querySelectorAll('.entry').forEach(el => el.classList.add('is-visible'));
+        });
+      });
+    }
+
+    setupTicketStamp();
   }
   loadEntries();
-  function closeLightbox() { document.getElementById('lightbox').style.display='none'; document.getElementById('lightbox-img').src=''; }
+
+  function closeLightbox() {
+    const lb = document.getElementById('lightbox');
+    lb.classList.remove('is-open');
+    setTimeout(() => { document.getElementById('lightbox-img').src = ''; }, 400);
+  }
   document.addEventListener('keydown', e => { if(e.key==='Escape') closeLightbox(); });
   </script>
  <script data-goatcounter="https://kiara-mytrace.goatcounter.com/count"
