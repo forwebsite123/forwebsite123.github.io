@@ -689,6 +689,52 @@
     });
   }
 
+  var autoScrollRAF = null;
+  var autoScrollLastTime = 0;
+  var AUTO_SCROLL_SPEED = 0.014; // 每毫秒滚动的像素数，约等于每秒 14px，想更快/更慢直接改这个数字
+
+  function handleAutoScrollInterrupt(event) {
+    if (event.type === 'keydown') {
+      var scrollKeys = ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '];
+      if (scrollKeys.indexOf(event.key) === -1) return;
+    }
+    stopAutoScroll();
+  }
+
+  function stopAutoScroll() {
+    if (autoScrollRAF) {
+      cancelAnimationFrame(autoScrollRAF);
+      autoScrollRAF = null;
+    }
+    window.removeEventListener('wheel', handleAutoScrollInterrupt);
+    window.removeEventListener('touchstart', handleAutoScrollInterrupt);
+    window.removeEventListener('keydown', handleAutoScrollInterrupt);
+  }
+
+  function startAutoScroll() {
+    if (reduceMotion) return;
+    autoScrollLastTime = 0;
+
+    window.addEventListener('wheel', handleAutoScrollInterrupt, { passive: true });
+    window.addEventListener('touchstart', handleAutoScrollInterrupt, { passive: true });
+    window.addEventListener('keydown', handleAutoScrollInterrupt);
+
+    function step(now) {
+      if (!autoScrollLastTime) autoScrollLastTime = now;
+      var delta = now - autoScrollLastTime;
+      autoScrollLastTime = now;
+
+      var maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      if (window.scrollY < maxScroll) {
+        window.scrollBy(0, AUTO_SCROLL_SPEED * delta);
+      }
+
+      autoScrollRAF = requestAnimationFrame(step);
+    }
+
+    autoScrollRAF = requestAnimationFrame(step);
+  }
+
   function boot() {
     readyPage();
 
@@ -727,7 +773,9 @@
 
     if (typewriters.length) {
       window.setTimeout(function () {
+        startAutoScroll();
         typeTextQueue(typewriters, function () {
+          stopAutoScroll();
           afterTypewriter.forEach(function (el, index) {
             reveal(el, 720 + index * 320);
           });
