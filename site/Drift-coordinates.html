@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🌿%3C/text%3E%3C/svg%3E">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/drift-page-transitions.css">
   <title>漂流坐标 · Drift Coordinates</title>
 
   <link
@@ -621,36 +622,36 @@
 </head>
 <body>
   <div class="page">
-    <div class="topbar">
+    <div class="topbar drift-reveal">
       <div class="top-left">
-        <div class="site-note">A place to leave traces.</div>
-        <a href="home.html" class="back">← Back</a>
+        <div class="site-note drift-reveal">A place to leave traces.</div>
+        <a href="home.html" class="back drift-reveal">← Back</a>
       </div>
      <a href="#" class="search-btn" aria-label="Search" id="search-icon">⌕</a>
     </div>
 
-    <div class="title-group">
-      <div class="cn-title">Drift Coordinates</div>
-      <div class="en-subtitle">进来看看我镜头下的世界吧！</div>
+    <div class="title-group drift-reveal">
+      <div class="cn-title drift-reveal">Drift Coordinates</div>
+      <div class="en-subtitle drift-reveal">进来看看我镜头下的世界吧！</div>
     </div>
 
     <div class="country-grid">
-      <a href="asia.html" class="country-card"><div class="country-name">Asia</div></a>
-      <a href="europe.html" class="country-card"><div class="country-name">Europe</div></a>
-      <a href="north-america.html" class="country-card"><div class="country-name">North<br>America</div></a>
-      <a href="south-america.html" class="country-card"><div class="country-name">South<br>America</div></a>
-      <a href="oceania.html" class="country-card"><div class="country-name">Oceania</div></a>
-      <a href="africa.html" class="country-card"><div class="country-name">Africa</div></a>
-      <a href="antarctica.html" class="country-card"><div class="country-name">Antarctica</div></a>
+      <a href="asia.html" class="country-card drift-card-reveal"><div class="country-name">Asia</div></a>
+      <a href="europe.html" class="country-card drift-card-reveal"><div class="country-name">Europe</div></a>
+      <a href="north-america.html" class="country-card drift-card-reveal"><div class="country-name">North<br>America</div></a>
+      <a href="south-america.html" class="country-card drift-card-reveal"><div class="country-name">South<br>America</div></a>
+      <a href="oceania.html" class="country-card drift-card-reveal"><div class="country-name">Oceania</div></a>
+      <a href="africa.html" class="country-card drift-card-reveal"><div class="country-name">Africa</div></a>
+      <a href="antarctica.html" class="country-card drift-card-reveal"><div class="country-name">Antarctica</div></a>
     </div>
 
-    <section class="map-section">
-      <div class="map-title">Visited Places</div>
-      <div class="map-note">
+    <section class="map-section drift-map-reveal">
+      <div class="map-title drift-reveal">Visited Places</div>
+      <div class="map-note drift-reveal">
         放大看看世界的细节。轻触洲块，继续漫游；轻触圆点，打开记忆。
       </div>
 
-      <div class="map-wrap">
+      <div class="map-wrap drift-map-reveal">
         <div id="leaflet-map" aria-label="World map"></div>
 
         <div class="legend">
@@ -666,7 +667,7 @@
       </div>
     </section>
 
-    <div class="footer-note">
+    <div class="footer-note drift-reveal">
      “在噪点与像素之间，存放着我的私心。”
     </div>
   </div>
@@ -1411,6 +1412,7 @@
   </script>
 <script data-goatcounter="https://kiara-mytrace.goatcounter.com/count"
         async src="https://gc.zgo.at/count.js"></script>
+  <script src="/drift-page-transitions.js"></script>
   <script src="/search.js"></script>
 </body>
 </html>

@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🌿%3C/text%3E%3C/svg%3E">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/drift-page-transitions.css">
   <title>dali</title>
 
   <style>
@@ -42,10 +43,10 @@
 
 <body>
   <div class="page">
-    <div class="topbar">
+    <div class="topbar drift-reveal">
       <div class="top-left">
-        <div class="site-note">A place to leave traces.</div>
-        <a href="china.html" class="back">← Back</a>
+        <div class="site-note drift-reveal">A place to leave traces.</div>
+        <a href="china.html" class="back drift-reveal">← Back</a>
       </div>
      <a href="#" class="search-btn" id="search-icon">⌕</a>
     </div>
@@ -53,13 +54,13 @@
     <div class="content">
       <div class="masonry" id="masonry"></div>
       <aside>
-        <div class="sidebar-title">🏷 TAGS</div>
+        <div class="sidebar-title drift-reveal">🏷 TAGS</div>
         <div class="tag-list">
           <a href="tag.html?tag=old-town&page=dali.html" class="tag-link">古城</a>
           <a href="tag.html?tag=erhai&page=dali.html" class="tag-link">洱海</a>
           <a href="tag.html?tag=people&page=dali.html" class="tag-link">人</a>
         </div>
-        <div class="sidebar-title">📷 CAMERAS</div>
+        <div class="sidebar-title drift-reveal">📷 CAMERAS</div>
         <div class="camera-list">
           <a href="tag.html?tag=iphone&page=dali.html" class="camera-item">Iphone🍎</a>
           <a href="tag.html?tag=fujifilm-xs10&page=dali.html" class="camera-item">FUJIFILM XS10</a>
@@ -82,7 +83,7 @@
     items.forEach(p => {
       if (p.video) {
         masonry.innerHTML += `
-          <div class="video-item">
+          <div class="video-item drift-photo-reveal">
             <iframe
               src="//player.bilibili.com/player.html?bvid=${p.video}&autoplay=0&high_quality=1"
               scrolling="no" frameborder="no" allowfullscreen="true">
@@ -90,7 +91,7 @@
           </div>`;
       } else {
         masonry.innerHTML += `
-          <div class="photo-item">
+          <div class="photo-item drift-photo-reveal">
             <img src="${p.image}" alt="${p.title || ''}" class="zoomable">
           </div>`;
       }
@@ -112,6 +113,7 @@
   </script>
   <script data-goatcounter="https://kiara-mytrace.goatcounter.com/count"
         async src="https://gc.zgo.at/count.js"></script>
+  <script src="/drift-page-transitions.js"></script>
   <script src="/search.js"></script>
 </body>
 </html>

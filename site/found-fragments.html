@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🌿%3C/text%3E%3C/svg%3E">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/drift-page-transitions.css">
   <title>Found Fragments</title>
 
   <style>
@@ -416,25 +417,25 @@
 </head>
 <body>
   <div class="page">
-    <div class="topbar">
+    <div class="topbar drift-reveal">
       <div class="top-left">
-        <div class="site-note">A place to leave traces.</div>
-        <a href="home.html" class="back">← Back</a>
+        <div class="site-note drift-reveal">A place to leave traces.</div>
+        <a href="home.html" class="back drift-reveal">← Back</a>
       </div>
      <a href="#" class="search-btn" aria-label="Search" id="search-icon">⌕</a>
     </div>
 
     <div class="main">
-      <div class="intro">
-        <div class="intro-left">
-          <div class="intro-title">Found Fragments</div>
+      <div class="intro drift-reveal">
+        <div class="intro-left drift-reveal">
+          <div class="intro-title drift-reveal">Found Fragments</div>
           落入凡间的碎片，被我藏在了这里，这就是我眼中的‘奇奇怪怪’与‘可可爱爱’。
         </div>
       </div>
 
       <div class="entries" id="entries"></div>
 
-      <div class="footer-note" id="footer-note">
+      <div class="footer-note drift-reveal" id="footer-note">
       “随便看，不用买票，但记得带走好心情。”
       <div class="ticket-stamp" id="ticket-stamp" aria-hidden="true">已入场</div>
       </div>
@@ -506,11 +507,11 @@
     let cumulativeDelay = 0;
     data.entries.forEach(e => {
       cumulativeDelay += 60 + Math.random() * 260;
-      const photosHtml = (e.photos || []).map(p => `<img src="${p}" alt="" class="zoomable">`).join('');
+      const photosHtml = (e.photos || []).map(p => `<img src="${p}" alt="" class="zoomable drift-photo-reveal">`).join('');
       const videosHtml = (e.videos || []).map(bvid => `<div class="video-thumb"><iframe src="//player.bilibili.com/player.html?bvid=${bvid}&autoplay=0" allowfullscreen></iframe></div>`).join('');
       const tagsHtml = (e.tags || []).map(t => `<a href="tag.html?tag=${t}&page=found-fragments.html" class="tag">${t}</a>`).join('');
       container.innerHTML += `
-        <div class="entry"${entryAnchor(e) ? ` id="${entryAnchor(e)}"` : ''} style="transition-delay:${Math.round(cumulativeDelay)}ms">
+        <div class="entry drift-card-reveal"${entryAnchor(e) ? ` id="${entryAnchor(e)}"` : ''} style="transition-delay:${Math.round(cumulativeDelay)}ms">
           <div class="entry-left">
             <div class="date-line"><div class="date-text">${e.date}</div></div>
             <div class="thumb-row">${photosHtml}${videosHtml}</div>
@@ -563,6 +564,7 @@
   </script>
  <script data-goatcounter="https://kiara-mytrace.goatcounter.com/count"
         async src="https://gc.zgo.at/count.js"></script>
+  <script src="/drift-page-transitions.js"></script>
   <script src="/search.js"></script>
 </body>
 </html>

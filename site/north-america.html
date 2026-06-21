@@ -7,6 +7,7 @@
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="/drift-region-map.css" />
+  <link rel="stylesheet" href="/drift-page-transitions.css">
   <title>North America</title>
 
   <style>
@@ -165,34 +166,34 @@
 </head>
 <body>
   <div class="page">
-    <div class="topbar">
+    <div class="topbar drift-reveal">
       <div class="top-left">
-        <div class="site-note">A place to leave traces.</div>
-        <a href="Drift-coordinates.html" class="back">← Back</a>
+        <div class="site-note drift-reveal">A place to leave traces.</div>
+        <a href="Drift-coordinates.html" class="back drift-reveal">← Back</a>
       </div>
 
     <a href="#" class="search-btn" aria-label="Search" id="search-icon">⌕</a>
     </div>
 
-    <h1 class="title">North America</h1>
+    <h1 class="title drift-reveal">North America</h1>
 
     <div class="country-section">
       <div class="country-grid">
-        <a href="canada.html" class="country-card">
+        <a href="canada.html" class="country-card drift-card-reveal">
           <div class="country-name">加拿大</div>
         </a>
-        <a href="usa.html" class="country-card">
+        <a href="usa.html" class="country-card drift-card-reveal">
           <div class="country-name">美国</div>
         </a>
       </div>
 
-      <div class="country-note">
+      <div class="country-note drift-reveal">
         “Everybody here wanted something more, 
 Searching for a sound we hadn’t heard before.”
       </div>
     </div>
 
-    <section class="region-map-card" data-region="northAmerica">
+    <section class="region-map-card drift-map-reveal" data-region="northAmerica">
       <div class="region-map-header">
         <span class="region-map-kicker">Drift Coordinates</span>
         <span class="region-map-hint">Zoom closer. Drag within this fragment.</span>
@@ -210,7 +211,7 @@ Searching for a sound we hadn’t heard before.”
       </div>
     </section>
 
-    <div class="footer-note">
+    <div class="footer-note drift-reveal">
     “捕光者笔记。”
     </div>
   </div>
@@ -219,6 +220,7 @@ Searching for a sound we hadn’t heard before.”
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="/drift-region-map.js"></script>
+  <script src="/drift-page-transitions.js"></script>
   <script src="/search.js"></script>
 </body>
 </html>
