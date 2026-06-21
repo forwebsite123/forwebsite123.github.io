@@ -69,37 +69,79 @@
     }).observe(document.body, { childList: true, subtree: true });
   }
 
+  function shouldSkipExitTransition(link, event) {
+    if (!link) return true;
+    if (link.target === '_blank') return true;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return true;
+
+    const href = link.getAttribute('href');
+    if (!href) return true;
+    if (href.startsWith('#')) return true;
+    if (href.startsWith('javascript:')) return true;
+    if (href === window.location.pathname || href === window.location.href) return true;
+
+    if (link.id === 'search-icon') return true;
+    if (link.classList.contains('search-btn')) return true;
+
+    const skipSelectors = [
+      '.tag',
+      '.filter-tag',
+      '.tag-chip',
+      '.tag-button',
+      '.filter-button',
+      '[data-tag]',
+      '[data-filter]',
+      '[data-category]',
+      '[data-album-filter]',
+      '[data-no-transition]',
+      '.no-transition',
+      '.no-page-transition'
+    ];
+
+    if (skipSelectors.some(selector => link.closest(selector) || link.matches(selector))) {
+      return true;
+    }
+
+    const url = new URL(href, window.location.href);
+
+    if (url.origin !== window.location.origin) return true;
+
+    const samePage =
+      url.pathname === window.location.pathname &&
+      url.search === window.location.search;
+
+    if (samePage) return true;
+
+    return false;
+  }
+
   function setupExitTransition() {
     document.addEventListener('click', event => {
       const link = event.target.closest('a[href]');
-      if (!link) return;
-      if (link.target === '_blank') return;
-      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-
-      const href = link.getAttribute('href');
-      if (!href || href.startsWith('#')) return;
-      if (link.id === 'search-icon' || link.classList.contains('search-btn')) return;
-
-      const isDriftLink =
-        href.includes('.html') ||
-        href.startsWith('/') ||
-        href.startsWith('./') ||
-        href.startsWith('../');
-
-      if (!isDriftLink) return;
+      if (shouldSkipExitTransition(link, event)) return;
 
       event.preventDefault();
 
+      const href = link.getAttribute('href');
       const activeCard = link.closest('.country-card, .continent-card, .region-card, .drift-preview-card, .photo-card, .gallery-item, figure');
+
       if (activeCard) activeCard.classList.add('drift-picking-up');
 
       document.body.classList.add('drift-page-leaving');
 
       window.setTimeout(() => {
         window.location.href = href;
-      }, reduceMotion ? 40 : 220);
+      }, reduceMotion ? 40 : 180);
+
+      window.setTimeout(() => {
+        document.body.classList.remove('drift-page-leaving');
+      }, 900);
     });
   }
+
+  window.addEventListener('pageshow', () => {
+    document.body.classList.remove('drift-page-leaving');
+  });
 
   function boot() {
     readyPage();
