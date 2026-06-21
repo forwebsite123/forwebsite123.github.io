@@ -9,22 +9,14 @@
     * { box-sizing: border-box; }
     body { margin: 0; background: #fcfbf8; color: #6e4a4a; font-family: "Times New Roman", Georgia, serif; overflow-x: hidden; }
 
-    .wind-field { position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+    .wind-field { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
     .wind-field::before, .wind-field::after { content: ""; position: absolute; inset: 0; }
-    .wind-field::before { background: linear-gradient(115deg, transparent 0%, rgba(165,213,229,.20) 30%, rgba(255,255,255,.28) 45%, transparent 64%); animation: seaWindGlow 48s ease-in-out infinite; }
-    .wind-field::after { background: linear-gradient(0deg, rgba(162,215,224,.18) 0%, rgba(255,255,255,.08) 30%, transparent 52%); animation: seaSurfaceBreath 42s ease-in-out infinite; }
-    .wind-field span { position: absolute; left: -26vw; top: var(--wind-top); width: var(--wind-width); height: var(--wind-height); border-top: 1.5px solid rgba(135,196,216,.52); border-radius: 50%; opacity: 0; transform: translate3d(0,0,0) rotate(var(--wind-rotate)); filter: drop-shadow(0 0 10px rgba(255,255,255,.28)); animation: windLineDrift var(--wind-duration) ease-in-out infinite; animation-delay: var(--wind-delay); }
-    .wind-field span::after { content: ""; position: absolute; left: 18%; top: -1px; width: 34%; border-top: 1px solid rgba(255,255,255,.54); border-radius: 50%; }
-    .wind-field span:nth-child(1) { --wind-top: 16%; --wind-width: 62vw; --wind-height: 42px; --wind-rotate: -5deg; --wind-duration: 32s; --wind-delay: -8s; --wind-y: -18px; }
-    .wind-field span:nth-child(2) { --wind-top: 31%; --wind-width: 54vw; --wind-height: 32px; --wind-rotate: 3deg; --wind-duration: 36s; --wind-delay: -22s; --wind-y: 12px; }
-    .wind-field span:nth-child(3) { --wind-top: 48%; --wind-width: 70vw; --wind-height: 48px; --wind-rotate: -2deg; --wind-duration: 40s; --wind-delay: -15s; --wind-y: -12px; }
-    .wind-field span:nth-child(4) { --wind-top: 66%; --wind-width: 58vw; --wind-height: 40px; --wind-rotate: 4deg; --wind-duration: 34s; --wind-delay: -30s; --wind-y: 16px; }
-    .wind-field span:nth-child(5) { --wind-top: 82%; --wind-width: 66vw; --wind-height: 44px; --wind-rotate: -4deg; --wind-duration: 44s; --wind-delay: -18s; --wind-y: -10px; }
-    @keyframes seaWindGlow { 0%,100% { opacity: .38; transform: translateX(-12vw); } 50% { opacity: .78; transform: translateX(20vw); } }
-    @keyframes seaSurfaceBreath { 0%,100% { opacity: .30; } 50% { opacity: .58; } }
-    @keyframes windLineDrift { 0% { opacity: 0; transform: translate3d(0,0,0) rotate(var(--wind-rotate)); } 14% { opacity: .72; } 52% { opacity: .54; transform: translate3d(78vw, var(--wind-y), 0) rotate(var(--wind-rotate)); } 100% { opacity: 0; transform: translate3d(136vw, calc(var(--wind-y) * 1.6), 0) rotate(var(--wind-rotate)); } }
+    .wind-field::before { background: linear-gradient(105deg, transparent 0%, rgba(192,224,232,.11) 28%, rgba(255,255,255,.20) 46%, transparent 68%); animation: seaWindGlow 72s ease-in-out infinite; }
+    .wind-field::after { background: linear-gradient(0deg, rgba(173,216,224,.10) 0%, rgba(255,255,255,.08) 28%, transparent 56%); animation: seaSurfaceBreath 60s ease-in-out infinite; }
+    @keyframes seaWindGlow { 0%,100% { opacity: .24; transform: translateX(-8vw); } 50% { opacity: .50; transform: translateX(12vw); } }
+    @keyframes seaSurfaceBreath { 0%,100% { opacity: .20; } 50% { opacity: .42; } }
 
-    .page { max-width: 1280px; margin: 0 auto; padding: 28px 28px 90px; position: relative; z-index: 2; }
+    .page { max-width: 1280px; margin: 0 auto; padding: 28px 28px 90px; position: relative; z-index: 1; }
     .topline { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 36px; }
     .site-note { font-size: 16px; color: rgba(122,87,87,.78); font-style: italic; letter-spacing: .3px; }
     .search-btn { text-decoration: none; color: #8a6666; font-size: 28px; line-height: 1; }
@@ -56,18 +48,18 @@
     .video-cell iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
     .right-col { padding-top: 52px; margin-left: 48px; }
     .entry-note { font-size: 15px; line-height: 1.95; color: rgba(122,87,87,.75); max-width: 220px; padding: 4px 0 4px 22px; border-left: 1px solid rgba(122,87,87,.22); }
-    .page-footer { text-align: center; margin-top: 100px; position: relative; z-index: 2; top: -24px; font-size: 14px; font-style: italic; letter-spacing: 1px; color: rgba(122,87,87,.7); }
+    .page-footer { text-align: center; margin-top: 100px; position: relative; z-index: 1; top: -24px; font-size: 14px; font-style: italic; letter-spacing: 1px; color: rgba(122,87,87,.7); }
     #lightbox { position: fixed; inset: 0; background: rgba(0,0,0,.88); display: flex; justify-content: center; align-items: center; z-index: 9999; padding: 26px; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .4s ease, visibility .4s ease; }
     #lightbox.is-open { opacity: 1; visibility: visible; pointer-events: auto; }
     #lightbox img { max-width: 92vw; max-height: 90vh; object-fit: contain; background: white; box-shadow: 0 20px 60px rgba(0,0,0,.4); filter: blur(10px); transform: scale(.97); transition: filter .5s ease-out, transform .5s ease-out; }
     #lightbox.is-open img { filter: blur(0); transform: scale(1); }
     .close-tip { position: absolute; top: 24px; right: 28px; color: rgba(255,255,255,.84); font-size: 14px; letter-spacing: 1px; }
-    @media (prefers-reduced-motion: reduce) { .wind-field::before, .wind-field::after, .wind-field span, .title-wrap, .entry { opacity: 1; filter: none; transform: none; animation: none; transition: none; } .photo-thumb img, .photo-thumb::after, #lightbox, #lightbox img { transition: none; } .photo-thumb:hover img, .photo-thumb.is-wind-lift img, #lightbox img { filter: none; transform: none; } .photo-thumb::after { display: none; } }
-    @media (max-width: 760px) { .layout { grid-template-columns: 1fr; } .timeline-side { display: none; } .entry { grid-template-columns: 1fr; row-gap: 16px; } .right-col { padding-top: 0; margin-left: 0; } .entry-meta { grid-column: span 1; font-size: 24px; } .page-title { font-size: 42px; } .wind-field span:nth-child(n+4) { display: none; } .photo-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; } .photo-grid.photo-layout-single { grid-template-columns: 1fr; } .photo-grid.photo-layout-2x2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .photo-thumb, .photo-grid.photo-layout-single .photo-thumb { width: 100%; height: 120px; } .photo-grid.photo-layout-single .photo-thumb { height: min(72vw, 360px); } .video-cell { width: 100%; height: 120px; } .entry-note { max-width: none; padding-left: 18px; } }
+    @media (prefers-reduced-motion: reduce) { .wind-field::before, .wind-field::after, .title-wrap, .entry { opacity: 1; filter: none; transform: none; animation: none; transition: none; } .photo-thumb img, .photo-thumb::after, #lightbox, #lightbox img { transition: none; } .photo-thumb:hover img, .photo-thumb.is-wind-lift img, #lightbox img { filter: none; transform: none; } .photo-thumb::after { display: none; } }
+    @media (max-width: 760px) { .layout { grid-template-columns: 1fr; } .timeline-side { display: none; } .entry { grid-template-columns: 1fr; row-gap: 16px; } .right-col { padding-top: 0; margin-left: 0; } .entry-meta { grid-column: span 1; font-size: 24px; } .page-title { font-size: 42px; } .photo-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; } .photo-grid.photo-layout-single { grid-template-columns: 1fr; } .photo-grid.photo-layout-2x2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .photo-thumb, .photo-grid.photo-layout-single .photo-thumb { width: 100%; height: 120px; } .photo-grid.photo-layout-single .photo-thumb { height: min(72vw, 360px); } .video-cell { width: 100%; height: 120px; } .entry-note { max-width: none; padding-left: 18px; } }
   </style>
 </head>
 <body>
-  <div class="wind-field" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+  <div class="wind-field" aria-hidden="true"></div>
   <div class="page">
     <div class="topline"><div class="site-note">A place to leave traces.</div><a href="#" class="search-btn" aria-label="Search" id="search-icon">⌕</a></div>
     <div class="title-wrap"><h1 class="page-title">Kite surfing</h1><a href="into-the-wild.html" class="back-link">← Back</a></div>
