@@ -180,6 +180,93 @@
     @media (prefers-color-scheme: dark) { #sk-overlay { background: rgba(30, 22, 22, 0.93); } #sk-input { color: #e8d0d0; border-bottom-color: #7a5555; } .sk-result { background: rgba(40,28,28,0.6); border-color: #5a3838; } .sk-result:hover { background: rgba(50,35,35,0.95); } .sk-title { color: #e8d0d0; } .sk-tag { background: #3a2424; color: #b08080; } }
   `;
 
+  const SEARCH_ICON_GLOW_CSS = `
+  #search-icon,
+  .search-btn,
+  .search-icon {
+    position: relative;
+    isolation: isolate;
+    transition:
+      text-shadow .32s ease,
+      filter .32s ease,
+      transform .32s ease;
+  }
+
+  #search-icon::after,
+  .search-btn::after,
+  .search-icon::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 2.15em;
+    height: 2.15em;
+    border-radius: 999px;
+    transform: translate(-50%, -50%) scale(.45);
+    background:
+      radial-gradient(circle,
+        rgba(255,255,255,.52) 0%,
+        rgba(190,145,150,.25) 34%,
+        rgba(190,145,150,0) 72%);
+    opacity: 0;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  #search-icon:hover,
+  .search-btn:hover,
+  .search-icon:hover {
+    text-shadow:
+      0 0 8px rgba(154,102,102,.32),
+      0 0 18px rgba(190,145,150,.24);
+    filter: drop-shadow(0 0 8px rgba(190,145,150,.26));
+    transform: translateY(-1px);
+  }
+
+  #search-icon:hover::after,
+  .search-btn:hover::after,
+  .search-icon:hover::after {
+    animation: siteSearchIconGlowSpread 1.25s ease-out infinite;
+  }
+
+  @keyframes siteSearchIconGlowSpread {
+    0% {
+      opacity: .72;
+      transform: translate(-50%, -50%) scale(.45);
+    }
+    72% {
+      opacity: .18;
+      transform: translate(-50%, -50%) scale(1.22);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(1.46);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #search-icon,
+    .search-btn,
+    .search-icon {
+      transition: text-shadow .2s ease, filter .2s ease;
+    }
+
+    #search-icon::after,
+    .search-btn::after,
+    .search-icon::after {
+      display: none;
+    }
+
+    #search-icon:hover,
+    .search-btn:hover,
+    .search-icon:hover {
+      transform: none;
+      text-shadow: 0 0 10px rgba(154,102,102,.28);
+      filter: drop-shadow(0 0 6px rgba(190,145,150,.22));
+    }
+  }
+`;
+
   function scopeLabel(scope) {
     if (scope === 'all') return '全站';
     if (scope === 'photos') return '漂流坐标';
@@ -263,6 +350,16 @@
   }
 
   function close() { if (!overlay) return; overlay.classList.remove('sk-open'); input.value = ''; results.innerHTML = ''; }
+
+
+  function injectSearchIconGlowStyle() {
+    if (document.getElementById('site-search-icon-glow-style')) return;
+
+    const style = document.createElement('style');
+    style.id = 'site-search-icon-glow-style';
+    style.textContent = SEARCH_ICON_GLOW_CSS;
+    document.head.appendChild(style);
+  }
 
   function hookSearchIcon() {
     const byId = document.getElementById('search-icon');
@@ -378,6 +475,7 @@
   }
 
   function boot() {
+    injectSearchIconGlowStyle();
     hookSearchIcon();
     scheduleHomeGrowthSignPatch();
   }
