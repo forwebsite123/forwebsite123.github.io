@@ -205,9 +205,10 @@
     transform: translate(-50%, -50%) scale(.45);
     background:
       radial-gradient(circle,
-        rgba(255,252,242,.58) 0%,
-        rgba(246,235,210,.28) 36%,
-        rgba(246,235,210,0) 72%);
+        rgba(255,255,252,.86) 0%,
+        rgba(244,248,255,.48) 34%,
+        rgba(226,236,250,.22) 58%,
+        rgba(226,236,250,0) 76%);
     opacity: 0;
     pointer-events: none;
     z-index: -1;
@@ -217,9 +218,12 @@
   .search-btn:hover,
   .search-icon:hover {
     text-shadow:
-      0 0 8px rgba(255,252,242,.48),
-      0 0 18px rgba(246,235,210,.30);
-    filter: drop-shadow(0 0 8px rgba(246,235,210,.28));
+      0 0 6px rgba(255,255,252,.82),
+      0 0 16px rgba(244,248,255,.56),
+      0 0 30px rgba(226,236,250,.34);
+    filter:
+      drop-shadow(0 0 9px rgba(244,248,255,.46))
+      drop-shadow(0 0 18px rgba(226,236,250,.24));
     transform: translateY(-1px);
   }
 
@@ -231,16 +235,16 @@
 
   @keyframes siteSearchIconGlowSpread {
     0% {
-      opacity: .72;
+      opacity: .9;
       transform: translate(-50%, -50%) scale(.45);
     }
     72% {
-      opacity: .18;
-      transform: translate(-50%, -50%) scale(1.22);
+      opacity: .30;
+      transform: translate(-50%, -50%) scale(1.36);
     }
     100% {
       opacity: 0;
-      transform: translate(-50%, -50%) scale(1.46);
+      transform: translate(-50%, -50%) scale(1.68);
     }
   }
 
@@ -261,8 +265,13 @@
     .search-btn:hover,
     .search-icon:hover {
       transform: none;
-      text-shadow: 0 0 10px rgba(255,252,242,.42);
-      filter: drop-shadow(0 0 6px rgba(246,235,210,.24));
+      text-shadow:
+        0 0 6px rgba(255,255,252,.82),
+        0 0 16px rgba(244,248,255,.56),
+        0 0 30px rgba(226,236,250,.34);
+      filter:
+        drop-shadow(0 0 9px rgba(244,248,255,.46))
+        drop-shadow(0 0 18px rgba(226,236,250,.24));
     }
   }
 `;
