@@ -197,24 +197,6 @@
       transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .drift-memory-lines {
-      position: absolute;
-      inset: 0;
-      z-index: 450;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.35s ease;
-    }
-
-    .drift-memory-lines.is-visible {
-      opacity: 1;
-    }
-
-    .drift-memory-lines line {
-      stroke: rgba(122, 87, 87, 0.11);
-      stroke-width: 0.75;
-      stroke-linecap: round;
-    }
 
     .drift-point {
       position: relative;
@@ -557,7 +539,6 @@
       .drift-point::before,
       .drift-point::after,
       .leaflet-popup.drift-preview,
-      .drift-memory-lines,
       body.drift-leaving,
       body.drift-page-exit,
       #leaflet-map.drift-map-zooming .leaflet-map-pane {
@@ -1127,10 +1108,6 @@
     let markers = [];
     const markerLayers = [];
     const mapEl = document.getElementById('leaflet-map');
-    const memoryLines = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    memoryLines.classList.add('drift-memory-lines');
-    memoryLines.setAttribute('aria-hidden', 'true');
-    mapEl.appendChild(memoryLines);
 
     function navigateWithDriftExit(href, event, pickup = false) {
       if (!href) return;
@@ -1149,24 +1126,6 @@
       return layer?.getElement?.()?.querySelector('.drift-point');
     }
 
-    function showMemoryLines(point) {
-      const origin = map.latLngToContainerPoint([point.lat, point.lng]);
-      const nearby = markers
-        .filter(item => item !== point)
-        .map(item => ({ item, dist: Math.hypot(item.lat - point.lat, item.lng - point.lng) }))
-        .sort((a, b) => a.dist - b.dist)
-        .slice(0, 3);
-
-      memoryLines.innerHTML = nearby.map(({ item }) => {
-        const target = map.latLngToContainerPoint([item.lat, item.lng]);
-        return `<line x1="${origin.x.toFixed(1)}" y1="${origin.y.toFixed(1)}" x2="${target.x.toFixed(1)}" y2="${target.y.toFixed(1)}"></line>`;
-      }).join('');
-      memoryLines.classList.add('is-visible');
-    }
-
-    function hideMemoryLines() {
-      memoryLines.classList.remove('is-visible');
-    }
 
     function decorateOpenPopup() {
       const popup = document.querySelector('.leaflet-popup');
@@ -1311,7 +1270,6 @@
 
         layer.on('mouseover', () => {
           getPointElement(layer)?.classList.add('is-hovered');
-          showMemoryLines(point);
           if (hasFinePointer) {
             refreshPointPreview(point);
             layer.openPopup();
@@ -1321,7 +1279,6 @@
 
         layer.on('mouseout', () => {
           getPointElement(layer)?.classList.remove('is-hovered');
-          hideMemoryLines();
           if (hasFinePointer) {
             window.setTimeout(() => {
               if (!document.querySelector('.leaflet-popup:hover')) layer.closePopup();
@@ -1347,7 +1304,6 @@
     });
     map.on('zoomend moveend', () => {
       mapEl.classList.remove('drift-map-zooming');
-      hideMemoryLines();
     });
 
     document.addEventListener('click', function (event) {
