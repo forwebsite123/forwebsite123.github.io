@@ -27,10 +27,10 @@
       background-size: cover;
       background-position: center center;
       background-repeat: no-repeat;
-      opacity: 0.44;
+      opacity: 0.50;
       pointer-events: none;
       z-index: 0;
-      animation: wildDrift 70s ease-in-out infinite;
+      animation: wildDrift 62s ease-in-out infinite;
       will-change: transform;
     }
 
@@ -38,19 +38,19 @@
       content: "";
       position: fixed;
       inset: 0;
-      background: rgba(252, 251, 248, 0.18);
+      background: rgba(252, 251, 248, 0.14);
       pointer-events: none;
       z-index: 0;
-      animation: wildLight 54s ease-in-out infinite;
+      animation: wildLight 46s ease-in-out infinite;
     }
 
     @keyframes wildDrift {
       0%, 100% { transform: scale(1) translate(0, 0); }
-      50%      { transform: scale(1.035) translate(-10px, -6px); }
+      50%      { transform: scale(1.05) translate(-14px, -8px); }
     }
     @keyframes wildLight {
-      0%, 100% { opacity: .12; }
-      50%      { opacity: .26; }
+      0%, 100% { opacity: .09; }
+      50%      { opacity: .30; }
     }
 
     .page {
