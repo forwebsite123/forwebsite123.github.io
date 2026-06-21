@@ -287,7 +287,7 @@
     }
 
     .about-typewriter .typewriter-output {
-      white-space: pre-wrap;
+      white-space: normal;
     }
 
     .about-typewriter .typewriter-cursor {
@@ -306,8 +306,8 @@
 
     .section .about-typewriter {
       margin-top: 0 !important;
-      margin-bottom: 0.72em !important;
-      line-height: 1.88 !important;
+      margin-bottom: clamp(44px, 4.2vw, 62px) !important;
+      line-height: 1.9 !important;
     }
 
     .section .about-typewriter + .about-typewriter {
@@ -315,11 +315,22 @@
     }
 
     .section .about-typewriter.is-complete {
-      margin-bottom: 0.72em !important;
+      margin-bottom: clamp(44px, 4.2vw, 62px) !important;
     }
 
-    .section .about-typewriter:last-of-type {
-      margin-bottom: 1.05em !important;
+    .section .about-typewriter + .about-signoff {
+      margin-top: clamp(50px, 4.8vw, 70px) !important;
+    }
+
+    @media (max-width: 900px) {
+      .section .about-typewriter,
+      .section .about-typewriter.is-complete {
+        margin-bottom: clamp(30px, 8vw, 44px) !important;
+      }
+
+      .section .about-typewriter + .about-signoff {
+        margin-top: clamp(36px, 9vw, 52px) !important;
+      }
     }
 
     @keyframes aboutCursorBlink {
@@ -575,7 +586,7 @@
   }
 
   function typeText(el, done) {
-    var original = el.textContent;
+    var original = el.textContent.replace(/\s+/g, ' ').trim();
     el.dataset.fullText = original;
 
     if (reduceMotion) {
