@@ -1,5 +1,10 @@
 (function () {
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isTagLikePage =
+    /(^|\/)tag\.html$/i.test(window.location.pathname) ||
+    window.location.search.includes('tag=') ||
+    window.location.search.includes('filter=') ||
+    window.location.search.includes('camera=');
 
   document.body.classList.add('drift-page-enter');
 
@@ -20,6 +25,36 @@
   }
 
   function setupScrollReveal() {
+    if (isTagLikePage) {
+      document.documentElement.classList.add('drift-no-photo-reveal');
+
+      const showAll = root => {
+        root.querySelectorAll('.drift-photo-reveal').forEach(el => {
+          el.classList.add('is-visible');
+          el.classList.add('is-static');
+        });
+      };
+
+      showAll(document);
+
+      new MutationObserver(mutations => {
+        mutations.forEach(mutation => {
+          mutation.addedNodes.forEach(node => {
+            if (!(node instanceof Element)) return;
+
+            if (node.matches('.drift-photo-reveal')) {
+              node.classList.add('is-visible');
+              node.classList.add('is-static');
+            }
+
+            showAll(node);
+          });
+        });
+      }).observe(document.body, { childList: true, subtree: true });
+
+      return;
+    }
+
     const seen = new WeakSet();
 
     if (reduceMotion || !('IntersectionObserver' in window)) {
