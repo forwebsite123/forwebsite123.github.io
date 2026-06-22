@@ -1196,6 +1196,35 @@ function assetUrl(path) {
   return clean.startsWith('/') ? clean : '/' + clean;
 }
 
+
+const previewRenderTimers = new Map();
+
+function schedulePreviewRender(key, renderFn, delay = 120) {
+  if (previewRenderTimers.has(key)) return;
+
+  const timer = setTimeout(() => {
+    previewRenderTimers.delete(key);
+    renderFn();
+  }, delay);
+
+  previewRenderTimers.set(key, timer);
+}
+
+function flushPreviewRender(key, renderFn) {
+  const timer = previewRenderTimers.get(key);
+  if (timer) {
+    clearTimeout(timer);
+    previewRenderTimers.delete(key);
+  }
+  renderFn();
+}
+
+function revokePreviewUrl(item) {
+  if (item && item.dataUrl && item.dataUrl.startsWith('blob:')) {
+    try { URL.revokeObjectURL(item.dataUrl); } catch (_) {}
+  }
+}
+
 // 防止重复点击导致同一写操作被触发两次
 const activeOperationKeys = new Set();
 
@@ -1700,25 +1729,24 @@ async function handleAlbumFiles(fileList) {
   showStatus('uploadStatus', `Processing 0 / ${total}...`, 'info');
 
   // 并行派发给 worker 池:pool 自己会排队,主线程完全不卡
-  const tasks = images.map(img =>
-    processImage(img, maxW, quality)
-      .then(result => {
-        albumFiles.push(result);
-        done++;
-        showStatus('uploadStatus', `Processing ${done} / ${total}...`, 'info');
-        renderAlbumPreview(); // 每张完成立即出现在预览里
-      })
-      .catch(e => {
-        done++;
-        log(`Failed to process ${img.name}: ${e.message}`, 'error');
-        showStatus('uploadStatus', `Processing ${done} / ${total}...`, 'info');
-      })
-  );
+  const tasks = images.map(img => async () => {
+    try {
+      const result = await processImage(img, maxW, quality);
+      albumFiles.push(result);
+      done++;
+      showStatus('uploadStatus', `Processing ${done} / ${total}...`, 'info');
+      schedulePreviewRender('album', renderAlbumPreview);
+    } catch (e) {
+      done++;
+      log(`Failed to process ${img.name}: ${e.message}`, 'error');
+      showStatus('uploadStatus', `Processing ${done} / ${total}...`, 'info');
+    }
+  });
 
-  await Promise.all(tasks);
+  await runWithConcurrency(tasks, WORKER_SUPPORTED ? 4 : 2);
 
   showStatus('uploadStatus', '', '');
-  renderAlbumPreview();
+  flushPreviewRender('album', renderAlbumPreview);
   document.getElementById('albumSubmit').disabled = albumFiles.length === 0;
 
   // 重置 file input,让用户能重复选同一文件
@@ -1737,9 +1765,15 @@ function renderAlbumPreview() {
 }
 
 function removeAlbumFile(i) {
-  albumFiles.splice(i, 1);
+  const [removed] = albumFiles.splice(i, 1);
+  revokePreviewUrl(removed);
   renderAlbumPreview();
   document.getElementById('albumSubmit').disabled = albumFiles.length === 0;
+}
+
+function clearAlbumFiles() {
+  albumFiles.forEach(revokePreviewUrl);
+  albumFiles = [];
 }
 
 async function submitAlbumPhotos() {
@@ -1795,7 +1829,7 @@ async function submitAlbumPhotos() {
       showStatus('uploadStatus', `${albumFiles.length} photos uploaded successfully!`, 'success');
       
       // Reset
-      albumFiles = [];
+      clearAlbumFiles();
       renderAlbumPreview();
       document.getElementById('albumSubmit').disabled = true;
       document.getElementById('albumTags').value = '';
@@ -2167,9 +2201,7 @@ function removeEntryAppendFile(entryIdx, i) {
   const queue = entryAppendFiles.get(entryIdx);
   if (!queue) return;
   const [removed] = queue.splice(i, 1);
-  if (removed && removed.dataUrl) {
-    try { URL.revokeObjectURL(removed.dataUrl); } catch (_) {}
-  }
+  revokePreviewUrl(removed);
   renderEntryAppendPreview(entryIdx);
 }
 
@@ -2178,9 +2210,7 @@ function clearEntryAppendQueue(entryIdx) {
   const queue = entryAppendFiles.get(entryIdx);
   if (!queue) return;
   for (const f of queue) {
-    if (f && f.dataUrl) {
-      try { URL.revokeObjectURL(f.dataUrl); } catch (_) {}
-    }
+    revokePreviewUrl(f);
   }
   entryAppendFiles.delete(entryIdx);
 }
@@ -2190,9 +2220,7 @@ function clearAllEntryAppendQueues() {
   for (const [idx] of entryAppendFiles.entries()) {
     const queue = entryAppendFiles.get(idx);
     for (const f of queue) {
-      if (f && f.dataUrl) {
-        try { URL.revokeObjectURL(f.dataUrl); } catch (_) {}
-      }
+      revokePreviewUrl(f);
     }
   }
   entryAppendFiles.clear();
@@ -2296,9 +2324,7 @@ function removeEntryRecordAppendFile(entryIdx, i) {
   const queue = entryRecordAppendFiles.get(entryIdx);
   if (!queue) return;
   const [removed] = queue.splice(i, 1);
-  if (removed && removed.dataUrl) {
-    try { URL.revokeObjectURL(removed.dataUrl); } catch (_) {}
-  }
+  revokePreviewUrl(removed);
   renderActivityEntries();
 }
 
@@ -2306,9 +2332,7 @@ function clearEntryRecordAppendQueue(entryIdx) {
   const queue = entryRecordAppendFiles.get(entryIdx);
   if (!queue) return;
   for (const f of queue) {
-    if (f && f.dataUrl) {
-      try { URL.revokeObjectURL(f.dataUrl); } catch (_) {}
-    }
+    revokePreviewUrl(f);
   }
   entryRecordAppendFiles.delete(entryIdx);
 }
@@ -2317,9 +2341,7 @@ function clearAllEntryRecordAppendQueues() {
   for (const [idx] of entryRecordAppendFiles.entries()) {
     const queue = entryRecordAppendFiles.get(idx);
     for (const f of queue) {
-      if (f && f.dataUrl) {
-        try { URL.revokeObjectURL(f.dataUrl); } catch (_) {}
-      }
+      revokePreviewUrl(f);
     }
   }
   entryRecordAppendFiles.clear();
@@ -2522,9 +2544,7 @@ async function deleteActivityEntry(idx) {
       for (const [k, v] of map.entries()) {
         if (k === idx) {
           for (const f of v) {
-            if (f && f.dataUrl) {
-              try { URL.revokeObjectURL(f.dataUrl); } catch (_) {}
-            }
+            revokePreviewUrl(f);
           }
           continue;
         }
@@ -2590,25 +2610,24 @@ async function handleRecordImages(fileList) {
   const total = images.length;
   showStatus('uploadStatus', `Processing record image 0 / ${total}...`, 'info');
 
-  const tasks = images.map(img =>
-    processImage(img, maxW, quality)
-      .then(result => {
-        recordImageFiles.push(result);
-        done++;
-        showStatus('uploadStatus', `Processing record image ${done} / ${total}...`, 'info');
-        renderRecordPreview();
-      })
-      .catch(e => {
-        done++;
-        log(`Failed to process ${img.name}: ${e.message}`, 'error');
-        showStatus('uploadStatus', `Processing record image ${done} / ${total}...`, 'info');
-      })
-  );
+  const tasks = images.map(img => async () => {
+    try {
+      const result = await processImage(img, maxW, quality);
+      recordImageFiles.push(result);
+      done++;
+      showStatus('uploadStatus', `Processing record image ${done} / ${total}...`, 'info');
+      schedulePreviewRender('record', renderRecordPreview);
+    } catch (e) {
+      done++;
+      log(`Failed to process ${img.name}: ${e.message}`, 'error');
+      showStatus('uploadStatus', `Processing record image ${done} / ${total}...`, 'info');
+    }
+  });
 
-  await Promise.all(tasks);
+  await runWithConcurrency(tasks, WORKER_SUPPORTED ? 4 : 2);
 
   showStatus('uploadStatus', '', '');
-  renderRecordPreview();
+  flushPreviewRender('record', renderRecordPreview);
 
   // 重置 file input,让用户能重复选同一文件
   const input = document.querySelector('#recordUploadArea input[type="file"]');
@@ -2634,13 +2653,19 @@ function renderRecordPreview() {
 }
 
 function removeRecordImage(index) {
-  recordImageFiles.splice(index, 1);
+  const [removed] = recordImageFiles.splice(index, 1);
+  revokePreviewUrl(removed);
   renderRecordPreview();
   if (recordImageFiles.length === 0) {
     // Reset file input
     const input = document.querySelector('#recordUploadArea input[type="file"]');
     if (input) input.value = '';
   }
+}
+
+function clearRecordImageFiles() {
+  recordImageFiles.forEach(revokePreviewUrl);
+  recordImageFiles = [];
 }
 
 async function handleActivityFiles(fileList) {
@@ -2653,25 +2678,24 @@ async function handleActivityFiles(fileList) {
   const total = images.length;
   showStatus('uploadStatus', `Processing 0 / ${total}...`, 'info');
 
-  const tasks = images.map(img =>
-    processImage(img, maxW, quality)
-      .then(result => {
-        activityFiles.push(result);
-        done++;
-        showStatus('uploadStatus', `Processing ${done} / ${total}...`, 'info');
-        renderActivityPreview();
-      })
-      .catch(e => {
-        done++;
-        log(`Failed to process ${img.name}: ${e.message}`, 'error');
-        showStatus('uploadStatus', `Processing ${done} / ${total}...`, 'info');
-      })
-  );
+  const tasks = images.map(img => async () => {
+    try {
+      const result = await processImage(img, maxW, quality);
+      activityFiles.push(result);
+      done++;
+      showStatus('uploadStatus', `Processing ${done} / ${total}...`, 'info');
+      schedulePreviewRender('activity', renderActivityPreview);
+    } catch (e) {
+      done++;
+      log(`Failed to process ${img.name}: ${e.message}`, 'error');
+      showStatus('uploadStatus', `Processing ${done} / ${total}...`, 'info');
+    }
+  });
 
-  await Promise.all(tasks);
+  await runWithConcurrency(tasks, WORKER_SUPPORTED ? 4 : 2);
 
   showStatus('uploadStatus', '', '');
-  renderActivityPreview();
+  flushPreviewRender('activity', renderActivityPreview);
 
   // 重置 file input,让用户能重复选同一文件
   const input = document.querySelector('#activityUploadArea input[type="file"]');
@@ -2689,8 +2713,14 @@ function renderActivityPreview() {
 }
 
 function removeActivityFile(i) {
-  activityFiles.splice(i, 1);
+  const [removed] = activityFiles.splice(i, 1);
+  revokePreviewUrl(removed);
   renderActivityPreview();
+}
+
+function clearActivityFiles() {
+  activityFiles.forEach(revokePreviewUrl);
+  activityFiles = [];
 }
 
 async function submitActivityEntry() {
@@ -2811,8 +2841,8 @@ async function submitActivityEntry() {
       document.getElementById('entryText').value = '';
       document.getElementById('entryTextTags').value = '';
       document.getElementById('entryVideos').value = '';
-      recordImageFiles = [];
-      activityFiles = [];
+      clearRecordImageFiles();
+      clearActivityFiles();
       document.getElementById('recordPreview').style.display = 'none';
       document.getElementById('recordPreview').innerHTML = '';
       renderActivityPreview();
