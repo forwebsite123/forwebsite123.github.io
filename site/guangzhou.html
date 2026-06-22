@@ -230,10 +230,10 @@
     const items = data.items.filter(p => p.page === 'guangzhou.html');
     const masonry = document.getElementById('masonry');
 
-    items.forEach(p => {
+    const html = items.map(p => {
       if (p.video) {
         // 视频：嵌入 Bilibili 播放器
-        masonry.innerHTML += `
+        return `
           <div class="video-item drift-photo-reveal">
             <iframe
               src="//player.bilibili.com/player.html?bvid=${p.video}&autoplay=0&high_quality=1"
@@ -242,14 +242,16 @@
               allowfullscreen="true">
             </iframe>
           </div>`;
-      } else {
-        // 普通照片
-        masonry.innerHTML += `
-          <div class="photo-item drift-photo-reveal">
-            <img src="${p.image}" alt="${p.title || ''}" class="zoomable">
-          </div>`;
       }
-    });
+
+      // 普通照片
+      return `
+        <div class="photo-item drift-photo-reveal">
+          <img src="${p.image}" alt="${p.title || ''}" class="zoomable">
+        </div>`;
+    }).join('');
+
+    masonry.innerHTML = html;
 
     document.querySelectorAll('.zoomable').forEach(img => {
       img.onclick = () => {
