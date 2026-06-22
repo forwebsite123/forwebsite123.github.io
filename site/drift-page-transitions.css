@@ -6,8 +6,8 @@ body.drift-page-enter {
 
 body.drift-page-ready {
   opacity: 1;
-  filter: blur(0);
-  transform: translateY(0);
+  filter: none;
+  transform: none;
   transition:
     opacity .9s ease,
     filter .9s ease,
@@ -99,6 +99,29 @@ body.drift-page-leaving {
 
 .drift-photo-reveal:hover {
   transform: translate3d(0, -1px, 0) scale(1.003);
+}
+
+html body #lightbox {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  z-index: 99999 !important;
+  background: rgba(0, 0, 0, .9) !important;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+html body #lightbox img {
+  display: block;
+  width: auto !important;
+  height: auto !important;
+  max-width: 90vw !important;
+  max-height: 90vh !important;
+  max-height: 90dvh !important;
+  object-fit: contain;
 }
 
 html.drift-no-page-reveal body,
