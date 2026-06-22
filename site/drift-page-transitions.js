@@ -137,6 +137,7 @@
     if (link.matches('[aria-label*="Back" i]')) return true;
     if ((link.textContent || '').trim().startsWith('← Back')) return true;
     if ((link.textContent || '').trim() === 'Back') return true;
+    if ((link.textContent || '').trim() === '← 返回') return true;
 
     if (link.id === 'search-icon') return true;
     if (link.classList.contains('search-btn')) return true;
@@ -199,6 +200,11 @@
 
   window.addEventListener('pageshow', () => {
     document.body.classList.remove('drift-page-leaving');
+
+    if (isTagLikePage) {
+      document.body.classList.remove('drift-page-enter');
+      document.body.classList.add('drift-page-ready');
+    }
   });
 
   function boot() {
