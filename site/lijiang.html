@@ -80,22 +80,24 @@
     const data = await res.json();
     const items = data.items.filter(p => p.page === 'lijiang.html');
     const masonry = document.getElementById('masonry');
-    items.forEach(p => {
+    const html = items.map(p => {
       if (p.video) {
-        masonry.innerHTML += `
+        return `
           <div class="video-item drift-photo-reveal">
             <iframe
               src="//player.bilibili.com/player.html?bvid=${p.video}&autoplay=0&high_quality=1"
               scrolling="no" frameborder="no" allowfullscreen="true">
             </iframe>
           </div>`;
-      } else {
-        masonry.innerHTML += `
-          <div class="photo-item drift-photo-reveal">
-            <img src="${p.image}" alt="${p.title || ''}" class="zoomable">
-          </div>`;
       }
-    });
+
+      return `
+        <div class="photo-item drift-photo-reveal">
+          <img src="${p.image}" alt="${p.title || ''}" class="zoomable">
+        </div>`;
+    }).join('');
+
+    masonry.innerHTML = html;
     document.querySelectorAll('.zoomable').forEach(img => {
       img.onclick = () => {
         document.getElementById('lightbox').style.display = 'flex';
