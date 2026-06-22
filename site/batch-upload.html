@@ -1219,6 +1219,22 @@ function flushPreviewRender(key, renderFn) {
   renderFn();
 }
 
+function scheduleEntryRender(entryIdx) {
+  schedulePreviewRender(`entry:${entryIdx}`, renderActivityEntries, 160);
+}
+
+function flushEntryRender(entryIdx) {
+  flushPreviewRender(`entry:${entryIdx}`, renderActivityEntries);
+}
+
+function scheduleEntryRecordRender(entryIdx) {
+  schedulePreviewRender(`entry-record:${entryIdx}`, renderActivityEntries, 160);
+}
+
+function flushEntryRecordRender(entryIdx) {
+  flushPreviewRender(`entry-record:${entryIdx}`, renderActivityEntries);
+}
+
 function revokePreviewUrl(item) {
   if (item && item.dataUrl && item.dataUrl.startsWith('blob:')) {
     try { URL.revokeObjectURL(item.dataUrl); } catch (_) {}
@@ -1743,7 +1759,7 @@ async function handleAlbumFiles(fileList) {
     }
   });
 
-  await runWithConcurrency(tasks, WORKER_SUPPORTED ? 4 : 2);
+  await runWithConcurrency(tasks, getImageProcessingConcurrency(images));
 
   showStatus('uploadStatus', '', '');
   flushPreviewRender('album', renderAlbumPreview);
@@ -2170,25 +2186,24 @@ async function handleEntryAppendFiles(entryIdx, fileList, inputEl) {
   const total = images.length;
   showStatus('uploadStatus', `Processing 0 / ${total}...`, 'info');
 
-  const tasks = images.map(img =>
-    processImage(img, maxW, quality)
-      .then(result => {
-        queue.push(result);
-        done++;
-        showStatus('uploadStatus', `Processing ${done} / ${total}...`, 'info');
-        renderEntryAppendPreview(entryIdx);
-      })
-      .catch(e => {
-        done++;
-        log(`Failed to process ${img.name}: ${e.message}`, 'error');
-        showStatus('uploadStatus', `Processing ${done} / ${total}...`, 'info');
-      })
-  );
+  const tasks = images.map(img => async () => {
+    try {
+      const result = await processImage(img, maxW, quality);
+      queue.push(result);
+      done++;
+      showStatus('uploadStatus', `Processing ${done} / ${total}...`, 'info');
+      scheduleEntryRender(entryIdx);
+    } catch (e) {
+      done++;
+      log(`Failed to process ${img.name}: ${e.message}`, 'error');
+      showStatus('uploadStatus', `Processing ${done} / ${total}...`, 'info');
+    }
+  });
 
-  await Promise.all(tasks);
+  await runWithConcurrency(tasks, getImageProcessingConcurrency(images));
 
   showStatus('uploadStatus', '', '');
-  renderEntryAppendPreview(entryIdx);
+  flushEntryRender(entryIdx);
 }
 
 function renderEntryAppendPreview(entryIdx) {
@@ -2299,25 +2314,24 @@ async function handleEntryRecordAppendFiles(entryIdx, fileList, inputEl) {
   const total = images.length;
   showStatus('uploadStatus', `Processing record image 0 / ${total}...`, 'info');
 
-  const tasks = images.map(img =>
-    processImage(img, maxW, quality)
-      .then(result => {
-        queue.push(result);
-        done++;
-        showStatus('uploadStatus', `Processing record image ${done} / ${total}...`, 'info');
-        renderActivityEntries();
-      })
-      .catch(e => {
-        done++;
-        log(`Failed to process ${img.name}: ${e.message}`, 'error');
-        showStatus('uploadStatus', `Processing record image ${done} / ${total}...`, 'info');
-      })
-  );
+  const tasks = images.map(img => async () => {
+    try {
+      const result = await processImage(img, maxW, quality);
+      queue.push(result);
+      done++;
+      showStatus('uploadStatus', `Processing record image ${done} / ${total}...`, 'info');
+      scheduleEntryRecordRender(entryIdx);
+    } catch (e) {
+      done++;
+      log(`Failed to process ${img.name}: ${e.message}`, 'error');
+      showStatus('uploadStatus', `Processing record image ${done} / ${total}...`, 'info');
+    }
+  });
 
-  await Promise.all(tasks);
+  await runWithConcurrency(tasks, getImageProcessingConcurrency(images));
 
   showStatus('uploadStatus', '', '');
-  renderActivityEntries();
+  flushEntryRecordRender(entryIdx);
 }
 
 function removeEntryRecordAppendFile(entryIdx, i) {
@@ -2624,7 +2638,7 @@ async function handleRecordImages(fileList) {
     }
   });
 
-  await runWithConcurrency(tasks, WORKER_SUPPORTED ? 4 : 2);
+  await runWithConcurrency(tasks, getImageProcessingConcurrency(images));
 
   showStatus('uploadStatus', '', '');
   flushPreviewRender('record', renderRecordPreview);
@@ -2692,7 +2706,7 @@ async function handleActivityFiles(fileList) {
     }
   });
 
-  await runWithConcurrency(tasks, WORKER_SUPPORTED ? 4 : 2);
+  await runWithConcurrency(tasks, getImageProcessingConcurrency(images));
 
   showStatus('uploadStatus', '', '');
   flushPreviewRender('activity', renderActivityPreview);
@@ -2860,6 +2874,20 @@ async function submitActivityEntry() {
 // ==================== IMAGE PROCESSING ====================
 function yieldToMain() {
   return new Promise(resolve => setTimeout(resolve, 0));
+}
+
+function isHeicLikeFile(file) {
+  return /\.(heic|heif)$/i.test(file.name) ||
+         file.type === 'image/heic' ||
+         file.type === 'image/heif';
+}
+
+function getImageProcessingConcurrency(files) {
+  const list = Array.from(files || []);
+  const hasHeic = list.some(isHeicLikeFile);
+
+  if (hasHeic) return 2;
+  return WORKER_SUPPORTED ? 4 : 2;
 }
 
 // 通用并发执行器: 任务数组(函数返回 Promise),最多 N 个同时在跑
@@ -3061,8 +3089,7 @@ async function processImage(file, maxWidth, quality) {
 
   // HEIC/HEIF: Worker 的 createImageBitmap 不支持, 但主线程 <img> 支持 (iOS Safari)
   // 直接跳过 worker, 避免一次无谓的失败尝试
-  const isHEIC = /\.(heic|heif)$/i.test(file.name) ||
-                 file.type === 'image/heic' || file.type === 'image/heif';
+  const isHEIC = isHeicLikeFile(file);
 
   // 优先走 Worker: UI 不卡
   if (WORKER_SUPPORTED && !isHEIC) {
