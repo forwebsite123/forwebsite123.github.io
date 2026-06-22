@@ -6,7 +6,12 @@
     window.location.search.includes('filter=') ||
     window.location.search.includes('camera=');
 
-  document.body.classList.add('drift-page-enter');
+  if (!isTagLikePage) {
+    document.body.classList.add('drift-page-enter');
+  } else {
+    document.documentElement.classList.add('drift-no-page-reveal');
+    document.documentElement.classList.add('drift-no-photo-reveal');
+  }
 
   function readyPage() {
     requestAnimationFrame(() => {
@@ -25,36 +30,6 @@
   }
 
   function setupScrollReveal() {
-    if (isTagLikePage) {
-      document.documentElement.classList.add('drift-no-photo-reveal');
-
-      const showAll = root => {
-        root.querySelectorAll('.drift-photo-reveal').forEach(el => {
-          el.classList.add('is-visible');
-          el.classList.add('is-static');
-        });
-      };
-
-      showAll(document);
-
-      new MutationObserver(mutations => {
-        mutations.forEach(mutation => {
-          mutation.addedNodes.forEach(node => {
-            if (!(node instanceof Element)) return;
-
-            if (node.matches('.drift-photo-reveal')) {
-              node.classList.add('is-visible');
-              node.classList.add('is-static');
-            }
-
-            showAll(node);
-          });
-        });
-      }).observe(document.body, { childList: true, subtree: true });
-
-      return;
-    }
-
     const seen = new WeakSet();
 
     if (reduceMotion || !('IntersectionObserver' in window)) {
@@ -104,16 +79,64 @@
     }).observe(document.body, { childList: true, subtree: true });
   }
 
+
+  function setupStaticPhotoRevealForTagPage() {
+    const applyStatic = node => {
+      if (!(node instanceof Element)) return;
+
+      if (node.matches('.drift-photo-reveal')) {
+        node.classList.add('is-visible');
+        node.classList.add('is-static');
+      }
+
+      node.querySelectorAll?.('.drift-photo-reveal').forEach(el => {
+        el.classList.add('is-visible');
+        el.classList.add('is-static');
+      });
+    };
+
+    document.querySelectorAll('.drift-photo-reveal').forEach(el => {
+      el.classList.add('is-visible');
+      el.classList.add('is-static');
+    });
+
+    const target =
+      document.getElementById('masonry') ||
+      document.querySelector('.masonry') ||
+      document.querySelector('.gallery') ||
+      document.querySelector('.photo-grid');
+
+    if (!target) return;
+
+    new MutationObserver(mutations => {
+      for (const mutation of mutations) {
+        for (const node of mutation.addedNodes) {
+          applyStatic(node);
+        }
+      }
+    }).observe(target, { childList: true });
+  }
+
   function shouldSkipExitTransition(link, event) {
     if (!link) return true;
     if (link.target === '_blank') return true;
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return true;
 
-    const href = link.getAttribute('href');
+    const href = link.getAttribute('href') || '';
     if (!href) return true;
     if (href.startsWith('#')) return true;
     if (href.startsWith('javascript:')) return true;
     if (href === window.location.pathname || href === window.location.href) return true;
+
+    if (/tag\.html/i.test(href)) return true;
+    if (href.includes('tag=')) return true;
+    if (href.includes('camera=')) return true;
+    if (href.includes('filter=')) return true;
+
+    if (link.classList.contains('back')) return true;
+    if (link.matches('[aria-label*="Back" i]')) return true;
+    if ((link.textContent || '').trim().startsWith('← Back')) return true;
+    if ((link.textContent || '').trim() === 'Back') return true;
 
     if (link.id === 'search-icon') return true;
     if (link.classList.contains('search-btn')) return true;
@@ -157,7 +180,7 @@
 
       event.preventDefault();
 
-      const href = link.getAttribute('href');
+      const href = link.getAttribute('href') || '';
       const activeCard = link.closest('.country-card, .continent-card, .region-card, .drift-preview-card, .photo-card, .gallery-item, figure');
 
       if (activeCard) activeCard.classList.add('drift-picking-up');
@@ -179,6 +202,23 @@
   });
 
   function boot() {
+    if (isTagLikePage) {
+      document.body.classList.remove('drift-page-enter');
+      document.body.classList.remove('drift-page-leaving');
+      document.body.classList.add('drift-page-ready');
+
+      document.querySelectorAll(
+        '.drift-reveal, .drift-card-reveal, .drift-map-reveal, .drift-photo-reveal'
+      ).forEach(el => {
+        el.classList.add('is-visible');
+        el.classList.add('is-static');
+      });
+
+      setupStaticPhotoRevealForTagPage();
+      setupExitTransition();
+      return;
+    }
+
     readyPage();
 
     revealSequential('.drift-reveal', 120, 90);
