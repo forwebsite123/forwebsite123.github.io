@@ -50,43 +50,6 @@
   }
   function safeBoundsFor(c){ return L.latLngBounds(boundsFor(c)); }
   function clampMap(map, region){ map.panInsideBounds(safeBoundsFor(region), { animate:false }); }
-  function clientPoint(e, el){ const r=el.getBoundingClientRect(); return L.point(e.clientX-r.left, e.clientY-r.top); }
-  function getDistance(a,b){ return Math.hypot(a.clientX-b.clientX, a.clientY-b.clientY); }
-  function getMidpoint(a,b){ return { clientX:(a.clientX+b.clientX)/2, clientY:(a.clientY+b.clientY)/2 }; }
-  function installTouchGestures(card, map, region){
-    const el=card.querySelector('.region-map-leaflet'); const inner=card.querySelector('.region-map-inner');
-    if(!el || !window.PointerEvent) return;
-    const pointers=new Map(); let lastPoint=null; let lastDistance=0; let raf=0;
-    const minZoom=()=>map.getMinZoom(); const maxZoom=()=>map.getMaxZoom();
-    const requestClamp=()=>{ if(raf) return; raf=requestAnimationFrame(()=>{ raf=0; clampMap(map, region); }); };
-    const setDragging=(on)=>inner?.classList.toggle('is-dragging', on);
-    const settle=()=>{ inner?.classList.remove('is-dragging'); inner?.classList.add('is-settling'); setTimeout(()=>inner?.classList.remove('is-settling'),430); };
-    el.addEventListener('pointerdown', e=>{
-      if(e.pointerType==='mouse' && e.button!==0) return;
-      pointers.set(e.pointerId, e); el.setPointerCapture?.(e.pointerId); setDragging(true);
-      if(pointers.size===1){ lastPoint={clientX:e.clientX, clientY:e.clientY}; }
-      if(pointers.size===2){ const [a,b]=[...pointers.values()]; lastDistance=getDistance(a,b); lastPoint=null; }
-      e.preventDefault();
-    }, {passive:false});
-    el.addEventListener('pointermove', e=>{
-      if(!pointers.has(e.pointerId)) return; pointers.set(e.pointerId, e);
-      if(pointers.size===1){
-        const p=[...pointers.values()][0]; if(lastPoint){ map.panBy([lastPoint.clientX-p.clientX, lastPoint.clientY-p.clientY], {animate:false}); requestClamp(); }
-        lastPoint={clientX:p.clientX, clientY:p.clientY};
-      } else {
-        const [a,b]=[...pointers.values()]; const d=getDistance(a,b);
-        if(lastDistance){ const mid=getMidpoint(a,b); const pinchSensitivity=1.75; const zoom=clamp(map.getZoom()+Math.log2(d/lastDistance)*pinchSensitivity, minZoom(), maxZoom()); map.setZoomAround(clientPoint(mid, el), zoom, {animate:false}); }
-        lastDistance=d;
-      }
-      e.preventDefault();
-    }, {passive:false});
-    const end=e=>{
-      if(pointers.has(e.pointerId)){ pointers.delete(e.pointerId); el.releasePointerCapture?.(e.pointerId); }
-      if(pointers.size===1){ const p=[...pointers.values()][0]; lastPoint={clientX:p.clientX, clientY:p.clientY}; lastDistance=0; }
-      if(pointers.size===0){ lastPoint=null; lastDistance=0; clampMap(map, region); settle(); }
-    };
-    el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end); el.addEventListener('pointerleave', e=>{ if(pointers.has(e.pointerId)) end(e); });
-  }
   function icon(){ return L.divIcon({className:'drift-marker-shell',html:'<div class="drift-point"><span class="drift-point-halo"></span><span class="drift-point-core"></span></div>',iconSize:[20,20],iconAnchor:[10,10],popupAnchor:[0,-10]}); }
   function esc(s){return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
   function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
