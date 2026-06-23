@@ -221,46 +221,10 @@
   <div id="lightbox" onclick="this.style.display='none'">
     <img id="lightbox-img">
   </div>
-
- <script>
-  async function loadPhotos() {
-    const res = await fetch('/photos.json');
-    const data = await res.json();
-    const items = data.items.filter(p => p.page === 'australia.html');
-    const masonry = document.getElementById('masonry');
-    const html = items.map(p => {
-      if (p.video) {
-        return `
-          <div class="video-item drift-photo-reveal">
-            <iframe
-              src="//player.bilibili.com/player.html?bvid=${p.video}&autoplay=0&high_quality=1"
-              scrolling="no" frameborder="no" allowfullscreen="true">
-            </iframe>
-          </div>`;
-      }
-
-      return `
-        <div class="photo-item drift-photo-reveal">
-          <img src="${p.image}" alt="${p.title || ''}" class="zoomable">
-        </div>`;
-    }).join('');
-
-    masonry.innerHTML = html;
-    document.querySelectorAll('.zoomable').forEach(img=>{
-      img.onclick=()=>{
-        document.getElementById('lightbox').style.display='flex'
-        document.getElementById('lightbox-img').src=img.src
-      }
-    });
-    const openParam = new URLSearchParams(location.search).get('open');
-    if (openParam) {
-      const target = [...document.querySelectorAll('.zoomable')]
-        .find(img => img.getAttribute('src') === openParam);
-      if (target) target.click();
-    }
-  }
-  loadPhotos();
-</script>
+  <script src="/drift-album.js"></script>
+  <script>
+  initDriftAlbum({ page: 'australia.html' });
+  </script>
 <script data-goatcounter="https://kiara-mytrace.goatcounter.com/count"
         async src="https://gc.zgo.at/count.js"></script>
   <script src="/drift-page-transitions.js"></script>
