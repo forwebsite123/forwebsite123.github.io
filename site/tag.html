@@ -214,6 +214,15 @@
   </div>
 
   <script>
+    function escapeHtml(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
     async function loadAndFilter() {
       const params = new URLSearchParams(window.location.search);
       const currentTag = (params.get("tag") || "").trim().toLowerCase();
@@ -223,6 +232,9 @@
       const tagSubtitle = document.getElementById("tagSubtitle");
       const resultGrid = document.getElementById("resultGrid");
       const emptyState = document.getElementById("emptyState");
+
+      resultGrid.innerHTML = '';
+      emptyState.style.display = 'none';
 
       if (currentTag) {
         tagTitle.textContent = "#" + currentTag;
@@ -284,29 +296,27 @@
 
       if (!currentTag || filtered.length === 0) {
         emptyState.style.display = "block";
-      } else {
-        filtered.forEach(item => {
-          const card = document.createElement("div");
-          card.className = "card";
+        return;
+      }
 
-          // Preserve page scope in tag links if we're scoped
-          const pageParam = currentPage ? `&page=${encodeURIComponent(currentPage)}` : '';
-          const tagsHtml = item.tags.map(tag =>
-            `<a class="tag" href="tag.html?tag=${encodeURIComponent(tag)}${pageParam}">${tag}</a>`
-          ).join("");
+      const pageParam = currentPage ? `&page=${encodeURIComponent(currentPage)}` : '';
+      const html = filtered.map(item => {
+        const tagsHtml = item.tags.map(tag =>
+          `<a class="tag" href="tag.html?tag=${encodeURIComponent(tag)}${pageParam}">${escapeHtml(tag)}</a>`
+        ).join("");
 
-          card.innerHTML = `
-            <img src="${item.image}" alt="${item.title}" class="zoomable">
+        return `
+          <div class="card">
+            <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" class="zoomable" loading="lazy" decoding="async">
             <div class="card-body">
-              <div class="card-title">${item.title}</div>
-              <div class="card-page">from <a href="${item.page}">${item.pageLabel}</a></div>
+              <div class="card-title">${escapeHtml(item.title)}</div>
+              <div class="card-page">from <a href="${escapeHtml(item.page)}">${escapeHtml(item.pageLabel)}</a></div>
               <div class="card-tags">${tagsHtml}</div>
             </div>
-          `;
+          </div>`;
+      }).join('');
 
-          resultGrid.appendChild(card);
-        });
-      }
+      resultGrid.innerHTML = html;
     }
 
     loadAndFilter();
