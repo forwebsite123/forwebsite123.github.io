@@ -48,10 +48,7 @@
       position: relative;
       opacity: 0;
       filter: blur(1.5px) saturate(.96) brightness(1.04);
-      transform-origin: center center;
-      animation:
-        indexImageReveal 1.15s var(--index-ease) both,
-        indexImageBreath 18s ease-in-out 1.15s infinite alternate;
+      animation: indexImageReveal 1.15s var(--index-ease) both;
     }
 
     body.leaving .hero-image {
@@ -146,11 +143,6 @@
     @keyframes indexImageReveal {
       0%   { opacity: 0; filter: blur(1.5px) saturate(.96) brightness(1.04); }
       100% { opacity: 1; filter: blur(0) saturate(1) brightness(1); }
-    }
-
-    @keyframes indexImageBreath {
-      0%   { transform: scale(1.006); }
-      100% { transform: scale(1.024); }
     }
 
     @keyframes indexInkAppear {
