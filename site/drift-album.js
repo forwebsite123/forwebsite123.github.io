@@ -25,7 +25,12 @@ window.initDriftAlbum = async function initDriftAlbum(options = {}) {
 
     return `
       <div class="photo-item drift-photo-reveal">
-        <img src="${p.image}" alt="${p.title || ''}" class="zoomable">
+        <img
+          src="${p.image}"
+          alt="${p.title || ''}"
+          class="zoomable"
+          loading="lazy"
+          decoding="async">
       </div>`;
   }).join('');
 
