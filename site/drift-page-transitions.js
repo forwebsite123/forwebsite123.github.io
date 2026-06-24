@@ -6,6 +6,48 @@
     window.location.search.includes('filter=') ||
     window.location.search.includes('camera=');
 
+  function stabilizeLeafletPopups() {
+    if (!window.L || !window.L.Popup || !window.L.Popup.prototype) return;
+    const popupProto = window.L.Popup.prototype;
+    if (popupProto.__driftStablePopupPan) return;
+    popupProto.__driftStablePopupPan = true;
+    popupProto._adjustPan = function () {};
+  }
+
+  function prefetchResource(href, asType) {
+    if (!href) return;
+    const url = new URL(href, window.location.href);
+    if (url.origin !== window.location.origin) return;
+
+    const finalHref = url.pathname + url.search;
+    if (document.querySelector(`link[rel="prefetch"][href="${finalHref}"]`)) return;
+
+    const link = document.createElement('link');
+    link.rel = 'prefetch';
+    link.href = finalHref;
+    if (asType) link.as = asType;
+    document.head.appendChild(link);
+  }
+
+  function setupMapAlbumPrefetch() {
+    if (!document.querySelector('.region-map-card')) return;
+
+    prefetchResource('/photos.json', 'fetch');
+    prefetchResource('/drift-album.js', 'script');
+
+    const prefetchFromEvent = event => {
+      const link = event.target.closest('.leaflet-popup.drift-preview a[href], .country-card[href]');
+      if (!link) return;
+      prefetchResource(link.getAttribute('href'), 'document');
+    };
+
+    document.addEventListener('pointerover', prefetchFromEvent, { passive: true });
+    document.addEventListener('touchstart', prefetchFromEvent, { passive: true });
+    document.addEventListener('focusin', prefetchFromEvent);
+  }
+
+  stabilizeLeafletPopups();
+
   if (!isTagLikePage) {
     document.body.classList.add('drift-page-enter');
   } else {
@@ -208,6 +250,9 @@
   });
 
   function boot() {
+    stabilizeLeafletPopups();
+    setupMapAlbumPrefetch();
+
     if (isTagLikePage) {
       document.body.classList.remove('drift-page-enter');
       document.body.classList.remove('drift-page-leaving');
