@@ -7,9 +7,31 @@ window.initDriftAlbum = async function initDriftAlbum(options = {}) {
 
   if (!masonry) return;
 
-  const res = await fetch('/photos.json');
-  const data = await res.json();
-  const items = (data.items || []).filter(p => p.page === page);
+  const showAlbumMessage = message => {
+    masonry.innerHTML = `
+      <div class="photo-item drift-photo-reveal is-visible" style="padding: 28px; text-align: center; font-style: italic; color: rgba(122, 87, 87, 0.72);">
+        ${message}
+      </div>`;
+  };
+
+  let items = [];
+
+  try {
+    const res = await fetch('/photos.json');
+    if (!res.ok) throw new Error(`Unable to load photos.json: ${res.status}`);
+
+    const data = await res.json();
+    items = (data.items || []).filter(p => p.page === page);
+  } catch (error) {
+    console.warn('Drift album failed to load:', error);
+    showAlbumMessage('The album is taking a little longer to load. Please refresh this page in a moment.');
+    return;
+  }
+
+  if (!items.length) {
+    showAlbumMessage('This album is waiting for its first fragment.');
+    return;
+  }
 
   const html = items.map((p, index) => {
     if (p.video) {
