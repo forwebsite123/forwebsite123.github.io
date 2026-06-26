@@ -633,14 +633,18 @@
     var lastTime = 0;
     var carry = 0;
 
-    function delayFor(ch) {
+    function baseDelayFor(ch) {
+      if (/\s/.test(ch)) return 52;
+      if (/[\u4e00-\u9fff]/.test(ch)) return 82;
+      return 58;
+    }
+
+    function pauseAfter(ch) {
       if (ch === '\n') return 420;
       if (/[。！？!?]/.test(ch)) return 380;
       if (/[，、]/.test(ch)) return 230;
       if (/[,.；;：:]/.test(ch)) return 210;
-      if (/\s/.test(ch)) return 52;
-      if (/[\u4e00-\u9fff]/.test(ch)) return 82;
-      return 58;
+      return 0;
     }
 
     function frame(now) {
@@ -648,13 +652,17 @@
       carry += now - lastTime;
       lastTime = now;
 
-      while (i < original.length && carry >= delayFor(original.charAt(i))) {
+      while (i < original.length && carry >= baseDelayFor(original.charAt(i))) {
         var ch = original.charAt(i);
         output.textContent += ch;
-        carry -= delayFor(ch);
+        carry -= baseDelayFor(ch);
         i += 1;
 
-        if (/[。！？!?]/.test(ch)) break;
+        var pause = pauseAfter(ch);
+        if (pause) {
+          carry -= pause;
+          break;
+        }
       }
 
       if (i >= original.length) {
