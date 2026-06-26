@@ -3,6 +3,7 @@ window.initDriftAlbum = async function initDriftAlbum(options = {}) {
   const masonry = document.getElementById(options.masonryId || 'masonry');
   const lightbox = document.getElementById(options.lightboxId || 'lightbox');
   const lightboxImg = document.getElementById(options.lightboxImgId || 'lightbox-img');
+  const eagerCount = Number.isFinite(options.eagerCount) ? options.eagerCount : 6;
 
   if (!masonry) return;
 
@@ -10,7 +11,7 @@ window.initDriftAlbum = async function initDriftAlbum(options = {}) {
   const data = await res.json();
   const items = (data.items || []).filter(p => p.page === page);
 
-  const html = items.map(p => {
+  const html = items.map((p, index) => {
     if (p.video) {
       return `
         <div class="video-item drift-photo-reveal">
@@ -23,14 +24,18 @@ window.initDriftAlbum = async function initDriftAlbum(options = {}) {
         </div>`;
     }
 
+    const isEager = index < eagerCount;
+    const loadingAttr = isEager ? 'eager' : 'lazy';
+    const fetchPriorityAttr = index === 0 ? ' fetchpriority="high"' : '';
+
     return `
       <div class="photo-item drift-photo-reveal">
         <img
           src="${p.image}"
           alt="${p.title || ''}"
           class="zoomable"
-          loading="lazy"
-          decoding="async">
+          loading="${loadingAttr}"
+          decoding="async"${fetchPriorityAttr}>
       </div>`;
   }).join('');
 
