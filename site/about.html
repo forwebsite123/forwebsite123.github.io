@@ -634,9 +634,10 @@
     var carry = 0;
 
     function delayFor(ch) {
-      if (ch === '\n') return 300;
-      if (/[。！？!?]/.test(ch)) return 250;
-      if (/[，、,.；;：:]/.test(ch)) return 160;
+      if (ch === '\n') return 420;
+      if (/[。！？!?]/.test(ch)) return 380;
+      if (/[，、]/.test(ch)) return 230;
+      if (/[,.；;：:]/.test(ch)) return 210;
       if (/\s/.test(ch)) return 52;
       if (/[\u4e00-\u9fff]/.test(ch)) return 82;
       return 58;
@@ -708,6 +709,8 @@
 
   var autoScrollRAF = null;
   var autoScrollLastTime = 0;
+  var bottomStableSince = 0;
+  var lastScrollHeight = 0;
   var AUTO_SCROLL_SPEED = 0.015; // 每毫秒滚动的像素数，约等于每秒 15px，如果感觉滚得比文字还快、看着空白区域先滚过去了,就调小,反之调大
 
   function handleAutoScrollInterrupt(event) {
@@ -731,6 +734,8 @@
   function startAutoScroll() {
     if (reduceMotion) return;
     autoScrollLastTime = 0;
+    bottomStableSince = 0;
+    lastScrollHeight = document.documentElement.scrollHeight;
 
     window.addEventListener('wheel', handleAutoScrollInterrupt, { passive: true });
     window.addEventListener('touchstart', handleAutoScrollInterrupt, { passive: true });
@@ -741,13 +746,31 @@
       var delta = now - autoScrollLastTime;
       autoScrollLastTime = now;
 
-      var maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      if (window.scrollY >= maxScroll - 1) {
-        stopAutoScroll();
+      var scrollHeight = document.documentElement.scrollHeight;
+      var maxScroll = scrollHeight - window.innerHeight;
+
+      if (scrollHeight > lastScrollHeight) {
+        lastScrollHeight = scrollHeight;
+        bottomStableSince = 0;
+      }
+
+      if (maxScroll <= 1) {
+        bottomStableSince = 0;
+        autoScrollRAF = requestAnimationFrame(step);
         return;
       }
 
-      window.scrollBy(0, AUTO_SCROLL_SPEED * delta);
+      if (window.scrollY >= maxScroll - 1) {
+        if (!bottomStableSince) bottomStableSince = now;
+        if (now - bottomStableSince >= 1000) {
+          stopAutoScroll();
+          return;
+        }
+      } else {
+        bottomStableSince = 0;
+        window.scrollBy(0, AUTO_SCROLL_SPEED * delta);
+      }
+
       autoScrollRAF = requestAnimationFrame(step);
     }
 
