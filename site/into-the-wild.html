@@ -149,15 +149,10 @@
     }
 
 .topbar, h1, .card, .note {
-  opacity: 0;
-  transform: translateY(8px);
-  filter: blur(4px);
-  transition: opacity .9s ease-out, transform .9s ease-out, filter .9s ease-out;
-}
-.topbar.is-visible, h1.is-visible, .card.is-visible, .note.is-visible {
   opacity: 1;
   transform: translateY(0);
   filter: blur(0);
+  transition: opacity .45s ease-out, transform .45s ease-out, filter .45s ease-out;
 }
 @media (prefers-reduced-motion: reduce) {
   .topbar, h1, .card, .note {
@@ -168,20 +163,6 @@
   }
 }
 
-@view-transition {
-  navigation: auto;
-}
-
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation-duration: .6s;
-  animation-timing-function: ease-in-out;
-}
-::view-transition-old(root) { animation-name: vt-fade-out; }
-::view-transition-new(root) { animation-name: vt-fade-in; }
-
-@keyframes vt-fade-out { from{opacity:1;filter:blur(0)} to{opacity:0;filter:blur(6px)} }
-@keyframes vt-fade-in  { from{opacity:0;filter:blur(6px)} to{opacity:1;filter:blur(0)} }
 </style>
 </head>
 
