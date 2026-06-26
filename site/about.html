@@ -18,834 +18,186 @@
     }
 
     /* ── Decorative illustrations ── */
-    .decor {
-      pointer-events: none;
-      user-select: none;
-      z-index: 0;
-    }
-
-    .decor img {
-      display: block;
-      width: 100%;
-      height: auto;
-    }
-
-    .decor-soft {
-      opacity: 0.2;
-      filter: saturate(0.82) brightness(1.04);
-    }
-
-    .decor-rabbit {
-      aspect-ratio: 184 / 274;
-    }
-
+    .decor { pointer-events: none; user-select: none; z-index: 0; }
+    .decor img { display: block; width: 100%; height: auto; }
+    .decor-soft { opacity: 0.2; filter: saturate(0.82) brightness(1.04); }
+    .decor-rabbit { aspect-ratio: 184 / 274; }
     .decor-rabbit .rabbit-shape {
-      width: 100%;
-      height: 100%;
-      opacity: 0.68;
-      background-color: #7a5757;
-      -webkit-mask-image: url('/images/about/rabbit-mask.svg');
-      mask-image: url('/images/about/rabbit-mask.svg');
-      -webkit-mask-repeat: no-repeat;
-      mask-repeat: no-repeat;
-      -webkit-mask-position: center;
-      mask-position: center;
-      -webkit-mask-size: contain;
-      mask-size: contain;
+      width: 100%; height: 100%; opacity: 0.68; background-color: #7a5757;
+      -webkit-mask-image: url('/images/about/rabbit-mask.svg'); mask-image: url('/images/about/rabbit-mask.svg');
+      -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+      -webkit-mask-position: center; mask-position: center;
+      -webkit-mask-size: contain; mask-size: contain;
     }
-
-    .nav,
-    .container {
-      position: relative;
-      z-index: 2;
-    }
-
-    .desktop-decor {
-      display: block;
-      position: fixed;
-    }
-
-    .mobile-decor {
-      display: none;
-      position: absolute;
-    }
-
-    .decor-sun-desktop {
-      width: 118px;
-      top: 36px;
-      right: 28px;
-    }
-
-    .decor-sunflower-desktop {
-      width: 170px;
-      left: 18px;
-      bottom: -12px;
-    }
-
-    .decor-rabbit-desktop {
-      width: 168px;
-      right: 62px;
-      bottom: 6px;
-    }
+    .nav, .container { position: relative; z-index: 2; }
+    .desktop-decor { display: block; position: fixed; }
+    .mobile-decor { display: none; position: absolute; }
+    .decor-sun-desktop { width: 118px; top: 36px; right: 28px; }
+    .decor-sunflower-desktop { position: fixed; width: 170px; left: 18px; bottom: 18px; }
+    .decor-rabbit-desktop { position: fixed; width: 168px; right: 38px; bottom: 24px; }
 
     /* ── Nav ── */
-    .nav {
-      max-width: 760px;
-      margin: 0 auto;
-      padding: 36px 32px 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .nav-home {
-      font-size: 14px;
-      color: rgba(122, 87, 87, 0.5);
-      text-decoration: none;
-      letter-spacing: 0.08em;
-      font-style: italic;
-      transition: color 0.3s;
-    }
-
-    .nav-home:hover {
-      color: rgba(122, 87, 87, 0.9);
-    }
+    .nav { max-width: 760px; margin: 0 auto; padding: 36px 32px 0; display: flex; justify-content: space-between; align-items: center; }
+    .nav-home { font-size: 14px; color: rgba(122, 87, 87, 0.5); text-decoration: none; letter-spacing: 0.08em; font-style: italic; transition: color 0.3s; }
+    .nav-home:hover { color: rgba(122, 87, 87, 0.9); }
 
     /* ── Main ── */
-    .container {
-      max-width: 760px;
-      margin: 0 auto;
-      padding: 64px 32px 100px;
-    }
+    .container { max-width: 760px; margin: 0 auto; padding: 64px 32px 100px; }
+    .page-title { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(122, 87, 87, 0.4); margin-bottom: 48px; }
+    .section { margin-bottom: 56px; }
+    .section-label { font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: rgba(156, 115, 115, 0.45); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 0.5px solid rgba(156, 115, 115, 0.18); }
+    p { font-size: 19px; line-height: 1.9; color: #7a5757; margin-bottom: 30px; font-weight: 400; }
+    p:last-child { margin-bottom: 0; }
+    em { font-style: italic; color: rgba(122, 87, 87, 0.75); }
+    .pull-quote { margin: 40px 0; padding: 0 0 0 22px; border-left: 1.5px solid rgba(156, 115, 115, 0.35); }
+    .pull-quote p { font-size: 19px; font-style: italic; color: rgba(110, 74, 74, 0.65); line-height: 1.7; }
+    .contact-section { position: relative; }
+    .contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 24px; }
+    .contact-item { display: flex; flex-direction: column; gap: 5px; }
+    .contact-platform { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(156, 115, 115, 0.45); }
+    .contact-value { font-size: 15px; font-style: italic; color: rgba(122, 87, 87, 0.7); text-decoration: none; transition: color 0.3s; }
+    .contact-value:hover { color: rgba(122, 87, 87, 1); }
+    .page-footer { margin-top: 72px; padding-top: 24px; border-top: 0.5px solid rgba(156, 115, 115, 0.15); font-size: 12px; color: rgba(122, 87, 87, 0.3); letter-spacing: 0.05em; font-style: italic; text-align: right; }
+    .container { animation: fadeIn 0.9s ease forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* ── Header ── */
-    .page-title {
-      font-size: 11px;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: rgba(122, 87, 87, 0.4);
-      margin-bottom: 48px;
-    }
-
-    /* ── Section dividers ── */
-    .section {
-      margin-bottom: 56px;
-    }
-
-    .section-label {
-      font-size: 10px;
-      letter-spacing: 0.28em;
-      text-transform: uppercase;
-      color: rgba(156, 115, 115, 0.45);
-      margin-bottom: 20px;
-      padding-bottom: 10px;
-      border-bottom: 0.5px solid rgba(156, 115, 115, 0.18);
-    }
-
-    /* ── Body text ── */
-    p {
-      font-size: 19px;
-      line-height: 1.9;
-      color: #7a5757;
-      margin-bottom: 30px;
-      font-weight: 400;
-    }
-
-    p:last-child {
-      margin-bottom: 0;
-    }
-
-    em {
-      font-style: italic;
-      color: rgba(122, 87, 87, 0.75);
-    }
-
-    /* ── Pull quote ── */
-    .pull-quote {
-      margin: 40px 0;
-      padding: 0 0 0 22px;
-      border-left: 1.5px solid rgba(156, 115, 115, 0.35);
-    }
-
-    .pull-quote p {
-      font-size: 19px;
-      font-style: italic;
-      color: rgba(110, 74, 74, 0.65);
-      line-height: 1.7;
-    }
-
-    /* ── Contact ── */
-    .contact-section {
-      position: relative;
-    }
-
-    .contact-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-      margin-top: 24px;
-    }
-
-    .contact-item {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-
-    .contact-platform {
-      font-size: 10px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: rgba(156, 115, 115, 0.45);
-    }
-
-    .contact-value {
-      font-size: 15px;
-      font-style: italic;
-      color: rgba(122, 87, 87, 0.7);
-      text-decoration: none;
-      transition: color 0.3s;
-    }
-
-    .contact-value:hover {
-      color: rgba(122, 87, 87, 1);
-    }
-
-    /* ── Footer ── */
-    .page-footer {
-      margin-top: 72px;
-      padding-top: 24px;
-      border-top: 0.5px solid rgba(156, 115, 115, 0.15);
-      font-size: 12px;
-      color: rgba(122, 87, 87, 0.3);
-      letter-spacing: 0.05em;
-      font-style: italic;
-      text-align: right;
-    }
-
-    /* ── Fade-in on load ── */
-    .container {
-      animation: fadeIn 0.9s ease forwards;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(14px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-
-    body.about-entering {
-      opacity: 0;
-      filter: blur(4px);
-      transform: translateY(8px);
-    }
-
-    body.about-ready {
-      opacity: 1;
-      filter: blur(0);
-      transform: translateY(0);
-      transition:
-        opacity .9s ease,
-        filter .9s ease,
-        transform .9s ease;
-    }
-
-    body.about-leaving {
-      opacity: 0;
-      filter: blur(5px);
-      transform: translateY(-6px);
-      transition:
-        opacity .24s ease,
-        filter .24s ease,
-        transform .24s ease;
-    }
-
-    .about-reveal {
-      opacity: 0;
-      filter: blur(3px);
-      transform: translateY(7px);
-      transition:
-        opacity 1.05s cubic-bezier(.16, 1, .3, 1),
-        filter 1.05s cubic-bezier(.16, 1, .3, 1),
-        transform 1.05s cubic-bezier(.16, 1, .3, 1);
-      will-change: opacity, filter, transform;
-    }
-
-    .about-reveal.is-visible {
-      opacity: 1;
-      filter: blur(0);
-      transform: translateY(0);
-    }
-
-    .decor.about-reveal {
-      opacity: 0;
-      transform: translateY(10px);
-      transition:
-        opacity 1.3s cubic-bezier(.16, 1, .3, 1),
-        transform 1.3s cubic-bezier(.16, 1, .3, 1);
-    }
-
-    .decor.about-reveal.is-visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .decor-soft.about-reveal.is-visible {
-      opacity: 0.2;
-    }
-
-    .about-typewriter {
-      position: relative;
-      margin-bottom: 0.72em;
-    }
-
-    .about-typewriter + .about-typewriter {
-      margin-top: 0.28em;
-    }
-
-    .about-typewriter .typewriter-output {
-      white-space: normal;
-    }
-
-    .about-typewriter .typewriter-cursor {
-      display: inline-block;
-      width: 1px;
-      height: 1.08em;
-      margin-left: 2px;
-      vertical-align: -0.12em;
-      background: rgba(122,87,87,.68);
-      animation: aboutCursorBlink 1.05s ease-in-out infinite;
-    }
-
-    .about-typewriter.is-complete .typewriter-cursor {
-      animation: aboutCursorFade .7s ease forwards;
-    }
-
-    .section .about-typewriter {
-      margin-top: 0 !important;
-      margin-bottom: clamp(44px, 4.2vw, 62px) !important;
-      line-height: 1.9 !important;
-    }
-
-    .section .about-typewriter + .about-typewriter {
-      margin-top: 0 !important;
-    }
-
-    .section .about-typewriter.is-complete {
-      margin-bottom: clamp(44px, 4.2vw, 62px) !important;
-    }
-
-    .section .about-typewriter + .about-signoff {
-      margin-top: clamp(18px, 2vw, 28px) !important;
-    }
-
-    .section p.about-typewriter:nth-of-type(4),
-    .section p.about-typewriter:nth-of-type(4).is-complete {
-      margin-bottom: clamp(22px, 2.4vw, 34px) !important;
-    }
-
-    @media (max-width: 900px) {
-      .section .about-typewriter,
-      .section .about-typewriter.is-complete {
-        margin-bottom: clamp(30px, 8vw, 44px) !important;
-      }
-
-      .section .about-typewriter + .about-signoff {
-        margin-top: clamp(36px, 9vw, 52px) !important;
-      }
-    }
-
-    @keyframes aboutCursorBlink {
-      0%, 100% { opacity: .28; }
-      45%, 55% { opacity: .9; }
-    }
-
-    @keyframes aboutCursorFade {
-      from { opacity: 1; }
-      to { opacity: 0; }
-    }
-
-    .about-signoff {
-      position: relative;
-      display: inline-block;
-    }
-
-    .about-signoff::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      bottom: -0.18em;
-      width: 100%;
-      height: 1px;
-      background: rgba(122,87,87,.24);
-      transform: scaleX(0);
-      transform-origin: left center;
-      opacity: 0;
-    }
-
-    .about-signoff.is-visible::after {
-      animation: aboutSignoffLine 1.45s ease forwards;
-      animation-delay: .55s;
-    }
-
-    @keyframes aboutSignoffLine {
-      0% {
-        transform: scaleX(0);
-        opacity: 0;
-      }
-      35% {
-        opacity: 1;
-      }
-      68% {
-        transform: scaleX(1);
-        opacity: 1;
-      }
-      100% {
-        transform: scaleX(1);
-        opacity: 0;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      body.about-entering,
-      body.about-ready,
-      body.about-leaving,
-      .about-reveal {
-        opacity: 1 !important;
-        filter: none !important;
-        transform: none !important;
-        transition: none !important;
-      }
-
-      .about-typewriter .typewriter-cursor,
-      .about-signoff::after {
-        display: none !important;
-        animation: none !important;
-      }
-    }
-
-    @media (max-width: 1200px) and (min-width: 901px) {
-      .decor-sun-desktop {
-        width: 98px;
-        right: 18px;
-        top: 38px;
-      }
-
-      .decor-sunflower-desktop {
-        width: 136px;
-        left: 10px;
-        bottom: 8px;
-      }
-
-      .decor-rabbit-desktop {
-        width: 136px;
-        right: 42px;
-        bottom: 38px;
-      }
-    }
-
-    @media (max-width: 900px) {
-      .desktop-decor {
-        display: none;
-      }
-
-      .mobile-decor {
-        display: block;
-      }
-
-      .container {
-        padding: 48px 24px 80px;
-      }
-
-      p {
-        font-size: 16px;
-      }
-
-      .pull-quote p {
-        font-size: 17px;
-      }
-
-      .decor-sun-mobile {
-        width: 58px;
-        top: 34px;
-        right: 16px;
-      }
-
-      .decor-sunflower-mobile {
-        width: 46px;
-        top: 126px;
-        right: 118px;
-      }
-
-      .contact-section {
-        min-height: 210px;
-      }
-
-      .decor-rabbit-mobile {
-        width: 104px;
-        right: -4px;
-        bottom: 12px;
-      }
-    }
+    body.about-entering { opacity: 0; filter: blur(4px); transform: translateY(8px); }
+    body.about-ready { opacity: 1; filter: blur(0); transform: translateY(0); transition: opacity .9s ease, filter .9s ease, transform .9s ease; }
+    body.about-leaving { opacity: 0; filter: blur(5px); transform: translateY(-6px); transition: opacity .24s ease, filter .24s ease, transform .24s ease; }
+    .about-reveal { opacity: 0; filter: blur(3px); transform: translateY(7px); transition: opacity 1.05s cubic-bezier(.16, 1, .3, 1), filter 1.05s cubic-bezier(.16, 1, .3, 1), transform 1.05s cubic-bezier(.16, 1, .3, 1); will-change: opacity, filter, transform; }
+    .about-reveal.is-visible { opacity: 1; filter: blur(0); transform: translateY(0); }
+    .decor.about-reveal { opacity: 0; transform: translateY(10px); transition: opacity 1.3s cubic-bezier(.16, 1, .3, 1), transform 1.3s cubic-bezier(.16, 1, .3, 1); }
+    .decor.about-reveal.is-visible { opacity: 1; transform: translateY(0); }
+    .decor-soft.about-reveal.is-visible { opacity: 0.2; }
+    .about-typewriter { position: relative; margin-bottom: 0.72em; }
+    .about-typewriter + .about-typewriter { margin-top: 0.28em; }
+    .about-typewriter .typewriter-output { white-space: normal; }
+    .about-typewriter .typewriter-cursor { display: inline-block; width: 1px; height: 1.08em; margin-left: 2px; vertical-align: -0.12em; background: rgba(122,87,87,.68); animation: aboutCursorBlink 1.05s ease-in-out infinite; }
+    .about-typewriter.is-complete .typewriter-cursor { animation: aboutCursorFade .7s ease forwards; }
+    .section .about-typewriter { margin-top: 0 !important; margin-bottom: clamp(44px, 4.2vw, 62px) !important; line-height: 1.9 !important; }
+    .section .about-typewriter + .about-typewriter { margin-top: 0 !important; }
+    .section .about-typewriter.is-complete { margin-bottom: clamp(44px, 4.2vw, 62px) !important; }
+    .section .about-typewriter + .about-signoff { margin-top: clamp(18px, 2vw, 28px) !important; }
+    .section p.about-typewriter:nth-of-type(4), .section p.about-typewriter:nth-of-type(4).is-complete { margin-bottom: clamp(22px, 2.4vw, 34px) !important; }
+    @media (max-width: 900px) { .section .about-typewriter, .section .about-typewriter.is-complete { margin-bottom: clamp(30px, 8vw, 44px) !important; } .section .about-typewriter + .about-signoff { margin-top: clamp(36px, 9vw, 52px) !important; } }
+    @keyframes aboutCursorBlink { 0%, 100% { opacity: .28; } 45%, 55% { opacity: .9; } }
+    @keyframes aboutCursorFade { from { opacity: 1; } to { opacity: 0; } }
+    .about-signoff { position: relative; display: inline-block; }
+    .about-signoff::after { content: ""; position: absolute; left: 0; bottom: -0.18em; width: 100%; height: 1px; background: rgba(122,87,87,.24); transform: scaleX(0); transform-origin: left center; opacity: 0; }
+    .about-signoff.is-visible::after { animation: aboutSignoffLine 1.45s ease forwards; animation-delay: .55s; }
+    @keyframes aboutSignoffLine { 0% { transform: scaleX(0); opacity: 0; } 35% { opacity: 1; } 68% { transform: scaleX(1); opacity: 1; } 100% { transform: scaleX(1); opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { body.about-entering, body.about-ready, body.about-leaving, .about-reveal { opacity: 1 !important; filter: none !important; transform: none !important; transition: none !important; } .about-typewriter .typewriter-cursor, .about-signoff::after { display: none !important; animation: none !important; } }
+    @media (max-width: 1200px) and (min-width: 901px) { .decor-sun-desktop { width: 98px; right: 18px; top: 38px; } .decor-sunflower-desktop { position: fixed; width: 136px; left: 10px; bottom: 18px; } .decor-rabbit-desktop { position: fixed; width: 136px; right: 32px; bottom: 28px; } }
+    @media (max-width: 900px) { .desktop-decor { display: none; } .mobile-decor { display: block; } .container { padding: 48px 24px 80px; } p { font-size: 16px; } .pull-quote p { font-size: 17px; } .decor-sun-mobile { width: 58px; top: 34px; right: 16px; } .decor-sunflower-mobile { width: 46px; top: 126px; right: 118px; } .contact-section { min-height: 210px; } .decor-rabbit-mobile { width: 104px; right: -4px; bottom: 12px; } }
   </style>
 </head>
 <body>
-
-  <!-- Desktop fixed decorations -->
-  <div class="decor about-reveal desktop-decor decor-soft decor-sun-desktop" aria-hidden="true">
-    <img src="/images/about/sun.svg" alt="" />
-  </div>
-
-  <div class="decor about-reveal desktop-decor decor-soft decor-sunflower-desktop" aria-hidden="true">
-    <img src="/images/about/sunflower.svg" alt="" />
-  </div>
-
-  <div class="decor about-reveal desktop-decor decor-rabbit decor-rabbit-desktop" aria-hidden="true">
-    <div class="rabbit-shape"></div>
-  </div>
-
-  <!-- Mobile page-anchored decorations -->
-  <div class="decor about-reveal mobile-decor decor-soft decor-sun-mobile" aria-hidden="true">
-    <img src="/images/about/sun.svg" alt="" />
-  </div>
-
-  <div class="decor about-reveal mobile-decor decor-soft decor-sunflower-mobile" aria-hidden="true">
-    <img src="/images/about/sunflower.svg" alt="" />
-  </div>
-
-  <nav class="nav about-reveal">
-    <a href="/home" class="nav-home">← Back</a>
-  </nav>
-
+  <div class="decor about-reveal desktop-decor decor-soft decor-sun-desktop" aria-hidden="true"><img src="/images/about/sun.svg" alt="" /></div>
+  <div class="decor about-reveal desktop-decor decor-soft decor-sunflower-desktop" aria-hidden="true"><img src="/images/about/sunflower.svg" alt="" /></div>
+  <div class="decor about-reveal desktop-decor decor-rabbit decor-rabbit-desktop" aria-hidden="true"><div class="rabbit-shape"></div></div>
+  <div class="decor about-reveal mobile-decor decor-soft decor-sun-mobile" aria-hidden="true"><img src="/images/about/sun.svg" alt="" /></div>
+  <div class="decor about-reveal mobile-decor decor-soft decor-sunflower-mobile" aria-hidden="true"><img src="/images/about/sunflower.svg" alt="" /></div>
+  <nav class="nav about-reveal"><a href="/home" class="nav-home">← Back</a></nav>
   <div class="container">
-
     <div class="page-title about-reveal">Behind the pixels</div>
-
-    <!-- ── Why this site ── -->
     <div class="section">
       <div class="section-label about-reveal">On making this</div>
-
-      <p class="about-reveal">
-       Beyond the optimized captions and curated grids, I wanted something real. This isn't meant to be impressive; it’s just a digital archive of slow time. No followers, no noise. Just places I've been, things I do, and traces that refuse to fade.
-      </p>
-
-      <div class="pull-quote about-reveal">
-        <p>"🌳种一棵树最好的时间是十年前，其次是现在。"</p>
-      </div>
-
-
+      <p class="about-reveal">Beyond the optimized captions and curated grids, I wanted something real. This isn't meant to be impressive; it’s just a digital archive of slow time. No followers, no noise. Just places I've been, things I do, and traces that refuse to fade.</p>
+      <div class="pull-quote about-reveal"><p>"🌳种一棵树最好的时间是十年前，其次是现在。"</p></div>
     </div>
-
-    <!-- ── The story ── -->
     <div class="section">
       <div class="section-label about-reveal">Where it came from</div>
-
-      <p class="about-typewriter about-reveal">
-      欢迎来到我的个人网站👏。这个网站始于 2026 年初，是我 22 岁的生日礼物。域名由一位曾看过同一片海底世界，却在陆地上走散的朋友赠与。最初，它承载着关于咖啡店和极限运动的共鸣和生日祝福；如今，它已慢慢注入了我自己的灵魂，成为我存放光影与思考的坐标。
-      </p>
-      <p class="about-typewriter about-reveal">
-      生日那天，他说：“有了这个，你就可以在互联网上留下自己的痕迹咯。”于是那时我就想好，它要叫 “A place to leave traces”。
-刚收到这份礼物时，我内心有些错愕。它太特殊了，以至于我一时间不知道该如何起笔。社交平台已经太多，我要让它变得不一样。如果说 IG 和朋友圈记录的是转瞬即逝的Moments，那这个网站就该是一座慢时间的数字纪念馆，用来珍藏那些更本质、更安静、也更长久的东西。这里记载着大部分我成年后的故事和摄影作品。
-      </p>
-      <p class="about-typewriter about-reveal">
-      可惜，有些同行最终还是会走到各自的岔路口。那段关系后来停在了它该停下的地方，但这个网站没有停在那里。后来，我开始一点点理解它、修改它、扩展它，也在每一次更新里重新确认：它早已不再只属于那段故事，而属于我自己了。他把框架留给了我，我在里面填满了自己的生命。
-      </p>
-      <p class="about-typewriter about-reveal">
-      也许这就是礼物最好的结局 —— 送礼的人离开之后，它依然在生长。
-      </p>
-      <p class="about-signoff about-reveal">
-        <em>The domain spells out my name. The traces are mine to keep.</em>
-      </p>
+      <p class="about-typewriter about-reveal">欢迎来到我的个人网站👏。这个网站始于 2026 年初，是我 22 岁的生日礼物。域名由一位曾看过同一片海底世界，却在陆地上走散的朋友赠与。最初，它承载着关于咖啡店和极限运动的共鸣和生日祝福；如今，它已慢慢注入了我自己的灵魂，成为我存放光影与思考的坐标。</p>
+      <p class="about-typewriter about-reveal">生日那天，他说：“有了这个，你就可以在互联网上留下自己的痕迹咯。”于是那时我就想好，它要叫 “A place to leave traces”。刚收到这份礼物时，我内心有些错愕。它太特殊了，以至于我一时间不知道该如何起笔。社交平台已经太多，我要让它变得不一样。如果说 IG 和朋友圈记录的是转瞬即逝的Moments，那这个网站就该是一座慢时间的数字纪念馆，用来珍藏那些更本质、更安静、也更长久的东西。这里记载着大部分我成年后的故事和摄影作品。</p>
+      <p class="about-typewriter about-reveal">可惜，有些同行最终还是会走到各自的岔路口。那段关系后来停在了它该停下的地方，但这个网站没有停在那里。后来，我开始一点点理解它、修改它、扩展它，也在每一次更新里重新确认：它早已不再只属于那段故事，而属于我自己了。他把框架留给了我，我在里面填满了自己的生命。</p>
+      <p class="about-typewriter about-reveal">也许这就是礼物最好的结局 —— 送礼的人离开之后，它依然在生长。</p>
+      <p class="about-signoff about-reveal"><em>The domain spells out my name. The traces are mine to keep.</em></p>
     </div>
-
-    <!-- ── Contact ── -->
-    <div class="section contact-section about-reveal">
-      <div class="section-label">Find me elsewhere</div>
-
-      <div class="contact-grid">
-        <div class="contact-item">
-          <span class="contact-platform">Instagram</span>
-          <a class="contact-value" href="https://www.instagram.com/kiara.isomer/" target="_blank">@kiara.isomer</a>
-        </div>
-        <div class="contact-item">
-  <span class="contact-platform">Rednote小红书</span>
-  <a class="contact-value" href="https://xhslink.com/m/7OMrF0PxkTO" target="_blank">633007970</a>
-        </div>
-        <div class="contact-item">
-          <span class="contact-platform">WeChat</span>
-          <span class="contact-value">Silver_moons77</span>
-        </div>
-      </div>
-
-      <div class="decor about-reveal mobile-decor decor-rabbit decor-rabbit-mobile" aria-hidden="true">
-        <div class="rabbit-shape"></div>
-      </div>
-    </div>
-
+    <div class="section contact-section about-reveal"><div class="section-label">Find me elsewhere</div><div class="contact-grid"><div class="contact-item"><span class="contact-platform">Instagram</span><a class="contact-value" href="https:&#x2F;&#x2F;www.instagram.com&#x2F;kiara.isomer&#x2F;" target="_blank">&#64;kiara.isomer</a></div><div class="contact-item"><span class="contact-platform">Rednote小红书</span><a class="contact-value" href="https:&#x2F;&#x2F;xhslink.com&#x2F;m&#x2F;7OMrF0PxkTO" target="_blank">633007970</a></div><div class="contact-item"><span class="contact-platform">WeChat</span><span class="contact-value">Silver&#95;moons77</span></div></div><div class="decor about-reveal mobile-decor decor-rabbit decor-rabbit-mobile" aria-hidden="true"><div class="rabbit-shape"></div></div></div>
     <div class="page-footer about-reveal">jiqi-kiara.com · built slowly, over time</div>
-
   </div>
-
- <script data-goatcounter="https://kiara-mytrace.goatcounter.com/count" 
-            async src="https://gc.zgo.at/count.js"></script>
-
+  <script data-goatcounter="https://kiara-mytrace.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
   <script>
 (function () {
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   document.body.classList.add('about-entering');
-
-  function readyPage() {
-    requestAnimationFrame(function () {
-      document.body.classList.add('about-ready');
-      document.body.classList.remove('about-entering');
-    });
-  }
-
-  function reveal(el, delay) {
-    window.setTimeout(function () {
-      el.classList.add('is-visible');
-    }, delay || 0);
-  }
-
+  function readyPage() { requestAnimationFrame(function () { document.body.classList.add('about-ready'); document.body.classList.remove('about-entering'); }); }
+  function reveal(el, delay) { window.setTimeout(function () { el.classList.add('is-visible'); }, delay || 0); }
   function typeText(el, done) {
     var original = el.textContent.replace(/\s+/g, ' ').trim();
     el.dataset.fullText = original;
-
-    if (reduceMotion) {
-      el.textContent = original;
-      el.classList.add('is-visible', 'is-complete');
-      if (done) done();
-      return;
-    }
-
+    if (reduceMotion) { el.textContent = original; el.classList.add('is-visible', 'is-complete'); if (done) done(); return; }
     el.textContent = '';
-
-    var output = document.createElement('span');
-    output.className = 'typewriter-output';
-
-    var cursor = document.createElement('span');
-    cursor.className = 'typewriter-cursor';
-
-    el.appendChild(output);
-    el.appendChild(cursor);
-
-    var i = 0;
-    var lastTime = 0;
-    var carry = 0;
-
-    function baseDelayFor(ch) {
-      if (/\s/.test(ch)) return 52;
-      if (/[\u4e00-\u9fff]/.test(ch)) return 82;
-      return 58;
-    }
-
-    function pauseAfter(ch) {
-      if (ch === '\n') return 420;
-      if (/[。！？!?]/.test(ch)) return 380;
-      if (/[，、]/.test(ch)) return 230;
-      if (/[,.；;：:]/.test(ch)) return 210;
-      return 0;
-    }
-
+    var output = document.createElement('span'); output.className = 'typewriter-output';
+    var cursor = document.createElement('span'); cursor.className = 'typewriter-cursor';
+    el.appendChild(output); el.appendChild(cursor);
+    var i = 0; var lastTime = 0; var carry = 0;
+    function baseDelayFor(ch) { if (/\s/.test(ch)) return 52; if (/[\u4e00-\u9fff]/.test(ch)) return 82; return 58; }
+    function pauseAfter(ch) { if (ch === '\n') return 420; if (/[。！？!?]/.test(ch)) return 380; if (/[，、]/.test(ch)) return 230; if (/[,.；;：:]/.test(ch)) return 210; return 0; }
     function frame(now) {
-      if (!lastTime) lastTime = now;
-      carry += now - lastTime;
-      lastTime = now;
-
+      if (!lastTime) lastTime = now; carry += now - lastTime; lastTime = now;
       while (i < original.length && carry >= baseDelayFor(original.charAt(i))) {
-        var ch = original.charAt(i);
-        output.textContent += ch;
-        carry -= baseDelayFor(ch);
-        i += 1;
-
-        var pause = pauseAfter(ch);
-        if (pause) {
-          carry -= pause;
-          break;
-        }
+        var ch = original.charAt(i); output.textContent += ch; carry -= baseDelayFor(ch); i += 1;
+        var pause = pauseAfter(ch); if (pause) { carry -= pause; break; }
       }
-
-      if (i >= original.length) {
-        el.classList.add('is-complete');
-        if (done) window.setTimeout(done, 520);
-        return;
-      }
-
+      if (i >= original.length) { el.classList.add('is-complete'); if (done) window.setTimeout(done, 760); return; }
       requestAnimationFrame(frame);
     }
-
-    el.classList.add('is-visible');
-    window.setTimeout(function () {
-      requestAnimationFrame(frame);
-    }, 160);
+    el.classList.add('is-visible'); window.setTimeout(function () { requestAnimationFrame(frame); }, 160);
   }
-
-
   function typeTextQueue(elements, done) {
     var index = 0;
-
-    function runNext() {
-      if (index >= elements.length) {
-        if (done) done();
-        return;
-      }
-
-      typeText(elements[index], function () {
-        index += 1;
-        window.setTimeout(runNext, 560);
-      });
-    }
-
+    function runNext() { if (index >= elements.length) { if (done) done(); return; } typeText(elements[index], function () { index += 1; window.setTimeout(runNext, 760); }); }
     runNext();
   }
-
   function setupLeaveTransition() {
     document.querySelectorAll('a[href]').forEach(function (link) {
-      var href = link.getAttribute('href');
-      if (!href || href.charAt(0) === '#' || link.target === '_blank') return;
-
-      link.addEventListener('click', function (event) {
-        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-        event.preventDefault();
-        document.body.classList.add('about-leaving');
-        window.setTimeout(function () {
-          window.location.href = href;
-        }, 220);
-      });
+      var href = link.getAttribute('href'); if (!href || href.charAt(0) === '#' || link.target === '_blank') return;
+      link.addEventListener('click', function (event) { if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return; event.preventDefault(); document.body.classList.add('about-leaving'); window.setTimeout(function () { window.location.href = href; }, 220); });
     });
   }
-
-  var autoScrollRAF = null;
-  var autoScrollLastTime = 0;
-  var bottomStableSince = 0;
-  var lastScrollHeight = 0;
-  var AUTO_SCROLL_SPEED = 0.015; // 每毫秒滚动的像素数，约等于每秒 15px，如果感觉滚得比文字还快、看着空白区域先滚过去了,就调小,反之调大
-
-  function handleAutoScrollInterrupt(event) {
-    if (event.type === 'keydown') {
-      var scrollKeys = ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '];
-      if (scrollKeys.indexOf(event.key) === -1) return;
-    }
-    stopAutoScroll();
-  }
-
-  function stopAutoScroll() {
-    if (autoScrollRAF) {
-      cancelAnimationFrame(autoScrollRAF);
-      autoScrollRAF = null;
-    }
-    window.removeEventListener('wheel', handleAutoScrollInterrupt);
-    window.removeEventListener('touchstart', handleAutoScrollInterrupt);
-    window.removeEventListener('keydown', handleAutoScrollInterrupt);
-  }
-
+  var autoScrollRAF = null; var autoScrollLastTime = 0; var bottomStableSince = 0; var lastScrollHeight = 0; var autoScrollMayStop = false; var autoScrollStartedAt = 0;
+  var AUTO_SCROLL_SPEED = 0.015;
+  function handleAutoScrollInterrupt(event) { if (event.type === 'keydown') { var scrollKeys = ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' ']; if (scrollKeys.indexOf(event.key) === -1) return; } stopAutoScroll(); }
+  function stopAutoScroll() { if (autoScrollRAF) { cancelAnimationFrame(autoScrollRAF); autoScrollRAF = null; } window.removeEventListener('wheel', handleAutoScrollInterrupt); window.removeEventListener('touchstart', handleAutoScrollInterrupt); window.removeEventListener('keydown', handleAutoScrollInterrupt); }
   function startAutoScroll() {
-    if (reduceMotion) return;
-    autoScrollLastTime = 0;
-    bottomStableSince = 0;
-    lastScrollHeight = document.documentElement.scrollHeight;
-
-    window.addEventListener('wheel', handleAutoScrollInterrupt, { passive: true });
-    window.addEventListener('touchstart', handleAutoScrollInterrupt, { passive: true });
-    window.addEventListener('keydown', handleAutoScrollInterrupt);
-
+    if (reduceMotion) return; autoScrollLastTime = 0; bottomStableSince = 0; lastScrollHeight = document.documentElement.scrollHeight; autoScrollMayStop = false; autoScrollStartedAt = 0;
+    window.addEventListener('wheel', handleAutoScrollInterrupt, { passive: true }); window.addEventListener('touchstart', handleAutoScrollInterrupt, { passive: true }); window.addEventListener('keydown', handleAutoScrollInterrupt);
     function step(now) {
-      if (!autoScrollLastTime) autoScrollLastTime = now;
-      var delta = now - autoScrollLastTime;
-      autoScrollLastTime = now;
-
-      var scrollHeight = document.documentElement.scrollHeight;
-      var maxScroll = scrollHeight - window.innerHeight;
-
-      if (scrollHeight > lastScrollHeight) {
-        lastScrollHeight = scrollHeight;
-        bottomStableSince = 0;
-      }
-
-      if (maxScroll <= 1) {
-        bottomStableSince = 0;
-        autoScrollRAF = requestAnimationFrame(step);
-        return;
-      }
-
+      if (!autoScrollLastTime) autoScrollLastTime = now; if (!autoScrollStartedAt) autoScrollStartedAt = now;
+      var delta = now - autoScrollLastTime; autoScrollLastTime = now; var scrollHeight = document.documentElement.scrollHeight; var maxScroll = scrollHeight - window.innerHeight;
+      if (scrollHeight > lastScrollHeight) { lastScrollHeight = scrollHeight; bottomStableSince = 0; }
+      if (maxScroll <= 1) { bottomStableSince = 0; autoScrollRAF = requestAnimationFrame(step); return; }
       if (window.scrollY >= maxScroll - 1) {
-        if (!bottomStableSince) bottomStableSince = now;
-        if (now - bottomStableSince >= 1000) {
-          stopAutoScroll();
-          return;
-        }
-      } else {
-        bottomStableSince = 0;
-        window.scrollBy(0, AUTO_SCROLL_SPEED * delta);
-      }
-
+        if (!autoScrollMayStop || now - autoScrollStartedAt < 1600) { bottomStableSince = 0; autoScrollRAF = requestAnimationFrame(step); return; }
+        if (!bottomStableSince) bottomStableSince = now; if (now - bottomStableSince >= 1400) { stopAutoScroll(); return; }
+      } else { bottomStableSince = 0; window.scrollBy(0, AUTO_SCROLL_SPEED * delta); }
       autoScrollRAF = requestAnimationFrame(step);
     }
-
     autoScrollRAF = requestAnimationFrame(step);
   }
-
   function boot() {
     readyPage();
-
-    var revealItems = Array.prototype.slice.call(document.querySelectorAll('.about-reveal'));
-    var typewriters = Array.prototype.slice.call(document.querySelectorAll('.about-typewriter'));
-    var firstTypewriter = typewriters[0];
-
-    if (reduceMotion) {
-      revealItems.forEach(function (el) { el.classList.add('is-visible'); });
-      typewriters.forEach(function (el) { el.classList.add('is-complete'); });
-      setupLeaveTransition();
-      return;
-    }
-
-    var beforeTypewriter = [];
-    var afterTypewriter = [];
-    var seenTypewriter = false;
-
-    revealItems.forEach(function (el) {
-      if (el === firstTypewriter) {
-        seenTypewriter = true;
-        return;
-      }
-      if (!seenTypewriter && !el.classList.contains('about-typewriter')) {
-        beforeTypewriter.push(el);
-      } else if (!el.classList.contains('about-typewriter')) {
-        afterTypewriter.push(el);
-      }
-    });
-
-    beforeTypewriter.forEach(function (el, index) {
-      reveal(el, 180 + index * 130);
-    });
-
+    var revealItems = Array.prototype.slice.call(document.querySelectorAll('.about-reveal')); var typewriters = Array.prototype.slice.call(document.querySelectorAll('.about-typewriter')); var firstTypewriter = typewriters[0];
+    if (reduceMotion) { revealItems.forEach(function (el) { el.classList.add('is-visible'); }); typewriters.forEach(function (el) { el.classList.add('is-complete'); }); setupLeaveTransition(); return; }
+    var beforeTypewriter = []; var afterTypewriter = []; var seenTypewriter = false;
+    revealItems.forEach(function (el) { if (el === firstTypewriter) { seenTypewriter = true; return; } if (!seenTypewriter && !el.classList.contains('about-typewriter')) { beforeTypewriter.push(el); } else if (!el.classList.contains('about-typewriter')) { afterTypewriter.push(el); } });
+    beforeTypewriter.forEach(function (el, index) { reveal(el, 180 + index * 130); });
     var startTypingDelay = 360 + beforeTypewriter.length * 90;
-
     if (typewriters.length) {
       window.setTimeout(function () {
         startAutoScroll();
         typeTextQueue(typewriters, function () {
-          afterTypewriter.forEach(function (el, index) {
-            reveal(el, 720 + index * 320);
-          });
+          var afterRevealBaseDelay = 1250; var afterRevealStep = 720;
+          afterTypewriter.forEach(function (el, index) { reveal(el, afterRevealBaseDelay + index * afterRevealStep); });
+          window.setTimeout(function () { autoScrollMayStop = true; }, afterRevealBaseDelay + afterTypewriter.length * afterRevealStep + 1800);
         });
       }, startTypingDelay);
-    } else {
-      afterTypewriter.forEach(function (el, index) {
-        reveal(el, 250 + index * 150);
-      });
-    }
-
+    } else { afterTypewriter.forEach(function (el, index) { reveal(el, 420 + index * 260); }); }
     setupLeaveTransition();
   }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', boot);
-  } else {
-    boot();
-  }
+  if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', boot); } else { boot(); }
 })();
 </script>
-
-  </body>
+</body>
 </html>
