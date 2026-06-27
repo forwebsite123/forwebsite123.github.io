@@ -61,9 +61,9 @@
     .container { animation: fadeIn 0.9s ease forwards; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
 
-    body.about-entering { opacity: 0; filter: blur(4px); transform: translateY(8px); }
-    body.about-ready { opacity: 1; filter: blur(0); transform: translateY(0); transition: opacity .9s ease, filter .9s ease, transform .9s ease; }
-    body.about-leaving { opacity: 0; filter: blur(5px); transform: translateY(-6px); transition: opacity .24s ease, filter .24s ease, transform .24s ease; }
+    body.about-entering { opacity: 0; filter: blur(4px); }
+    body.about-ready { opacity: 1; filter: blur(0); transition: opacity .9s ease, filter .9s ease; }
+    body.about-leaving { opacity: 0; filter: blur(5px); transition: opacity .24s ease, filter .24s ease; }
     .about-reveal { opacity: 0; filter: blur(3px); transform: translateY(7px); transition: opacity 1.05s cubic-bezier(.16, 1, .3, 1), filter 1.05s cubic-bezier(.16, 1, .3, 1), transform 1.05s cubic-bezier(.16, 1, .3, 1); will-change: opacity, filter, transform; }
     .about-reveal.is-visible { opacity: 1; filter: blur(0); transform: translateY(0); }
     .decor.about-reveal { opacity: 0; transform: translateY(10px); transition: opacity 1.3s cubic-bezier(.16, 1, .3, 1), transform 1.3s cubic-bezier(.16, 1, .3, 1); }
@@ -156,12 +156,12 @@
       link.addEventListener('click', function (event) { if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return; event.preventDefault(); document.body.classList.add('about-leaving'); window.setTimeout(function () { window.location.href = href; }, 220); });
     });
   }
-  var autoScrollRAF = null; var autoScrollLastTime = 0; var bottomStableSince = 0; var lastScrollHeight = 0; var autoScrollMayStop = false; var autoScrollStartedAt = 0;
+  var autoScrollRAF = null; var autoScrollLastTime = 0; var bottomStableSince = 0; var lastScrollHeight = 0; var autoScrollMayStop = false; var autoScrollStartedAt = 0; var autoScrollRemainder = 0;
   var AUTO_SCROLL_SPEED = 0.015;
   function handleAutoScrollInterrupt(event) { if (event.type === 'keydown') { var scrollKeys = ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' ']; if (scrollKeys.indexOf(event.key) === -1) return; } stopAutoScroll(); }
   function stopAutoScroll() { if (autoScrollRAF) { cancelAnimationFrame(autoScrollRAF); autoScrollRAF = null; } window.removeEventListener('wheel', handleAutoScrollInterrupt); window.removeEventListener('touchstart', handleAutoScrollInterrupt); window.removeEventListener('keydown', handleAutoScrollInterrupt); }
   function startAutoScroll() {
-    if (reduceMotion) return; autoScrollLastTime = 0; bottomStableSince = 0; lastScrollHeight = document.documentElement.scrollHeight; autoScrollMayStop = false; autoScrollStartedAt = 0;
+    if (reduceMotion) return; autoScrollLastTime = 0; bottomStableSince = 0; lastScrollHeight = document.documentElement.scrollHeight; autoScrollMayStop = false; autoScrollStartedAt = 0; autoScrollRemainder = 0;
     window.addEventListener('wheel', handleAutoScrollInterrupt, { passive: true }); window.addEventListener('touchstart', handleAutoScrollInterrupt, { passive: true }); window.addEventListener('keydown', handleAutoScrollInterrupt);
     function step(now) {
       if (!autoScrollLastTime) autoScrollLastTime = now; if (!autoScrollStartedAt) autoScrollStartedAt = now;
@@ -171,7 +171,15 @@
       if (window.scrollY >= maxScroll - 1) {
         if (!autoScrollMayStop || now - autoScrollStartedAt < 1600) { bottomStableSince = 0; autoScrollRAF = requestAnimationFrame(step); return; }
         if (!bottomStableSince) bottomStableSince = now; if (now - bottomStableSince >= 1400) { stopAutoScroll(); return; }
-      } else { bottomStableSince = 0; window.scrollBy(0, AUTO_SCROLL_SPEED * delta); }
+      } else {
+        bottomStableSince = 0;
+        autoScrollRemainder += AUTO_SCROLL_SPEED * delta;
+        if (autoScrollRemainder >= 1) {
+          var scrollDistance = Math.floor(autoScrollRemainder);
+          window.scrollBy(0, scrollDistance);
+          autoScrollRemainder -= scrollDistance;
+        }
+      }
       autoScrollRAF = requestAnimationFrame(step);
     }
     autoScrollRAF = requestAnimationFrame(step);
