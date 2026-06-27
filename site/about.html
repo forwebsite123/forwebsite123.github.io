@@ -31,10 +31,11 @@
     }
     .nav, .container { position: relative; z-index: 2; }
     .desktop-decor { display: block; position: fixed; }
+    .screen-fixed-decor { position: fixed !important; z-index: 1; transform: none !important; transition: none !important; }
     .mobile-decor { display: none; position: absolute; }
     .decor-sun-desktop { width: 118px; top: 36px; right: 28px; }
-    .decor-sunflower-desktop { position: fixed; width: 170px; left: 18px; bottom: 18px; }
-    .decor-rabbit-desktop { position: fixed; width: 168px; right: 38px; bottom: 24px; }
+    .decor-sunflower-desktop { width: 170px; left: 18px; bottom: 18px; }
+    .decor-rabbit-desktop { width: 168px; right: 38px; bottom: 24px; }
 
     /* ── Nav ── */
     .nav { max-width: 760px; margin: 0 auto; padding: 36px 32px 0; display: flex; justify-content: space-between; align-items: center; }
@@ -61,9 +62,9 @@
     .container { animation: fadeIn 0.9s ease forwards; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
 
-    body.about-entering { opacity: 0; filter: blur(4px); }
-    body.about-ready { opacity: 1; filter: blur(0); transition: opacity .9s ease, filter .9s ease; }
-    body.about-leaving { opacity: 0; filter: blur(5px); transition: opacity .24s ease, filter .24s ease; }
+    body.about-entering { opacity: 0; }
+    body.about-ready { opacity: 1; transition: opacity .9s ease; }
+    body.about-leaving { opacity: 0; transition: opacity .24s ease; }
     .about-reveal { opacity: 0; filter: blur(3px); transform: translateY(7px); transition: opacity 1.05s cubic-bezier(.16, 1, .3, 1), filter 1.05s cubic-bezier(.16, 1, .3, 1), transform 1.05s cubic-bezier(.16, 1, .3, 1); will-change: opacity, filter, transform; }
     .about-reveal.is-visible { opacity: 1; filter: blur(0); transform: translateY(0); }
     .decor.about-reveal { opacity: 0; transform: translateY(10px); transition: opacity 1.3s cubic-bezier(.16, 1, .3, 1), transform 1.3s cubic-bezier(.16, 1, .3, 1); }
@@ -87,14 +88,14 @@
     .about-signoff.is-visible::after { animation: aboutSignoffLine 1.45s ease forwards; animation-delay: .55s; }
     @keyframes aboutSignoffLine { 0% { transform: scaleX(0); opacity: 0; } 35% { opacity: 1; } 68% { transform: scaleX(1); opacity: 1; } 100% { transform: scaleX(1); opacity: 0; } }
     @media (prefers-reduced-motion: reduce) { body.about-entering, body.about-ready, body.about-leaving, .about-reveal { opacity: 1 !important; filter: none !important; transform: none !important; transition: none !important; } .about-typewriter .typewriter-cursor, .about-signoff::after { display: none !important; animation: none !important; } }
-    @media (max-width: 1200px) and (min-width: 901px) { .decor-sun-desktop { width: 98px; right: 18px; top: 38px; } .decor-sunflower-desktop { position: fixed; width: 136px; left: 10px; bottom: 18px; } .decor-rabbit-desktop { position: fixed; width: 136px; right: 32px; bottom: 28px; } }
+    @media (max-width: 1200px) and (min-width: 901px) { .decor-sun-desktop { width: 98px; right: 18px; top: 38px; } .decor-sunflower-desktop { width: 136px; left: 10px; bottom: 18px; } .decor-rabbit-desktop { width: 136px; right: 32px; bottom: 28px; } }
     @media (max-width: 900px) { .desktop-decor { display: none; } .mobile-decor { display: block; } .container { padding: 48px 24px 80px; } p { font-size: 16px; } .pull-quote p { font-size: 17px; } .decor-sun-mobile { width: 58px; top: 34px; right: 16px; } .decor-sunflower-mobile { width: 46px; top: 126px; right: 118px; } .contact-section { min-height: 210px; } .decor-rabbit-mobile { width: 104px; right: -4px; bottom: 12px; } }
   </style>
 </head>
 <body>
   <div class="decor about-reveal desktop-decor decor-soft decor-sun-desktop" aria-hidden="true"><img src="/images/about/sun.svg" alt="" /></div>
-  <div class="decor about-reveal desktop-decor decor-soft decor-sunflower-desktop" aria-hidden="true"><img src="/images/about/sunflower.svg" alt="" /></div>
-  <div class="decor about-reveal desktop-decor decor-rabbit decor-rabbit-desktop" aria-hidden="true"><div class="rabbit-shape"></div></div>
+  <div class="decor screen-fixed-decor desktop-decor decor-soft decor-sunflower-desktop" aria-hidden="true"><img src="/images/about/sunflower.svg" alt="" /></div>
+  <div class="decor screen-fixed-decor desktop-decor decor-rabbit decor-rabbit-desktop" aria-hidden="true"><div class="rabbit-shape"></div></div>
   <div class="decor about-reveal mobile-decor decor-soft decor-sun-mobile" aria-hidden="true"><img src="/images/about/sun.svg" alt="" /></div>
   <div class="decor about-reveal mobile-decor decor-soft decor-sunflower-mobile" aria-hidden="true"><img src="/images/about/sunflower.svg" alt="" /></div>
   <nav class="nav about-reveal"><a href="/home" class="nav-home">← Back</a></nav>
