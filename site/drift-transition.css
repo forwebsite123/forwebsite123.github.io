@@ -90,22 +90,22 @@ body.drift-transition-soften .petal {
   text-align: center;
   color: var(--drift-transition-brown);
   text-shadow: 0 1px 0 rgba(255, 255, 255, .55);
-  transform: translate3d(0, 4px, 0);
-  transition: opacity 1.35s ease, filter 1.35s ease, transform 1.35s ease;
+  transform: translate3d(0, 2px, 0);
+  transition: opacity 1.85s ease, filter 1.85s ease, transform 1.85s ease;
   will-change: opacity, filter, transform;
 }
 
 .drift-transition-overlay.is-poem-leaving .drift-transition-poem {
   opacity: 0;
-  filter: blur(6px);
-  transform: translate3d(0, -5px, 0);
+  filter: blur(5px);
+  transform: translate3d(0, -2px, 0);
 }
 
 .drift-transition-line {
   max-width: 100%;
   opacity: 0;
-  transform: translate3d(0, 14px, 0) scale(.992);
-  filter: blur(7px);
+  transform: translate3d(0, 4px, 0);
+  filter: blur(3px);
   color: rgba(111, 79, 71, .92);
   font-family: "Times New Roman", Georgia, "Songti SC", "STSong", serif;
   font-size: clamp(13px, 1.58vw, 20px);
@@ -113,16 +113,16 @@ body.drift-transition-soften .petal {
   letter-spacing: .045em;
   overflow-wrap: anywhere;
   transition:
-    opacity 1.35s cubic-bezier(.22, .68, .22, 1),
-    transform 1.35s cubic-bezier(.22, .68, .22, 1),
-    filter 1.35s ease;
+    opacity 2.25s cubic-bezier(.24, .12, .18, 1),
+    transform 2.25s cubic-bezier(.24, .12, .18, 1),
+    filter 2.25s ease;
   will-change: opacity, filter, transform;
   backface-visibility: hidden;
 }
 
 .drift-transition-line.is-shown {
   opacity: 1;
-  transform: translate3d(0, 0, 0) scale(1);
+  transform: translate3d(0, 0, 0);
   filter: blur(0);
 }
 
