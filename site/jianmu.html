@@ -328,6 +328,39 @@
       color: rgba(122, 87, 87, 0.50);
       line-height: 1.7;
     }
+    .jianmu-audio-toggle {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 10002;
+      width: 38px;
+      height: 38px;
+      border: 1px solid rgba(122, 87, 87, 0.16);
+      border-radius: 999px;
+      background: rgba(255, 251, 249, 0.72);
+      color: rgba(122, 87, 87, 0.54);
+      box-shadow: 0 10px 26px rgba(122, 87, 87, 0.06);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 15px;
+      line-height: 1;
+      opacity: 0;
+      pointer-events: none;
+      backdrop-filter: blur(8px);
+      transition: opacity .55s ease, color .35s ease, background .35s ease, transform .35s ease;
+    }
+    .jianmu-audio-toggle.is-visible {
+      opacity: .62;
+      pointer-events: auto;
+    }
+    .jianmu-audio-toggle.is-playing {
+      color: rgba(122, 87, 87, 0.72);
+      background: rgba(255, 251, 249, 0.82);
+    }
+    .jianmu-audio-toggle:hover {
+      opacity: .92;
+      transform: translateY(-1px);
+    }
     .hidden { display: none !important; }
 
     @media (max-width: 760px) {
@@ -397,12 +430,174 @@
     </div>
   </div>
 
+  <button class="jianmu-audio-toggle" type="button" id="jianmu-audio-toggle" aria-label="打开见木背景音乐" aria-pressed="false">♪</button>
+
   <script>
     /*
       用本地 helper 重新生成下面这段配置后，再替换到这里。
       questions 只是公开提示，不含真实答案；真正要替换的是整个 JIANMU_LOCK。
     */
     let JIANMU_LOCK = null;
+
+    const JIANMU_AUDIO_SRC = 'audio/rainstreetcat-track-3-guqin-reflection-3-420785.mp3';
+    const JIANMU_AUDIO_VOLUME = 0.14;
+    const JIANMU_AUDIO_FADE_IN = 1600;
+    const JIANMU_AUDIO_FADE_OUT = 650;
+    const JIANMU_AUDIO_TIME_KEY = 'jianmu-bgm-current-time';
+    const JIANMU_AUDIO_MUTED_KEY = 'jianmu-bgm-muted';
+
+    function clampAudioVolume(value) {
+      return Math.max(0, Math.min(1, value));
+    }
+
+    function fadeJianmuAudio(audio, fromVolume, toVolume, duration) {
+      if (!audio || duration <= 0) {
+        if (audio) audio.volume = clampAudioVolume(toVolume);
+        return;
+      }
+      const startedAt = window.performance.now();
+      const start = clampAudioVolume(fromVolume);
+      const end = clampAudioVolume(toVolume);
+
+      function tick(now) {
+        const progress = Math.min(1, (now - startedAt) / duration);
+        const eased = 1 - Math.pow(1 - progress, 2);
+        audio.volume = clampAudioVolume(start + (end - start) * eased);
+        if (progress < 1) window.requestAnimationFrame(tick);
+      }
+
+      window.requestAnimationFrame(tick);
+    }
+
+    function bootJianmuAudio() {
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const toggle = document.getElementById('jianmu-audio-toggle');
+      const audio = new Audio(JIANMU_AUDIO_SRC);
+      audio.loop = true;
+      audio.preload = 'auto';
+      audio.volume = 0;
+      audio.setAttribute('playsinline', '');
+      audio.setAttribute('aria-hidden', 'true');
+
+      let savedPositionApplied = false;
+      let mutedByUser = localStorage.getItem(JIANMU_AUDIO_MUTED_KEY) === 'true';
+
+      function applySavedPosition() {
+        if (savedPositionApplied) return;
+        const savedTime = Number(localStorage.getItem(JIANMU_AUDIO_TIME_KEY));
+        if (Number.isFinite(savedTime) && savedTime > 0) {
+          try {
+            audio.currentTime = Number.isFinite(audio.duration) && audio.duration > 0
+              ? savedTime % audio.duration
+              : savedTime;
+          } catch (err) {}
+        }
+        savedPositionApplied = true;
+      }
+
+      function persistPosition() {
+        if (!audio.paused && Number.isFinite(audio.currentTime)) {
+          localStorage.setItem(JIANMU_AUDIO_TIME_KEY, String(audio.currentTime));
+        }
+      }
+
+      function updateToggle(visible) {
+        if (!toggle) return;
+        if (visible) toggle.classList.add('is-visible');
+        toggle.classList.toggle('is-playing', !audio.paused && !mutedByUser);
+        toggle.textContent = !audio.paused && !mutedByUser ? '♫' : '♪';
+        toggle.setAttribute('aria-pressed', String(!audio.paused && !mutedByUser));
+        toggle.setAttribute('aria-label', !audio.paused && !mutedByUser ? '关闭见木背景音乐' : '打开见木背景音乐');
+      }
+
+      function startAudio(showToggleAfterStart) {
+        if (mutedByUser || reduceMotion) {
+          updateToggle(true);
+          return Promise.resolve(false);
+        }
+        applySavedPosition();
+        const playPromise = audio.play();
+        if (!playPromise || typeof playPromise.then !== 'function') {
+          fadeJianmuAudio(audio, audio.volume, JIANMU_AUDIO_VOLUME, JIANMU_AUDIO_FADE_IN);
+          updateToggle(showToggleAfterStart);
+          return Promise.resolve(true);
+        }
+        return playPromise.then(() => {
+          fadeJianmuAudio(audio, audio.volume, JIANMU_AUDIO_VOLUME, JIANMU_AUDIO_FADE_IN);
+          updateToggle(showToggleAfterStart);
+          return true;
+        }).catch(() => {
+          updateToggle(true);
+          bindFirstGestureFallback();
+          return false;
+        });
+      }
+
+      function pauseAudio() {
+        mutedByUser = true;
+        localStorage.setItem(JIANMU_AUDIO_MUTED_KEY, 'true');
+        persistPosition();
+        fadeJianmuAudio(audio, audio.volume, 0, JIANMU_AUDIO_FADE_OUT);
+        window.setTimeout(() => {
+          audio.pause();
+          updateToggle(true);
+        }, JIANMU_AUDIO_FADE_OUT + 40);
+      }
+
+      function resumeAudio() {
+        mutedByUser = false;
+        localStorage.setItem(JIANMU_AUDIO_MUTED_KEY, 'false');
+        startAudio(true);
+      }
+
+      function bindFirstGestureFallback() {
+        const options = { once: true, passive: true };
+        const retry = () => startAudio(true);
+        document.addEventListener('pointerdown', retry, options);
+        document.addEventListener('keydown', retry, options);
+        document.addEventListener('touchstart', retry, options);
+      }
+
+      function interceptLeavingLinks() {
+        document.addEventListener('click', function(event) {
+          const link = event.target.closest('a[href]');
+          if (!link) return;
+          if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+          if (link.target && link.target !== '_self') return;
+          if (link.hasAttribute('download')) return;
+
+          const url = new URL(link.getAttribute('href'), window.location.href);
+          if (url.origin !== window.location.origin) return;
+          if (url.href === window.location.href || url.hash && url.pathname === window.location.pathname) return;
+
+          persistPosition();
+          if (audio.paused || mutedByUser) return;
+          event.preventDefault();
+          fadeJianmuAudio(audio, audio.volume, 0, JIANMU_AUDIO_FADE_OUT);
+          window.setTimeout(() => {
+            window.location.href = url.href;
+          }, JIANMU_AUDIO_FADE_OUT + 40);
+        });
+      }
+
+      if (toggle) {
+        toggle.addEventListener('click', function(event) {
+          event.preventDefault();
+          event.stopPropagation();
+          if (!audio.paused && !mutedByUser) pauseAudio();
+          else resumeAudio();
+        });
+      }
+
+      audio.addEventListener('loadedmetadata', applySavedPosition, { once: true });
+      audio.addEventListener('play', () => updateToggle(true));
+      audio.addEventListener('pause', () => updateToggle(true));
+      window.setInterval(persistPosition, 650);
+      window.addEventListener('pagehide', persistPosition);
+      window.addEventListener('beforeunload', persistPosition);
+      interceptLeavingLinks();
+      startAudio(false);
+    }
 
     
     async function loadLockConfig() {
@@ -608,6 +803,7 @@
       }
     }
 
+    bootJianmuAudio();
     bindStoryToggles();
     document.getElementById('jianmu-submit').addEventListener('click', unlockStories);
     document.addEventListener('keydown', function(ev) {
