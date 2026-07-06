@@ -17,7 +17,8 @@
     { file: 'snowboarding.json', page: 'snowboarding.html', icon: '🏂', label: 'Snow', type: 'activity' },
     { file: 'horse-riding.json', page: 'horse-riding.html', icon: '🐎', label: 'Riding', type: 'activity' },
     { file: 'kitesurfing.json', page: 'kitesurfing.html', icon: '🪁', label: 'Kite', type: 'activity' },
-    { file: 'photos.json', icon: '📷', label: 'Drift', type: 'photos' }
+    { file: 'photos.json', icon: '📷', label: 'Drift', type: 'photos' },
+    { file: 'map-markers.json', page: 'Drift-coordinates.html', icon: '📍', label: 'Drift', type: 'markers' }
   ];
 
   function isHomeLikePage() {
@@ -694,18 +695,30 @@
     return text.length > 72 ? `${text.slice(0, 69)}…` : text;
   }
 
+  function locationUnlockTitle(record) {
+    if (!record || record.latestEventType !== 'locationUnlock') return '';
+    const place = compactText(record.latestPlaceLabel, '');
+    return place ? `解锁新地点：${place}` : '';
+  }
+
+  function activityUpdateTitle(entry) {
+    const unlocked = locationUnlockTitle(entry);
+    if (unlocked) return unlocked;
+    const title = compactText(entry.record_caption || entry.note || entry.location, 'new trace');
+    const location = entry.location ? ` · ${entry.location}` : '';
+    return `${title}${location}`;
+  }
+
   function collectActivityEntries(data, source) {
     const entries = Array.isArray(data && data.entries) ? data.entries : [];
     return entries.map((entry) => {
       const updatedDate = parseContentUpdatedAt(entry.contentUpdatedAt);
       if (!updatedDate) return null;
       const anchorDate = parseDateRange(entry.date);
-      const title = compactText(entry.record_caption || entry.note || entry.location, 'new trace');
-      const location = entry.location ? ` · ${entry.location}` : '';
       return {
         icon: source.icon,
         label: source.label,
-        title: `${title}${location}`,
+        title: activityUpdateTitle(entry),
         date: updatedDate,
         href: anchorDate ? `${source.page}#${anchorFrom(anchorDate, entry.location || source.label)}` : source.page
       };
@@ -742,7 +755,7 @@
       byPage.set(item.page, {
         icon: source.icon,
         label: source.label,
-        title: `${label} photos updated`,
+        title: locationUnlockTitle(item) || `${label} photos updated`,
         date: updatedDate,
         href: item.page
       });
@@ -751,10 +764,27 @@
     return [...byPage.values()];
   }
 
+  function collectMarkerUpdates(data, source) {
+    const markers = Array.isArray(data && data.markers) ? data.markers : [];
+    return markers.map((marker) => {
+      const updatedDate = parseContentUpdatedAt(marker.contentUpdatedAt);
+      const title = locationUnlockTitle(marker);
+      if (!updatedDate || !title) return null;
+      return {
+        icon: source.icon,
+        label: source.label,
+        title,
+        date: updatedDate,
+        href: marker.page || source.page
+      };
+    }).filter(Boolean);
+  }
+
   function collectUpdates(data, source) {
     if (source.type === 'activity') return collectActivityEntries(data, source);
     if (source.type === 'fragments') return collectFoundFragments(data, source);
     if (source.type === 'photos') return collectPhotoAlbumUpdates(data, source);
+    if (source.type === 'markers') return collectMarkerUpdates(data, source);
     return [];
   }
 
