@@ -18,13 +18,13 @@
     '——沃尔特·惠特曼《大路之歌》'
   ];
 
-  const NORMAL_LINE_DELAY = 880;
+  const NORMAL_LINE_DELAY = 720;
   const REDUCED_LINE_DELAY = 28;
-  const INTRO_SOFTEN_DELAY = 120;
-  const OVERLAY_SETTLE_DELAY = 920;
-  const FINAL_HOLD = 4200;
+  const INTRO_SOFTEN_DELAY = 160;
+  const OVERLAY_SETTLE_DELAY = 950;
+  const FINAL_HOLD = 4300;
   const REDUCED_FINAL_HOLD = 420;
-  const POEM_EXIT_DURATION = 1350;
+  const POEM_EXIT_DURATION = 1850;
   const REDUCED_EXIT_DURATION = 180;
 
   function isPlainLeftClick(event) {
