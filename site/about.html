@@ -219,12 +219,12 @@
       });
     });
   }
-  var autoScrollRAF = null; var autoScrollLastTime = 0; var bottomStableSince = 0; var lastScrollHeight = 0; var autoScrollMayStop = false; var autoScrollStartedAt = 0; var autoScrollRemainder = 0;
+  var autoScrollRAF = null; var autoScrollLastTime = 0; var bottomStableSince = 0; var lastScrollHeight = 0; var autoScrollMayStop = false; var autoScrollStartedAt = 0; var autoScrollTargetY = 0;
   var AUTO_SCROLL_SPEED = 0.015;
   function handleAutoScrollInterrupt(event) { if (event.type === 'keydown') { var scrollKeys = ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' ']; if (scrollKeys.indexOf(event.key) === -1) return; } stopAutoScroll(); }
   function stopAutoScroll() { if (autoScrollRAF) { cancelAnimationFrame(autoScrollRAF); autoScrollRAF = null; } window.removeEventListener('wheel', handleAutoScrollInterrupt); window.removeEventListener('touchstart', handleAutoScrollInterrupt); window.removeEventListener('keydown', handleAutoScrollInterrupt); }
   function startAutoScroll() {
-    if (reduceMotion) return; autoScrollLastTime = 0; bottomStableSince = 0; lastScrollHeight = document.documentElement.scrollHeight; autoScrollMayStop = false; autoScrollStartedAt = 0; autoScrollRemainder = 0;
+    if (reduceMotion) return; autoScrollLastTime = 0; bottomStableSince = 0; lastScrollHeight = document.documentElement.scrollHeight; autoScrollMayStop = false; autoScrollStartedAt = 0; autoScrollTargetY = window.scrollY;
     window.addEventListener('wheel', handleAutoScrollInterrupt, { passive: true }); window.addEventListener('touchstart', handleAutoScrollInterrupt, { passive: true }); window.addEventListener('keydown', handleAutoScrollInterrupt);
     function step(now) {
       if (!autoScrollLastTime) autoScrollLastTime = now; if (!autoScrollStartedAt) autoScrollStartedAt = now;
@@ -236,12 +236,8 @@
         if (!bottomStableSince) bottomStableSince = now; if (now - bottomStableSince >= 1400) { stopAutoScroll(); return; }
       } else {
         bottomStableSince = 0;
-        autoScrollRemainder += AUTO_SCROLL_SPEED * delta;
-        if (autoScrollRemainder >= 1) {
-          var scrollDistance = Math.floor(autoScrollRemainder);
-          window.scrollBy(0, scrollDistance);
-          autoScrollRemainder -= scrollDistance;
-        }
+        autoScrollTargetY = Math.min(maxScroll, Math.max(window.scrollY, autoScrollTargetY) + AUTO_SCROLL_SPEED * delta);
+        window.scrollTo(0, autoScrollTargetY);
       }
       autoScrollRAF = requestAnimationFrame(step);
     }
