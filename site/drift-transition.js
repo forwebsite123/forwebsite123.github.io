@@ -18,6 +18,11 @@
     '——沃尔特·惠特曼《大路之歌》'
   ];
 
+  const AUDIO_SRC = 'audio/drift-transition-spring-sunshine-21s.mp3';
+  const AUDIO_TARGET_VOLUME = 0.22;
+  const AUDIO_FADE_IN = 1500;
+  const AUDIO_FADE_OUT = 1800;
+
   const NORMAL_LINE_DELAY = 1100;
   const REDUCED_LINE_DELAY = 28;
   const INTRO_SOFTEN_DELAY = 160;
@@ -29,6 +34,59 @@
 
   function isPlainLeftClick(event) {
     return event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
+  }
+
+  function clampVolume(value) {
+    return Math.max(0, Math.min(1, value));
+  }
+
+  function fadeAudio(audio, fromVolume, toVolume, duration) {
+    if (!audio || duration <= 0) {
+      if (audio) audio.volume = clampVolume(toVolume);
+      return;
+    }
+
+    const startedAt = window.performance.now();
+    const start = clampVolume(fromVolume);
+    const end = clampVolume(toVolume);
+
+    function tick(now) {
+      const progress = Math.min(1, (now - startedAt) / duration);
+      const eased = 1 - Math.pow(1 - progress, 2);
+      audio.volume = clampVolume(start + (end - start) * eased);
+      if (progress < 1) window.requestAnimationFrame(tick);
+    }
+
+    window.requestAnimationFrame(tick);
+  }
+
+  function startTransitionAudio(reducedMotion) {
+    if (reducedMotion) return null;
+
+    const audio = new Audio(AUDIO_SRC);
+    audio.preload = 'auto';
+    audio.volume = 0;
+    audio.setAttribute('aria-hidden', 'true');
+    audio.setAttribute('playsinline', '');
+
+    const playPromise = audio.play();
+    if (playPromise && typeof playPromise.catch === 'function') {
+      playPromise.catch(() => {
+        audio.pause();
+      });
+    }
+
+    fadeAudio(audio, 0, AUDIO_TARGET_VOLUME, AUDIO_FADE_IN);
+    return audio;
+  }
+
+  function fadeOutTransitionAudio(audio, duration) {
+    if (!audio) return;
+    fadeAudio(audio, audio.volume, 0, duration);
+    window.setTimeout(() => {
+      audio.pause();
+      audio.currentTime = 0;
+    }, duration + 80);
   }
 
   function makeOverlay() {
@@ -66,6 +124,7 @@
     const lineDelay = reducedMotion ? REDUCED_LINE_DELAY : NORMAL_LINE_DELAY;
     const finalHold = reducedMotion ? REDUCED_FINAL_HOLD : FINAL_HOLD;
     const exitDuration = reducedMotion ? REDUCED_EXIT_DURATION : POEM_EXIT_DURATION;
+    const transitionAudio = startTransitionAudio(reducedMotion);
     const overlay = makeOverlay();
     const lines = overlay.querySelectorAll('.drift-transition-line');
 
@@ -84,6 +143,7 @@
 
     // Only fade the poem away here. Keep the paper overlay opaque until navigation
     // so the homepage does not flash for a moment before Drift Coordinates loads.
+    fadeOutTransitionAudio(transitionAudio, Math.min(AUDIO_FADE_OUT, exitDuration));
     overlay.classList.add('is-poem-leaving');
     await wait(exitDuration);
     window.location.href = targetHref;
