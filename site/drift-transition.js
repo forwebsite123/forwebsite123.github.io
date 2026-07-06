@@ -18,7 +18,7 @@
     '——沃尔特·惠特曼《大路之歌》'
   ];
 
-  const NORMAL_LINE_DELAY = 720;
+  const NORMAL_LINE_DELAY = 920;
   const REDUCED_LINE_DELAY = 28;
   const INTRO_SOFTEN_DELAY = 160;
   const OVERLAY_SETTLE_DELAY = 950;
