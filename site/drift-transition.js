@@ -18,11 +18,13 @@
     '——沃尔特·惠特曼《大路之歌》'
   ];
 
-  const NORMAL_LINE_DELAY = 620;
-  const REDUCED_LINE_DELAY = 35;
-  const FINAL_HOLD = 1900;
-  const REDUCED_FINAL_HOLD = 360;
-  const EXIT_DURATION = 1050;
+  const NORMAL_LINE_DELAY = 880;
+  const REDUCED_LINE_DELAY = 28;
+  const INTRO_SOFTEN_DELAY = 120;
+  const OVERLAY_SETTLE_DELAY = 920;
+  const FINAL_HOLD = 4200;
+  const REDUCED_FINAL_HOLD = 420;
+  const POEM_EXIT_DURATION = 1350;
   const REDUCED_EXIT_DURATION = 180;
 
   function isPlainLeftClick(event) {
@@ -55,18 +57,23 @@
     return new Promise((resolve) => window.setTimeout(resolve, ms));
   }
 
+  function nextFrame() {
+    return new Promise((resolve) => window.requestAnimationFrame(() => resolve()));
+  }
+
   async function playTransition(targetHref) {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const lineDelay = reducedMotion ? REDUCED_LINE_DELAY : NORMAL_LINE_DELAY;
     const finalHold = reducedMotion ? REDUCED_FINAL_HOLD : FINAL_HOLD;
-    const exitDuration = reducedMotion ? REDUCED_EXIT_DURATION : EXIT_DURATION;
+    const exitDuration = reducedMotion ? REDUCED_EXIT_DURATION : POEM_EXIT_DURATION;
     const overlay = makeOverlay();
     const lines = overlay.querySelectorAll('.drift-transition-line');
 
-    document.body.classList.add('drift-transition-soften');
-    await wait(reducedMotion ? 20 : 80);
+    document.body.classList.add('drift-transition-soften', 'drift-transition-lock');
+    await nextFrame();
+    await wait(reducedMotion ? 12 : INTRO_SOFTEN_DELAY);
     overlay.classList.add('is-visible');
-    await wait(reducedMotion ? 110 : 650);
+    await wait(reducedMotion ? 80 : OVERLAY_SETTLE_DELAY);
 
     for (const line of lines) {
       line.classList.add('is-shown');
@@ -74,7 +81,10 @@
     }
 
     await wait(finalHold);
-    overlay.classList.add('is-poem-leaving', 'is-leaving');
+
+    // Only fade the poem away here. Keep the paper overlay opaque until navigation
+    // so the homepage does not flash for a moment before Drift Coordinates loads.
+    overlay.classList.add('is-poem-leaving');
     await wait(exitDuration);
     window.location.href = targetHref;
   }
