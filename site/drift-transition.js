@@ -29,7 +29,7 @@
   const OVERLAY_SETTLE_DELAY = 950;
   const FINAL_HOLD = 1800;
   const REDUCED_FINAL_HOLD = 420;
-  const POEM_EXIT_DURATION = 1850;
+  const POEM_EXIT_DURATION = 1250;
   const REDUCED_EXIT_DURATION = 180;
 
   function isPlainLeftClick(event) {
