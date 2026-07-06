@@ -5,11 +5,15 @@
   --drift-transition-brown: #6f4f47;
 }
 
+body.drift-transition-lock {
+  overflow: hidden;
+}
+
 body.drift-transition-soften .page,
 body.drift-transition-soften .petal {
   opacity: .58;
   filter: blur(3px) saturate(.92);
-  transition: opacity .7s ease, filter .7s ease;
+  transition: opacity .9s ease, filter .9s ease;
 }
 
 .drift-transition-overlay {
@@ -25,10 +29,10 @@ body.drift-transition-soften .petal {
   background:
     radial-gradient(ellipse at 50% 118%, rgba(184, 133, 104, .18), transparent 48%),
     radial-gradient(ellipse at 50% 64%, rgba(255, 255, 255, .58), transparent 45%),
-    linear-gradient(180deg, rgba(255, 253, 248, .98), rgba(247, 235, 224, .97));
+    linear-gradient(180deg, rgba(255, 253, 248, .99), rgba(247, 235, 224, .985));
   opacity: 0;
   pointer-events: none;
-  transition: opacity 1.05s ease;
+  transition: opacity 1.15s ease;
   isolation: isolate;
 }
 
@@ -56,7 +60,7 @@ body.drift-transition-soften .petal {
   left: 50%;
   top: 55%;
   transform: translate(-50%, -50%);
-  opacity: .42;
+  opacity: .40;
   background:
     linear-gradient(90deg, transparent 0 38%, rgba(151, 104, 85, .08) 49%, rgba(151, 104, 85, .10) 51%, transparent 62%),
     radial-gradient(ellipse at 50% 100%, rgba(130, 91, 74, .15), transparent 60%);
@@ -69,8 +73,9 @@ body.drift-transition-soften .petal {
   pointer-events: auto;
 }
 
+/* Keep the overlay opaque during exit; the page will navigate while covered. */
 .drift-transition-overlay.is-leaving {
-  opacity: 0;
+  opacity: 1;
 }
 
 .drift-transition-poem {
@@ -85,21 +90,22 @@ body.drift-transition-soften .petal {
   text-align: center;
   color: var(--drift-transition-brown);
   text-shadow: 0 1px 0 rgba(255, 255, 255, .55);
-  transform: translateY(4px);
-  transition: opacity 1.15s ease, filter 1.15s ease, transform 1.15s ease;
+  transform: translate3d(0, 4px, 0);
+  transition: opacity 1.35s ease, filter 1.35s ease, transform 1.35s ease;
+  will-change: opacity, filter, transform;
 }
 
 .drift-transition-overlay.is-poem-leaving .drift-transition-poem {
   opacity: 0;
-  filter: blur(5px);
-  transform: translateY(-4px);
+  filter: blur(6px);
+  transform: translate3d(0, -5px, 0);
 }
 
 .drift-transition-line {
   max-width: 100%;
   opacity: 0;
-  transform: translateY(10px);
-  filter: blur(5px);
+  transform: translate3d(0, 14px, 0) scale(.992);
+  filter: blur(7px);
   color: rgba(111, 79, 71, .92);
   font-family: "Times New Roman", Georgia, "Songti SC", "STSong", serif;
   font-size: clamp(13px, 1.58vw, 20px);
@@ -107,14 +113,16 @@ body.drift-transition-soften .petal {
   letter-spacing: .045em;
   overflow-wrap: anywhere;
   transition:
-    opacity .82s cubic-bezier(.18, .72, .22, 1),
-    transform .82s cubic-bezier(.18, .72, .22, 1),
-    filter .82s ease;
+    opacity 1.35s cubic-bezier(.22, .68, .22, 1),
+    transform 1.35s cubic-bezier(.22, .68, .22, 1),
+    filter 1.35s ease;
+  will-change: opacity, filter, transform;
+  backface-visibility: hidden;
 }
 
 .drift-transition-line.is-shown {
   opacity: 1;
-  transform: translateY(0);
+  transform: translate3d(0, 0, 0) scale(1);
   filter: blur(0);
 }
 
