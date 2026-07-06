@@ -1,0 +1,161 @@
+/* Drift Coordinates entry transition — home-only cinematic poem prelude. */
+:root {
+  --drift-transition-paper: #fbf6ef;
+  --drift-transition-rose: #8a5f5a;
+  --drift-transition-brown: #6f4f47;
+}
+
+body.drift-transition-soften .page,
+body.drift-transition-soften .petal {
+  opacity: .58;
+  filter: blur(3px) saturate(.92);
+  transition: opacity .7s ease, filter .7s ease;
+}
+
+.drift-transition-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: clamp(18px, 4vw, 56px);
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 50% 118%, rgba(184, 133, 104, .18), transparent 48%),
+    radial-gradient(ellipse at 50% 64%, rgba(255, 255, 255, .58), transparent 45%),
+    linear-gradient(180deg, rgba(255, 253, 248, .98), rgba(247, 235, 224, .97));
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1.05s ease;
+  isolation: isolate;
+}
+
+.drift-transition-overlay::before,
+.drift-transition-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.drift-transition-overlay::before {
+  opacity: .44;
+  background-image:
+    linear-gradient(115deg, rgba(122, 87, 87, .045) 0 1px, transparent 1px 12px),
+    radial-gradient(circle at 22% 24%, rgba(184, 136, 122, .09), transparent 25%),
+    radial-gradient(circle at 78% 18%, rgba(218, 181, 142, .12), transparent 28%);
+  mix-blend-mode: multiply;
+}
+
+.drift-transition-overlay::after {
+  width: min(88vw, 720px);
+  height: min(76vh, 620px);
+  left: 50%;
+  top: 55%;
+  transform: translate(-50%, -50%);
+  opacity: .42;
+  background:
+    linear-gradient(90deg, transparent 0 38%, rgba(151, 104, 85, .08) 49%, rgba(151, 104, 85, .10) 51%, transparent 62%),
+    radial-gradient(ellipse at 50% 100%, rgba(130, 91, 74, .15), transparent 60%);
+  clip-path: polygon(43% 100%, 57% 100%, 51.5% 0, 48.5% 0);
+  filter: blur(.3px);
+}
+
+.drift-transition-overlay.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.drift-transition-overlay.is-leaving {
+  opacity: 0;
+}
+
+.drift-transition-poem {
+  width: min(86vw, 760px);
+  max-height: min(86vh, 760px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(5px, 1.2vh, 10px);
+  text-align: center;
+  color: var(--drift-transition-brown);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .55);
+  transform: translateY(4px);
+  transition: opacity 1.15s ease, filter 1.15s ease, transform 1.15s ease;
+}
+
+.drift-transition-overlay.is-poem-leaving .drift-transition-poem {
+  opacity: 0;
+  filter: blur(5px);
+  transform: translateY(-4px);
+}
+
+.drift-transition-line {
+  max-width: 100%;
+  opacity: 0;
+  transform: translateY(10px);
+  filter: blur(5px);
+  color: rgba(111, 79, 71, .92);
+  font-family: "Times New Roman", Georgia, "Songti SC", "STSong", serif;
+  font-size: clamp(13px, 1.58vw, 20px);
+  line-height: 1.36;
+  letter-spacing: .045em;
+  overflow-wrap: anywhere;
+  transition:
+    opacity .82s cubic-bezier(.18, .72, .22, 1),
+    transform .82s cubic-bezier(.18, .72, .22, 1),
+    filter .82s ease;
+}
+
+.drift-transition-line.is-shown {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+.drift-transition-line.is-credit {
+  margin-top: clamp(4px, 1vh, 10px);
+  color: rgba(138, 95, 90, .72);
+  font-size: clamp(12px, 1.36vw, 17px);
+  letter-spacing: .035em;
+}
+
+@media (max-width: 520px) {
+  .drift-transition-overlay {
+    padding: 18px 14px;
+  }
+
+  .drift-transition-poem {
+    width: min(88vw, 760px);
+    gap: clamp(3px, .72vh, 6px);
+    max-height: 90dvh;
+  }
+
+  .drift-transition-line {
+    font-size: clamp(11px, 3.18vw, 14px);
+    line-height: 1.24;
+    letter-spacing: .018em;
+  }
+
+  .drift-transition-line.is-credit {
+    font-size: clamp(10px, 2.86vw, 12.5px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.drift-transition-soften .page,
+  body.drift-transition-soften .petal,
+  .drift-transition-overlay,
+  .drift-transition-poem,
+  .drift-transition-line {
+    transition-duration: .18s !important;
+    animation: none !important;
+    filter: none !important;
+    transform: none !important;
+  }
+}
