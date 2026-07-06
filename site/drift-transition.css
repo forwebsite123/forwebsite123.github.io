@@ -12,7 +12,7 @@ body.drift-transition-lock {
 body.drift-transition-soften .page,
 body.drift-transition-soften .petal {
   opacity: .58;
-  filter: blur(3px) saturate(.92);
+  filter: blur(2px) saturate(.94);
   transition: opacity .9s ease, filter .9s ease;
 }
 
@@ -65,7 +65,7 @@ body.drift-transition-soften .petal {
     linear-gradient(90deg, transparent 0 38%, rgba(151, 104, 85, .08) 49%, rgba(151, 104, 85, .10) 51%, transparent 62%),
     radial-gradient(ellipse at 50% 100%, rgba(130, 91, 74, .15), transparent 60%);
   clip-path: polygon(43% 100%, 57% 100%, 51.5% 0, 48.5% 0);
-  filter: blur(.3px);
+  filter: blur(.2px);
 }
 
 .drift-transition-overlay.is-visible {
@@ -89,23 +89,21 @@ body.drift-transition-soften .petal {
   gap: clamp(5px, 1.2vh, 10px);
   text-align: center;
   color: var(--drift-transition-brown);
-  text-shadow: 0 1px 0 rgba(255, 255, 255, .55);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .48);
   transform: translate3d(0, 2px, 0);
-  transition: opacity 1.85s ease, filter 1.85s ease, transform 1.85s ease;
-  will-change: opacity, filter, transform;
+  transition: opacity 1.85s ease, transform 1.85s ease;
+  will-change: opacity, transform;
 }
 
 .drift-transition-overlay.is-poem-leaving .drift-transition-poem {
   opacity: 0;
-  filter: blur(5px);
   transform: translate3d(0, -2px, 0);
 }
 
 .drift-transition-line {
   max-width: 100%;
   opacity: 0;
-  transform: translate3d(0, 4px, 0);
-  filter: blur(3px);
+  transform: translate3d(0, 3px, 0);
   color: rgba(111, 79, 71, .92);
   font-family: "Times New Roman", Georgia, "Songti SC", "STSong", serif;
   font-size: clamp(13px, 1.58vw, 20px);
@@ -113,17 +111,15 @@ body.drift-transition-soften .petal {
   letter-spacing: .045em;
   overflow-wrap: anywhere;
   transition:
-    opacity 2.25s cubic-bezier(.24, .12, .18, 1),
-    transform 2.25s cubic-bezier(.24, .12, .18, 1),
-    filter 2.25s ease;
-  will-change: opacity, filter, transform;
+    opacity 2.1s cubic-bezier(.24, .12, .18, 1),
+    transform 2.1s cubic-bezier(.24, .12, .18, 1);
+  will-change: opacity, transform;
   backface-visibility: hidden;
 }
 
 .drift-transition-line.is-shown {
   opacity: 1;
   transform: translate3d(0, 0, 0);
-  filter: blur(0);
 }
 
 .drift-transition-line.is-credit {
