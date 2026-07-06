@@ -91,7 +91,7 @@ body.drift-transition-soften .petal {
   color: var(--drift-transition-brown);
   text-shadow: 0 1px 0 rgba(255, 255, 255, .48);
   transform: translate3d(0, 2px, 0);
-  transition: opacity 1.85s ease, transform 1.85s ease;
+  transition: opacity 1.25s ease, transform 1.25s ease;
   will-change: opacity, transform;
 }
 
