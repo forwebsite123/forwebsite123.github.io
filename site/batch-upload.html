@@ -1944,6 +1944,45 @@ function markAlbumContentUpdated(jsonData, page) {
   });
 }
 
+function firstReadablePlaceLabel(record) {
+  const keys = ['city', 'country', 'location', 'place', 'diveSite', 'siteName', 'title', 'pageLabel'];
+  for (const key of keys) {
+    const value = record && record[key];
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+  if (record && typeof record.page === 'string' && record.page.trim()) {
+    return record.page.replace(/\.html$/i, '').replace(/[-_]+/g, ' ').trim();
+  }
+  return '';
+}
+
+function markLocationUnlock(record) {
+  const placeLabel = firstReadablePlaceLabel(record);
+  if (!record || !placeLabel) return false;
+  record.latestEventType = 'locationUnlock';
+  record.latestPlaceLabel = placeLabel;
+  record.contentUpdatedAt = todayContentUpdateDate();
+  return true;
+}
+
+function markerMatchesPlace(a, b) {
+  if (!a || !b) return false;
+  if (a.page && b.page && String(a.page).toLowerCase() === String(b.page).toLowerCase()) return true;
+  const aLabel = firstReadablePlaceLabel(a).toLowerCase();
+  const bLabel = firstReadablePlaceLabel(b).toLowerCase();
+  return Boolean(aLabel && bLabel && aLabel === bLabel);
+}
+
+function markerHasSameCoordinates(a, b) {
+  if (!a || !b) return false;
+  const latA = Number(a.lat);
+  const lngA = Number(a.lng);
+  const latB = Number(b.lat);
+  const lngB = Number(b.lng);
+  if ([latA, lngA, latB, lngB].some(Number.isNaN)) return false;
+  return Math.abs(latA - latB) < 0.000001 && Math.abs(lngA - lngB) < 0.000001;
+}
+
 function renderActivityEntries() {
   const list = document.getElementById('activityEntryList');
   const entries = currentActivityJson.entries;
@@ -3669,7 +3708,12 @@ async function addMapMarker() {
       }
     }
 
-    currentMarkersJson.markers.push({ lat, lng, title, page });
+    const newMarker = { lat, lng, title, page };
+    const markerAlreadyExists = (currentMarkersJson.markers || []).some(marker =>
+      markerHasSameCoordinates(marker, newMarker) || markerMatchesPlace(marker, newMarker)
+    );
+    if (!markerAlreadyExists) markLocationUnlock(newMarker);
+    currentMarkersJson.markers.push(newMarker);
     await updateJsonFile('map-markers.json', currentMarkersJson);
 
     hideProgress();
