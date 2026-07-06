@@ -80,6 +80,10 @@
     .section .about-typewriter.is-complete { margin-bottom: clamp(44px, 4.2vw, 62px) !important; }
     .section .about-typewriter + .about-signoff { margin-top: clamp(18px, 2vw, 28px) !important; }
     .section p.about-typewriter:nth-of-type(4), .section p.about-typewriter:nth-of-type(4).is-complete { margin-bottom: clamp(22px, 2.4vw, 34px) !important; }
+    .about-audio-toggle { position: fixed; right: 18px; bottom: 18px; z-index: 30; width: 38px; height: 38px; border: 1px solid rgba(122, 87, 87, 0.16); border-radius: 999px; background: rgba(255, 251, 249, 0.72); color: rgba(122, 87, 87, 0.54); box-shadow: 0 10px 26px rgba(122, 87, 87, 0.06); cursor: pointer; font-family: inherit; font-size: 15px; line-height: 1; opacity: 0; pointer-events: none; backdrop-filter: blur(8px); transition: opacity .55s ease, color .35s ease, background .35s ease, transform .35s ease; }
+    .about-audio-toggle.is-visible { opacity: .58; pointer-events: auto; }
+    .about-audio-toggle.is-playing { color: rgba(122, 87, 87, 0.72); background: rgba(255, 251, 249, 0.82); }
+    .about-audio-toggle:hover { opacity: .92; transform: translateY(-1px); }
     @media (max-width: 900px) { .section .about-typewriter, .section .about-typewriter.is-complete { margin-bottom: clamp(30px, 8vw, 44px) !important; } .section .about-typewriter + .about-signoff { margin-top: clamp(36px, 9vw, 52px) !important; } }
     @keyframes aboutCursorBlink { 0%, 100% { opacity: .28; } 45%, 55% { opacity: .9; } }
     @keyframes aboutCursorFade { from { opacity: 1; } to { opacity: 0; } }
@@ -98,6 +102,7 @@
   <div class="decor screen-fixed-decor desktop-decor decor-rabbit decor-rabbit-desktop" aria-hidden="true"><div class="rabbit-shape"></div></div>
   <div class="decor about-reveal mobile-decor decor-soft decor-sun-mobile" aria-hidden="true"><img src="/images/about/sun.svg" alt="" /></div>
   <div class="decor about-reveal mobile-decor decor-soft decor-sunflower-mobile" aria-hidden="true"><img src="/images/about/sunflower.svg" alt="" /></div>
+  <button class="about-audio-toggle" type="button" id="about-audio-toggle" aria-label="打开 About 背景音乐" aria-pressed="false">♪</button>
   <nav class="nav about-reveal"><a href="/home" class="nav-home">← Back</a></nav>
   <div class="container">
     <div class="page-title about-reveal">Behind the pixels</div>
@@ -121,7 +126,59 @@
   <script>
 (function () {
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var ABOUT_AUDIO_SRC = 'audio/about-bgm-emotional-piano-documentary.mp3';
+  var ABOUT_AUDIO_VOLUME = 0.055;
+  var ABOUT_AUDIO_FADE_IN = 1800;
+  var ABOUT_AUDIO_FADE_OUT = 700;
+  var ABOUT_AUDIO_MUTED_KEY = 'about-bgm-muted';
   document.body.classList.add('about-entering');
+
+  function clampAudioVolume(value) { return Math.max(0, Math.min(1, value)); }
+  function fadeAboutAudio(audio, fromVolume, toVolume, duration) {
+    if (!audio || duration <= 0) { if (audio) audio.volume = clampAudioVolume(toVolume); return; }
+    var startedAt = window.performance.now(); var start = clampAudioVolume(fromVolume); var end = clampAudioVolume(toVolume);
+    function tick(now) {
+      var progress = Math.min(1, (now - startedAt) / duration); var eased = 1 - Math.pow(1 - progress, 2);
+      audio.volume = clampAudioVolume(start + (end - start) * eased);
+      if (progress < 1) window.requestAnimationFrame(tick);
+    }
+    window.requestAnimationFrame(tick);
+  }
+  function bootAboutAudio() {
+    var toggle = document.getElementById('about-audio-toggle'); var audio = new Audio(ABOUT_AUDIO_SRC);
+    audio.loop = true; audio.preload = 'auto'; audio.volume = 0; audio.setAttribute('playsinline', ''); audio.setAttribute('aria-hidden', 'true');
+    var mutedByUser = localStorage.getItem(ABOUT_AUDIO_MUTED_KEY) === 'true';
+    function updateToggle(visible) {
+      if (!toggle) return;
+      if (visible) toggle.classList.add('is-visible');
+      toggle.classList.toggle('is-playing', !audio.paused && !mutedByUser);
+      toggle.textContent = !audio.paused && !mutedByUser ? '♫' : '♪';
+      toggle.setAttribute('aria-pressed', String(!audio.paused && !mutedByUser));
+      toggle.setAttribute('aria-label', !audio.paused && !mutedByUser ? '关闭 About 背景音乐' : '打开 About 背景音乐');
+    }
+    function bindFirstGestureFallback() {
+      var options = { once: true, passive: true }; var retry = function () { startAudio(true); };
+      document.addEventListener('pointerdown', retry, options); document.addEventListener('keydown', retry, options); document.addEventListener('touchstart', retry, options);
+    }
+    function startAudio(showToggleAfterStart) {
+      if (mutedByUser) { updateToggle(true); return Promise.resolve(false); }
+      var playPromise = audio.play();
+      if (!playPromise || typeof playPromise.then !== 'function') { fadeAboutAudio(audio, audio.volume, ABOUT_AUDIO_VOLUME, ABOUT_AUDIO_FADE_IN); updateToggle(showToggleAfterStart); return Promise.resolve(true); }
+      return playPromise.then(function () { fadeAboutAudio(audio, audio.volume, ABOUT_AUDIO_VOLUME, ABOUT_AUDIO_FADE_IN); updateToggle(showToggleAfterStart); return true; }).catch(function () { updateToggle(true); bindFirstGestureFallback(); return false; });
+    }
+    function pauseAudio() {
+      mutedByUser = true; localStorage.setItem(ABOUT_AUDIO_MUTED_KEY, 'true'); fadeAboutAudio(audio, audio.volume, 0, ABOUT_AUDIO_FADE_OUT);
+      window.setTimeout(function () { audio.pause(); updateToggle(true); }, ABOUT_AUDIO_FADE_OUT + 40);
+    }
+    function resumeAudio() { mutedByUser = false; localStorage.setItem(ABOUT_AUDIO_MUTED_KEY, 'false'); startAudio(true); }
+    function fadeOutForLeaving() { if (audio.paused || mutedByUser) return; fadeAboutAudio(audio, audio.volume, 0, ABOUT_AUDIO_FADE_OUT); }
+    if (toggle) { toggle.addEventListener('click', function (event) { event.preventDefault(); event.stopPropagation(); if (!audio.paused && !mutedByUser) pauseAudio(); else resumeAudio(); }); }
+    audio.addEventListener('play', function () { updateToggle(true); }); audio.addEventListener('pause', function () { updateToggle(true); });
+    startAudio(false);
+    return { fadeOutForLeaving: fadeOutForLeaving };
+  }
+  var aboutAudio = bootAboutAudio();
+
   function readyPage() { requestAnimationFrame(function () { document.body.classList.add('about-ready'); document.body.classList.remove('about-entering'); }); }
   function reveal(el, delay) { window.setTimeout(function () { el.classList.add('is-visible'); }, delay || 0); }
   function typeText(el, done) {
@@ -154,7 +211,12 @@
   function setupLeaveTransition() {
     document.querySelectorAll('a[href]').forEach(function (link) {
       var href = link.getAttribute('href'); if (!href || href.charAt(0) === '#' || link.target === '_blank') return;
-      link.addEventListener('click', function (event) { if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return; event.preventDefault(); document.body.classList.add('about-leaving'); window.setTimeout(function () { window.location.href = href; }, 220); });
+      link.addEventListener('click', function (event) {
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        event.preventDefault(); document.body.classList.add('about-leaving');
+        if (aboutAudio && typeof aboutAudio.fadeOutForLeaving === 'function') aboutAudio.fadeOutForLeaving();
+        window.setTimeout(function () { window.location.href = href; }, Math.max(220, ABOUT_AUDIO_FADE_OUT + 40));
+      });
     });
   }
   var autoScrollRAF = null; var autoScrollLastTime = 0; var bottomStableSince = 0; var lastScrollHeight = 0; var autoScrollMayStop = false; var autoScrollStartedAt = 0; var autoScrollRemainder = 0;
