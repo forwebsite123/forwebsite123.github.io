@@ -18,11 +18,11 @@
     '——沃尔特·惠特曼《大路之歌》'
   ];
 
-  const NORMAL_LINE_DELAY = 920;
+  const NORMAL_LINE_DELAY = 1100;
   const REDUCED_LINE_DELAY = 28;
   const INTRO_SOFTEN_DELAY = 160;
   const OVERLAY_SETTLE_DELAY = 950;
-  const FINAL_HOLD = 4300;
+  const FINAL_HOLD = 3200;
   const REDUCED_FINAL_HOLD = 420;
   const POEM_EXIT_DURATION = 1850;
   const REDUCED_EXIT_DURATION = 180;
