@@ -1,9 +1,34 @@
+const BGM_CACHE_NAME = 'site-bgm-audio-v3';
+const BGM_ASSETS = [
+  '/audio/home-bgm-guqin-reflection-420788.mp3',
+  '/audio/about-bgm-emotional-piano-documentary.mp3',
+  '/audio/jianmu-bgm-guqin-reflection-420785.mp3',
+  '/audio/drift-transition-spring-sunshine-21s.mp3'
+];
+
 self.addEventListener('install', function (event) {
-  event.waitUntil(self.skipWaiting());
+  event.waitUntil(
+    caches.open(BGM_CACHE_NAME).then(function (cache) {
+      return cache.addAll(BGM_ASSETS).catch(function () {});
+    }).then(function () {
+      return self.skipWaiting();
+    })
+  );
 });
 
 self.addEventListener('activate', function (event) {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches.keys().then(function (keys) {
+      return Promise.all(keys.map(function (key) {
+        if (key.indexOf('site-bgm-audio-') === 0 && key !== BGM_CACHE_NAME) {
+          return caches.delete(key);
+        }
+        return Promise.resolve(false);
+      }));
+    }).then(function () {
+      return self.clients.claim();
+    })
+  );
 });
 
 function shouldInjectHomeBgm(pathname) {
@@ -17,12 +42,33 @@ function shouldInjectHomeBgm(pathname) {
   return true;
 }
 
+function isBgmAsset(pathname) {
+  return BGM_ASSETS.indexOf(pathname) !== -1;
+}
+
 self.addEventListener('fetch', function (event) {
   const request = event.request;
-  if (request.mode !== 'navigate') return;
-
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+
+  if (isBgmAsset(url.pathname)) {
+    event.respondWith(
+      caches.open(BGM_CACHE_NAME).then(function (cache) {
+        return cache.match(request).then(function (cached) {
+          if (cached) return cached;
+          return fetch(request).then(function (response) {
+            if (response && response.ok) cache.put(request, response.clone());
+            return response;
+          });
+        });
+      }).catch(function () {
+        return fetch(request);
+      })
+    );
+    return;
+  }
+
+  if (request.mode !== 'navigate') return;
   if (!shouldInjectHomeBgm(url.pathname)) return;
 
   event.respondWith(
