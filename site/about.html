@@ -94,7 +94,13 @@
     .about-signoff::after { content: ""; position: absolute; left: 0; bottom: -0.18em; width: 100%; height: 1px; background: rgba(122,87,87,.24); transform: scaleX(0); transform-origin: left center; opacity: 0; }
     .about-signoff.is-visible::after { animation: aboutSignoffLine 1.45s ease forwards; animation-delay: .55s; }
     @keyframes aboutSignoffLine { 0% { transform: scaleX(0); opacity: 0; } 35% { opacity: 1; } 68% { transform: scaleX(1); opacity: 1; } 100% { transform: scaleX(1); opacity: 0; } }
-    @media (prefers-reduced-motion: reduce) { body.about-entering, body.about-ready, body.about-leaving, .about-reveal { opacity: 1 !important; filter: none !important; transform: none !important; transition: none !important; } .about-typewriter .typewriter-cursor, .about-signoff::after { display: none !important; animation: none !important; } }
+    .contact-section .section-label { position: relative; display: inline-block; overflow: hidden; padding-right: 2px; }
+    .contact-section .section-label::after { content: ""; position: absolute; top: -28%; bottom: -28%; left: -64%; width: 54%; background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.12) 20%, rgba(255,255,255,.86) 48%, rgba(196,154,154,.48) 58%, transparent 100%); transform: skewX(-18deg); opacity: 0; pointer-events: none; }
+    .contact-section.is-visible .section-label { animation: aboutContactLabelGlow 1.25s ease-out .55s 1; }
+    .contact-section.is-visible .section-label::after { animation: aboutContactLabelSweep 1.28s ease-out .5s 1; }
+    @keyframes aboutContactLabelSweep { 0% { left: -64%; opacity: 0; } 18% { opacity: .95; } 72% { opacity: .78; } 100% { left: 116%; opacity: 0; } }
+    @keyframes aboutContactLabelGlow { 0% { color: rgba(156,115,115,.45); } 42% { color: rgba(122,87,87,.72); } 100% { color: rgba(156,115,115,.45); } }
+    @media (prefers-reduced-motion: reduce) { body.about-entering, body.about-ready, body.about-leaving, .about-reveal { opacity: 1 !important; filter: none !important; transform: none !important; transition: none !important; } .about-typewriter .typewriter-cursor, .about-signoff::after, .contact-section .section-label::after { display: none !important; animation: none !important; } .contact-section .section-label { animation: none !important; } }
     @media (max-width: 1200px) and (min-width: 901px) { .decor-sun-desktop { width: 98px; right: 18px; top: 38px; } .decor-sunflower-desktop { width: 136px; left: 10px; bottom: 18px; } .decor-rabbit-desktop { width: 136px; right: 32px; bottom: 28px; } }
     @media (max-width: 900px) { .desktop-decor { display: none; } .mobile-decor { display: block; } .container { padding: 48px 24px 80px; } p { font-size: 16px; } .pull-quote p { font-size: 17px; } .decor-sun-mobile { width: 58px; top: 34px; right: 16px; } .decor-sunflower-mobile { width: 46px; top: 126px; right: 118px; } .contact-section { min-height: 210px; } .decor-rabbit-mobile { width: 104px; right: -4px; bottom: 12px; } }
   </style>
@@ -262,9 +268,9 @@
       window.setTimeout(function () {
         startAutoScroll();
         typeTextQueue(typewriters, function () {
-          var afterRevealBaseDelay = 1250; var afterRevealStep = 720;
-          afterTypewriter.forEach(function (el, index) { reveal(el, afterRevealBaseDelay + index * afterRevealStep); });
-          window.setTimeout(function () { autoScrollMayStop = true; }, afterRevealBaseDelay + afterTypewriter.length * afterRevealStep + 1800);
+          var afterRevealBaseDelay = 1450; var afterRevealStep = 780;
+          afterTypewriter.forEach(function (el, index) { var contactExtraDelay = el.classList.contains('contact-section') ? 520 : 0; reveal(el, afterRevealBaseDelay + index * afterRevealStep + contactExtraDelay); });
+          window.setTimeout(function () { autoScrollMayStop = true; }, afterRevealBaseDelay + afterTypewriter.length * afterRevealStep + 2200);
         });
       }, startTypingDelay);
     } else { afterTypewriter.forEach(function (el, index) { reveal(el, 420 + index * 260); }); }
