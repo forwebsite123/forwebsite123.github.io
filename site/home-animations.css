@@ -55,7 +55,7 @@
 .cards .card:nth-child(4) { animation-delay: .66s; }
 
 .cards::after {
-  content: "© 2025–2026 Kiara. All rights reserved.\A 🌿 A place to leave traces.";
+  content: "© 2026 Kiara. All rights reserved.\A 🌿 A place to leave traces.";
   display: block;
   width: calc(92% - 24px);
   max-width: 100%;
@@ -195,7 +195,7 @@
   }
 
   .cards::after {
-    content: "© 2025–2026 Kiara. All rights reserved.\A 🌿 A place to leave traces.";
+    content: "© 2026 Kiara. All rights reserved.\A 🌿 A place to leave traces.";
     width: 100%;
     margin: 0 auto;
     padding: 1px 8px 2px;
