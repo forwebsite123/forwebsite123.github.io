@@ -124,6 +124,9 @@
     const lineDelay = reducedMotion ? REDUCED_LINE_DELAY : NORMAL_LINE_DELAY;
     const finalHold = reducedMotion ? REDUCED_FINAL_HOLD : FINAL_HOLD;
     const exitDuration = reducedMotion ? REDUCED_EXIT_DURATION : POEM_EXIT_DURATION;
+    if (window.HomeBgm && typeof window.HomeBgm.suspendForTransition === 'function') {
+      window.HomeBgm.suspendForTransition(900);
+    }
     const transitionAudio = startTransitionAudio(reducedMotion);
     const overlay = makeOverlay();
     const lines = overlay.querySelectorAll('.drift-transition-line');
