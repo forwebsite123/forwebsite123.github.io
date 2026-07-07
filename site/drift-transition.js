@@ -20,8 +20,8 @@
 
   const AUDIO_SRC = 'audio/drift-transition-spring-sunshine-21s.mp3';
   const AUDIO_TARGET_VOLUME = 0.22;
-  const AUDIO_FADE_IN = 1500;
-  const AUDIO_FADE_OUT = 1800;
+  const AUDIO_FADE_IN = 1050;
+  const AUDIO_FADE_OUT = 1500;
 
   const NORMAL_LINE_DELAY = 1200;
   const REDUCED_LINE_DELAY = 28;
@@ -31,6 +31,8 @@
   const REDUCED_FINAL_HOLD = 420;
   const POEM_EXIT_DURATION = 1250;
   const REDUCED_EXIT_DURATION = 180;
+
+  let warmedTransitionAudio = null;
 
   function isPlainLeftClick(event) {
     return event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
@@ -60,10 +62,27 @@
     window.requestAnimationFrame(tick);
   }
 
+  function warmTransitionAudio() {
+    if (warmedTransitionAudio) return;
+
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'audio';
+    link.href = AUDIO_SRC;
+    document.head.appendChild(link);
+
+    warmedTransitionAudio = new Audio(AUDIO_SRC);
+    warmedTransitionAudio.preload = 'auto';
+    warmedTransitionAudio.volume = 0;
+    warmedTransitionAudio.setAttribute('playsinline', '');
+    try { warmedTransitionAudio.load(); } catch (e) {}
+  }
+
   function startTransitionAudio(reducedMotion) {
     if (reducedMotion) return null;
 
-    const audio = new Audio(AUDIO_SRC);
+    const audio = warmedTransitionAudio || new Audio(AUDIO_SRC);
+    warmedTransitionAudio = null;
     audio.preload = 'auto';
     audio.volume = 0;
     audio.setAttribute('aria-hidden', 'true');
@@ -124,10 +143,10 @@
     const lineDelay = reducedMotion ? REDUCED_LINE_DELAY : NORMAL_LINE_DELAY;
     const finalHold = reducedMotion ? REDUCED_FINAL_HOLD : FINAL_HOLD;
     const exitDuration = reducedMotion ? REDUCED_EXIT_DURATION : POEM_EXIT_DURATION;
-    if (window.HomeBgm && typeof window.HomeBgm.suspendForTransition === 'function') {
-      window.HomeBgm.suspendForTransition(900);
-    }
-    const transitionAudio = startTransitionAudio(reducedMotion);
+    const homeFade = window.HomeBgm && typeof window.HomeBgm.suspendForTransition === 'function'
+      ? window.HomeBgm.suspendForTransition(620)
+      : Promise.resolve(false);
+
     const overlay = makeOverlay();
     const lines = overlay.querySelectorAll('.drift-transition-line');
 
@@ -136,6 +155,10 @@
     await wait(reducedMotion ? 12 : INTRO_SOFTEN_DELAY);
     overlay.classList.add('is-visible');
     await wait(reducedMotion ? 80 : OVERLAY_SETTLE_DELAY);
+    await Promise.race([homeFade, wait(680)]);
+
+    const transitionAudio = startTransitionAudio(reducedMotion);
+    await wait(reducedMotion ? 0 : 220);
 
     for (const line of lines) {
       line.classList.add('is-shown');
@@ -156,7 +179,11 @@
     const driftCard = document.querySelector('a[data-drift-transition-trigger][href$="Drift-coordinates.html"]');
     if (!driftCard) return;
 
+    warmTransitionAudio();
+
     let isPlaying = false;
+    driftCard.addEventListener('pointerenter', warmTransitionAudio, { passive: true });
+    driftCard.addEventListener('touchstart', warmTransitionAudio, { passive: true });
     driftCard.addEventListener('click', (event) => {
       if (!isPlainLeftClick(event) || driftCard.target === '_blank') return;
       event.preventDefault();
