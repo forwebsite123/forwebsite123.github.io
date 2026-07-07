@@ -46,6 +46,44 @@ function isBgmAsset(pathname) {
   return BGM_ASSETS.indexOf(pathname) !== -1;
 }
 
+function makeRangeResponse(request, response) {
+  const range = request.headers.get('range');
+  if (!range) return Promise.resolve(response);
+
+  return response.arrayBuffer().then(function (buffer) {
+    const bytesPrefix = 'bytes=';
+    if (range.indexOf(bytesPrefix) !== 0) return response;
+
+    const parts = range.replace(bytesPrefix, '').split('-');
+    const start = Number(parts[0]);
+    const end = parts[1] ? Number(parts[1]) : buffer.byteLength - 1;
+    const resolvedStart = Number.isFinite(start) ? start : 0;
+    const resolvedEnd = Number.isFinite(end) ? Math.min(end, buffer.byteLength - 1) : buffer.byteLength - 1;
+
+    if (resolvedStart > resolvedEnd || resolvedStart < 0 || resolvedEnd >= buffer.byteLength) {
+      return new Response(null, {
+        status: 416,
+        statusText: 'Range Not Satisfiable',
+        headers: {
+          'Content-Range': 'bytes */' + buffer.byteLength
+        }
+      });
+    }
+
+    const chunk = buffer.slice(resolvedStart, resolvedEnd + 1);
+    const headers = new Headers(response.headers);
+    headers.set('Content-Range', 'bytes ' + resolvedStart + '-' + resolvedEnd + '/' + buffer.byteLength);
+    headers.set('Accept-Ranges', 'bytes');
+    headers.set('Content-Length', String(chunk.byteLength));
+
+    return new Response(chunk, {
+      status: 206,
+      statusText: 'Partial Content',
+      headers: headers
+    });
+  });
+}
+
 self.addEventListener('fetch', function (event) {
   const request = event.request;
   const url = new URL(request.url);
@@ -54,10 +92,10 @@ self.addEventListener('fetch', function (event) {
   if (isBgmAsset(url.pathname)) {
     event.respondWith(
       caches.open(BGM_CACHE_NAME).then(function (cache) {
-        return cache.match(request).then(function (cached) {
-          if (cached) return cached;
+        return cache.match(url.pathname).then(function (cached) {
+          if (cached) return makeRangeResponse(request, cached.clone());
           return fetch(request).then(function (response) {
-            if (response && response.ok) cache.put(request, response.clone());
+            if (response && response.ok && !request.headers.has('range')) cache.put(url.pathname, response.clone());
             return response;
           });
         });
