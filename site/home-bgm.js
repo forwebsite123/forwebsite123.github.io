@@ -8,15 +8,23 @@
 
   const HOME_AUDIO_SRC = '/audio/home-bgm-guqin-reflection-420788.mp3';
   const HOME_AUDIO_VOLUME = 0.052;
-  const HOME_AUDIO_FADE_IN = 1800;
-  const HOME_AUDIO_FADE_OUT = 850;
+  const HOME_AUDIO_FADE_IN = 1250;
+  const HOME_AUDIO_FADE_OUT = 640;
   const HOME_AUDIO_TIME_KEY = 'home-bgm-current-time';
   const HOME_AUDIO_MUTED_KEY = 'home-bgm-muted';
   const HOME_AUDIO_READY_KEY = 'home-bgm-ready';
+  const AUDIO_CACHE_NAME = 'site-bgm-audio-v3';
+  const AUDIO_ASSETS = [
+    '/audio/home-bgm-guqin-reflection-420788.mp3',
+    '/audio/about-bgm-emotional-piano-documentary.mp3',
+    '/audio/jianmu-bgm-guqin-reflection-420785.mp3',
+    '/audio/drift-transition-spring-sunshine-21s.mp3'
+  ];
 
   let audio = null;
   let toggle = null;
   let saveTimer = null;
+  let activeFadeFrame = 0;
   let mutedByUser = localStorage.getItem(HOME_AUDIO_MUTED_KEY) === 'true';
   let isUnavailable = false;
 
@@ -25,30 +33,45 @@
   }
 
   function fadeAudio(fromVolume, toVolume, duration, done) {
-    if (!audio) return;
-    if (duration <= 0) {
-      audio.volume = clampVolume(toVolume);
-      if (done) done();
-      return;
-    }
-
-    const startedAt = window.performance.now();
-    const start = clampVolume(fromVolume);
-    const end = clampVolume(toVolume);
-
-    function tick(now) {
-      if (!audio) return;
-      const progress = Math.min(1, (now - startedAt) / duration);
-      const eased = 1 - Math.pow(1 - progress, 2);
-      audio.volume = clampVolume(start + (end - start) * eased);
-      if (progress < 1) {
-        window.requestAnimationFrame(tick);
-      } else if (done) {
-        done();
+    return new Promise(function (resolve) {
+      if (!audio) {
+        if (done) done();
+        resolve(false);
+        return;
       }
-    }
 
-    window.requestAnimationFrame(tick);
+      activeFadeFrame += 1;
+      const fadeId = activeFadeFrame;
+
+      if (duration <= 0) {
+        audio.volume = clampVolume(toVolume);
+        if (done) done();
+        resolve(true);
+        return;
+      }
+
+      const startedAt = window.performance.now();
+      const start = clampVolume(fromVolume);
+      const end = clampVolume(toVolume);
+
+      function tick(now) {
+        if (!audio || fadeId !== activeFadeFrame) {
+          resolve(false);
+          return;
+        }
+        const progress = Math.min(1, (now - startedAt) / duration);
+        const eased = 1 - Math.pow(1 - progress, 2);
+        audio.volume = clampVolume(start + (end - start) * eased);
+        if (progress < 1) {
+          window.requestAnimationFrame(tick);
+        } else {
+          if (done) done();
+          resolve(true);
+        }
+      }
+
+      window.requestAnimationFrame(tick);
+    });
   }
 
   function getSavedTime() {
@@ -59,6 +82,38 @@
   function saveTime() {
     if (!audio || !Number.isFinite(audio.currentTime)) return;
     localStorage.setItem(HOME_AUDIO_TIME_KEY, String(Math.max(0, audio.currentTime)));
+  }
+
+  function addPreloadLinks() {
+    AUDIO_ASSETS.forEach(function (src) {
+      if (document.querySelector('link[rel="preload"][href="' + src + '"]')) return;
+      const link = document.createElement('link');
+      link.rel = 'preload';
+      link.as = 'audio';
+      link.href = src;
+      document.head.appendChild(link);
+    });
+  }
+
+  function warmAudioCache() {
+    addPreloadLinks();
+
+    if ('caches' in window) {
+      window.caches.open(AUDIO_CACHE_NAME).then(function (cache) {
+        AUDIO_ASSETS.forEach(function (src) {
+          cache.match(src).then(function (match) {
+            if (match) return;
+            fetch(src, { cache: 'force-cache' }).then(function (response) {
+              if (response && response.ok) cache.put(src, response.clone());
+            }).catch(function () {});
+          }).catch(function () {});
+        });
+      }).catch(function () {});
+    } else {
+      AUDIO_ASSETS.forEach(function (src) {
+        fetch(src, { cache: 'force-cache' }).catch(function () {});
+      });
+    }
   }
 
   function updateToggle(visible) {
@@ -113,7 +168,7 @@
 
   function startSaving() {
     if (saveTimer) return;
-    saveTimer = window.setInterval(saveTime, 900);
+    saveTimer = window.setInterval(saveTime, 700);
   }
 
   function startAudio(showToggleAfterStart) {
@@ -150,11 +205,11 @@
   }
 
   function pauseByUser() {
-    if (!audio) return;
+    if (!audio) return Promise.resolve(false);
     mutedByUser = true;
     localStorage.setItem(HOME_AUDIO_MUTED_KEY, 'true');
     saveTime();
-    fadeAudio(audio.volume, 0, HOME_AUDIO_FADE_OUT, function () {
+    return fadeAudio(audio.volume, 0, HOME_AUDIO_FADE_OUT, function () {
       audio.pause();
       updateToggle(true);
     });
@@ -163,14 +218,14 @@
   function resumeByUser() {
     mutedByUser = false;
     localStorage.setItem(HOME_AUDIO_MUTED_KEY, 'false');
-    startAudio(true);
+    return startAudio(true);
   }
 
   function suspendForTransition(duration) {
-    if (!audio || isUnavailable) return;
+    if (!audio || isUnavailable) return Promise.resolve(false);
     saveTime();
-    if (audio.paused || mutedByUser) return;
-    fadeAudio(audio.volume, 0, duration || HOME_AUDIO_FADE_OUT, function () {
+    if (audio.paused || mutedByUser) return Promise.resolve(false);
+    return fadeAudio(audio.volume, 0, duration || HOME_AUDIO_FADE_OUT, function () {
       saveTime();
       audio.pause();
       updateToggle(true);
@@ -178,17 +233,20 @@
   }
 
   function resumeAfterTransition() {
-    if (!audio || isUnavailable || mutedByUser) return;
-    startAudio(false);
+    if (!audio || isUnavailable || mutedByUser) return Promise.resolve(false);
+    return startAudio(false);
   }
 
   function registerInjector() {
     if (!('serviceWorker' in navigator)) return;
-    navigator.serviceWorker.register('/home-bgm-sw.js').catch(function () {});
+    navigator.serviceWorker.register('/home-bgm-sw.js').then(function (registration) {
+      if (registration && registration.update) registration.update().catch(function () {});
+    }).catch(function () {});
   }
 
   function boot() {
     createToggle();
+    warmAudioCache();
 
     audio = new Audio(HOME_AUDIO_SRC);
     audio.loop = true;
@@ -196,7 +254,11 @@
     audio.volume = 0;
     audio.setAttribute('playsinline', '');
     audio.setAttribute('aria-hidden', 'true');
+    try { audio.load(); } catch (e) {}
 
+    audio.addEventListener('canplaythrough', function () {
+      localStorage.setItem(HOME_AUDIO_READY_KEY, 'true');
+    }, { once: true });
     audio.addEventListener('error', function () {
       isUnavailable = true;
       updateToggle(false);
@@ -215,6 +277,7 @@
       saveTime: saveTime,
       suspendForTransition: suspendForTransition,
       resumeAfterTransition: resumeAfterTransition,
+      warmAudioCache: warmAudioCache,
       start: function () { return startAudio(true); },
       pause: suspendForTransition
     };
