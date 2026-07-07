@@ -84,6 +84,28 @@ function makeRangeResponse(request, response) {
   });
 }
 
+function injectAudioScripts(html, pathname) {
+  let injected = html;
+  const needsGuard = !injected.includes('audio-visibility-guard.js');
+  const needsHomeBgm = shouldInjectHomeBgm(pathname) && !injected.includes('home-bgm.js');
+
+  if (needsGuard) {
+    const bodyOpenMatch = injected.match(/<body[^>]*>/i);
+    if (bodyOpenMatch) {
+      const insertAt = bodyOpenMatch.index + bodyOpenMatch[0].length;
+      injected = injected.slice(0, insertAt) + '\n<script src="/audio-visibility-guard.js"></script>' + injected.slice(insertAt);
+    } else if (injected.includes('</head>')) {
+      injected = injected.replace('</head>', '<script src="/audio-visibility-guard.js"></script></head>');
+    }
+  }
+
+  if (needsHomeBgm && injected.includes('</body>')) {
+    injected = injected.replace('</body>', '<script src="/home-bgm.js"></script></body>');
+  }
+
+  return injected;
+}
+
 self.addEventListener('fetch', function (event) {
   const request = event.request;
   const url = new URL(request.url);
@@ -107,7 +129,6 @@ self.addEventListener('fetch', function (event) {
   }
 
   if (request.mode !== 'navigate') return;
-  if (!shouldInjectHomeBgm(url.pathname)) return;
 
   event.respondWith(
     fetch(request).then(function (response) {
@@ -115,15 +136,7 @@ self.addEventListener('fetch', function (event) {
       if (!response.ok || !contentType.includes('text/html')) return response;
 
       return response.text().then(function (html) {
-        if (html.includes('home-bgm.js') || !html.includes('</body>')) {
-          return new Response(html, {
-            status: response.status,
-            statusText: response.statusText,
-            headers: response.headers
-          });
-        }
-
-        const injected = html.replace('</body>', '<script src="/home-bgm.js"></script></body>');
+        const injected = injectAudioScripts(html, url.pathname);
         const headers = new Headers(response.headers);
         headers.delete('content-length');
 
