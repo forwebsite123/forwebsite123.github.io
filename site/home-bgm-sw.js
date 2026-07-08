@@ -1,9 +1,10 @@
-const BGM_CACHE_NAME = 'site-bgm-audio-v3';
+const BGM_CACHE_NAME = 'site-bgm-audio-v4';
 const BGM_ASSETS = [
   '/audio/home-bgm-guqin-reflection-420788.mp3',
   '/audio/about-bgm-emotional-piano-documentary.mp3',
   '/audio/jianmu-bgm-guqin-reflection-420785.mp3',
-  '/audio/drift-transition-spring-sunshine-21s.mp3'
+  '/audio/drift-transition-spring-sunshine-21s.mp3',
+  '/audio-default-on-bridge.js'
 ];
 
 self.addEventListener('install', function (event) {
@@ -86,8 +87,19 @@ function makeRangeResponse(request, response) {
 
 function injectAudioScripts(html, pathname) {
   let injected = html;
+  const needsBridge = !injected.includes('audio-default-on-bridge.js');
   const needsGuard = !injected.includes('audio-visibility-guard.js');
   const needsHomeBgm = shouldInjectHomeBgm(pathname) && !injected.includes('home-bgm.js');
+
+  if (needsBridge) {
+    const bodyOpenMatch = injected.match(/<body[^>]*>/i);
+    if (bodyOpenMatch) {
+      const insertAt = bodyOpenMatch.index + bodyOpenMatch[0].length;
+      injected = injected.slice(0, insertAt) + '\n<script src="/audio-default-on-bridge.js"></script>' + injected.slice(insertAt);
+    } else if (injected.includes('</head>')) {
+      injected = injected.replace('</head>', '<script src="/audio-default-on-bridge.js"></script></head>');
+    }
+  }
 
   if (needsGuard) {
     const bodyOpenMatch = injected.match(/<body[^>]*>/i);
