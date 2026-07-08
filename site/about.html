@@ -139,7 +139,7 @@
   var ABOUT_AUDIO_VOLUME = 0.055;
   var ABOUT_AUDIO_FADE_IN = 1800;
   var ABOUT_AUDIO_FADE_OUT = 700;
-  var ABOUT_AUDIO_MUTED_KEY = 'about-bgm-muted';
+  var ABOUT_AUDIO_MUTED_KEY = 'about-bgm-muted-v2';
   document.body.classList.add('about-entering');
 
   function clampAudioVolume(value) { return Math.max(0, Math.min(1, value)); }
@@ -157,6 +157,8 @@
     var toggle = document.getElementById('about-audio-toggle'); var audio = new Audio(ABOUT_AUDIO_SRC);
     audio.loop = true; audio.preload = 'auto'; audio.volume = 0; audio.setAttribute('playsinline', ''); audio.setAttribute('aria-hidden', 'true');
     var mutedByUser = localStorage.getItem(ABOUT_AUDIO_MUTED_KEY) === 'true';
+    var firstGestureFallbackBound = false;
+    var firstGestureFallbackCleanup = null;
     function updateToggle(visible) {
       if (!toggle) return;
       if (visible) toggle.classList.add('is-visible');
@@ -165,24 +167,45 @@
       toggle.setAttribute('aria-pressed', String(!audio.paused && !mutedByUser));
       toggle.setAttribute('aria-label', !audio.paused && !mutedByUser ? '关闭 About 背景音乐' : '打开 About 背景音乐');
     }
+    function clearFirstGestureFallback() {
+      if (typeof firstGestureFallbackCleanup === 'function') firstGestureFallbackCleanup();
+      firstGestureFallbackCleanup = null;
+      firstGestureFallbackBound = false;
+    }
     function bindFirstGestureFallback() {
-      var options = { once: true, passive: true }; var retry = function () { startAudio(true); };
-      document.addEventListener('pointerdown', retry, options); document.addEventListener('keydown', retry, options); document.addEventListener('touchstart', retry, options);
+      if (firstGestureFallbackBound || mutedByUser) return;
+      firstGestureFallbackBound = true;
+      var options = { passive: true, capture: true };
+      var retry = function () {
+        if (mutedByUser) { clearFirstGestureFallback(); return; }
+        startAudio(true).then(function (started) { if (started || mutedByUser) clearFirstGestureFallback(); });
+      };
+      document.addEventListener('pointerdown', retry, options);
+      document.addEventListener('touchstart', retry, options);
+      document.addEventListener('click', retry, options);
+      document.addEventListener('keydown', retry, options);
+      firstGestureFallbackCleanup = function () {
+        document.removeEventListener('pointerdown', retry, options);
+        document.removeEventListener('touchstart', retry, options);
+        document.removeEventListener('click', retry, options);
+        document.removeEventListener('keydown', retry, options);
+      };
     }
     function startAudio(showToggleAfterStart) {
       if (mutedByUser) { updateToggle(true); return Promise.resolve(false); }
       var playPromise = audio.play();
-      if (!playPromise || typeof playPromise.then !== 'function') { fadeAboutAudio(audio, audio.volume, ABOUT_AUDIO_VOLUME, ABOUT_AUDIO_FADE_IN); updateToggle(showToggleAfterStart); return Promise.resolve(true); }
-      return playPromise.then(function () { fadeAboutAudio(audio, audio.volume, ABOUT_AUDIO_VOLUME, ABOUT_AUDIO_FADE_IN); updateToggle(showToggleAfterStart); return true; }).catch(function () { updateToggle(true); bindFirstGestureFallback(); return false; });
+      if (!playPromise || typeof playPromise.then !== 'function') { clearFirstGestureFallback(); fadeAboutAudio(audio, audio.volume, ABOUT_AUDIO_VOLUME, ABOUT_AUDIO_FADE_IN); updateToggle(showToggleAfterStart); return Promise.resolve(true); }
+      return playPromise.then(function () { clearFirstGestureFallback(); fadeAboutAudio(audio, audio.volume, ABOUT_AUDIO_VOLUME, ABOUT_AUDIO_FADE_IN); updateToggle(showToggleAfterStart); return true; }).catch(function () { updateToggle(true); bindFirstGestureFallback(); return false; });
     }
     function pauseAudio() {
-      mutedByUser = true; localStorage.setItem(ABOUT_AUDIO_MUTED_KEY, 'true'); fadeAboutAudio(audio, audio.volume, 0, ABOUT_AUDIO_FADE_OUT);
+      mutedByUser = true; localStorage.setItem(ABOUT_AUDIO_MUTED_KEY, 'true'); clearFirstGestureFallback(); fadeAboutAudio(audio, audio.volume, 0, ABOUT_AUDIO_FADE_OUT);
       window.setTimeout(function () { audio.pause(); updateToggle(true); }, ABOUT_AUDIO_FADE_OUT + 40);
     }
-    function resumeAudio() { mutedByUser = false; localStorage.setItem(ABOUT_AUDIO_MUTED_KEY, 'false'); startAudio(true); }
+    function resumeAudio() { mutedByUser = false; localStorage.setItem(ABOUT_AUDIO_MUTED_KEY, 'false'); bindFirstGestureFallback(); startAudio(true); }
     function fadeOutForLeaving() { if (audio.paused || mutedByUser) return; fadeAboutAudio(audio, audio.volume, 0, ABOUT_AUDIO_FADE_OUT); }
     if (toggle) { toggle.addEventListener('click', function (event) { event.preventDefault(); event.stopPropagation(); if (!audio.paused && !mutedByUser) pauseAudio(); else resumeAudio(); }); }
     audio.addEventListener('play', function () { updateToggle(true); }); audio.addEventListener('pause', function () { updateToggle(true); });
+    bindFirstGestureFallback();
     startAudio(false);
     return { fadeOutForLeaving: fadeOutForLeaving };
   }
