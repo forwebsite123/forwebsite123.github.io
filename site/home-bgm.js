@@ -11,7 +11,7 @@
   const HOME_AUDIO_FADE_IN = 1250;
   const HOME_AUDIO_FADE_OUT = 640;
   const HOME_AUDIO_TIME_KEY = 'home-bgm-current-time';
-  const HOME_AUDIO_MUTED_KEY = 'home-bgm-muted';
+  const HOME_AUDIO_MUTED_KEY = 'home-bgm-muted-v2';
   const HOME_AUDIO_READY_KEY = 'home-bgm-ready';
   const AUDIO_CACHE_NAME = 'site-bgm-audio-v3';
   const AUDIO_ASSETS = [
@@ -27,6 +27,8 @@
   let activeFadeFrame = 0;
   let mutedByUser = localStorage.getItem(HOME_AUDIO_MUTED_KEY) === 'true';
   let isUnavailable = false;
+  let firstGestureFallbackBound = false;
+  let firstGestureFallbackCleanup = null;
 
   function clampVolume(value) {
     return Math.max(0, Math.min(1, value));
@@ -158,12 +160,38 @@
     });
   }
 
+  function clearFirstGestureFallback() {
+    if (typeof firstGestureFallbackCleanup === 'function') firstGestureFallbackCleanup();
+    firstGestureFallbackCleanup = null;
+    firstGestureFallbackBound = false;
+  }
+
   function bindFirstGestureFallback() {
-    const options = { once: true, passive: true };
-    const retry = function () { startAudio(true); };
+    if (firstGestureFallbackBound || mutedByUser || isUnavailable) return;
+    firstGestureFallbackBound = true;
+
+    const options = { passive: true, capture: true };
+    const retry = function () {
+      if (mutedByUser || isUnavailable) {
+        clearFirstGestureFallback();
+        return;
+      }
+      startAudio(true).then(function (started) {
+        if (started || mutedByUser || isUnavailable) clearFirstGestureFallback();
+      });
+    };
+
     document.addEventListener('pointerdown', retry, options);
-    document.addEventListener('keydown', retry, options);
     document.addEventListener('touchstart', retry, options);
+    document.addEventListener('click', retry, options);
+    document.addEventListener('keydown', retry, options);
+
+    firstGestureFallbackCleanup = function () {
+      document.removeEventListener('pointerdown', retry, options);
+      document.removeEventListener('touchstart', retry, options);
+      document.removeEventListener('click', retry, options);
+      document.removeEventListener('keydown', retry, options);
+    };
   }
 
   function startSaving() {
@@ -185,6 +213,7 @@
 
     const playPromise = audio.play();
     if (!playPromise || typeof playPromise.then !== 'function') {
+      clearFirstGestureFallback();
       fadeAudio(audio.volume, HOME_AUDIO_VOLUME, HOME_AUDIO_FADE_IN);
       updateToggle(showToggleAfterStart);
       startSaving();
@@ -192,6 +221,7 @@
     }
 
     return playPromise.then(function () {
+      clearFirstGestureFallback();
       localStorage.setItem(HOME_AUDIO_READY_KEY, 'true');
       fadeAudio(audio.volume, HOME_AUDIO_VOLUME, HOME_AUDIO_FADE_IN);
       updateToggle(showToggleAfterStart);
@@ -208,6 +238,7 @@
     if (!audio) return Promise.resolve(false);
     mutedByUser = true;
     localStorage.setItem(HOME_AUDIO_MUTED_KEY, 'true');
+    clearFirstGestureFallback();
     saveTime();
     return fadeAudio(audio.volume, 0, HOME_AUDIO_FADE_OUT, function () {
       audio.pause();
@@ -218,6 +249,7 @@
   function resumeByUser() {
     mutedByUser = false;
     localStorage.setItem(HOME_AUDIO_MUTED_KEY, 'false');
+    bindFirstGestureFallback();
     return startAudio(true);
   }
 
@@ -261,6 +293,7 @@
     }, { once: true });
     audio.addEventListener('error', function () {
       isUnavailable = true;
+      clearFirstGestureFallback();
       updateToggle(false);
       if (saveTimer) window.clearInterval(saveTimer);
     });
@@ -283,6 +316,7 @@
     };
 
     registerInjector();
+    bindFirstGestureFallback();
     startAudio(false);
   }
 
