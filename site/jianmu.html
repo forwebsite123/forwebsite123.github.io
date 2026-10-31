@@ -758,7 +758,12 @@
           <input
             class="gate-input gate-answer"
             type="password"
+            inputmode="numeric"
+            maxlength="8"
             autocomplete="off"
+            autocapitalize="off"
+            autocorrect="off"
+            spellcheck="false"
             placeholder="${escapeHtml(item.placeholder || '请输入答案')}"
             data-index="${index}"
           />
@@ -773,10 +778,19 @@
       const error = document.getElementById('jianmu-error');
       const button = document.getElementById('jianmu-submit');
       const inputs = Array.from(document.querySelectorAll('.gate-answer'));
-      const values = inputs.map(input => input.value.trim());
+      // Normalize iOS/Chinese-keyboard full-width numerals before deriving the key.
+      const values = inputs.map(input => String(input.value || '').trim().replace(/[０-９]/g, digit => String.fromCharCode(digit.charCodeAt(0) - 0xFEE0)));
 
       if (!values.length || values.some(value => !value)) {
         error.textContent = '请先把所有答案都填完。';
+        return;
+      }
+      if (values.some(value => !/^[0-9]{8}$/.test(value))) {
+        error.textContent = '请输入完整的 8 位数字生日，不要输入标点或空格。';
+        return;
+      }
+      if (!window.isSecureContext || !window.crypto || !window.crypto.subtle || !window.TextEncoder) {
+        error.textContent = '当前浏览器不支持安全解锁，请使用 Safari 或 Chrome 打开网站重试。';
         return;
       }
 
@@ -797,7 +811,12 @@
         }
         inputs.forEach(input => input.value = '');
       } catch (err) {
-        error.textContent = '答案不对，再想想。';
+        // Crypto/API failures are not necessarily wrong answers.
+        if (err && err.name === 'OperationError') {
+          error.textContent = '未能解锁。请核对 8 位数字；若确认无误，请用 Safari 打开重试。';
+        } else {
+          error.textContent = '解锁时遇到浏览器兼容性或运行错误，请在 Safari 或 Chrome 中重试。';
+        }
       } finally {
         button.disabled = false;
       }
