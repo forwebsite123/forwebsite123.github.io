@@ -130,11 +130,23 @@ a,a:visited,a:hover,a:active,.node,.node *{color:inherit;text-decoration:none!im
   .node{min-width:130px;padding:8px 10px 9px}
   .tag{font-size:13px}
   .school{font-size:10.5px}
-  .growth-sign{width:166px;padding:28px 12px 17px;right:0;top:66%}
+  /* Mobile-only hanging plaque: readable, balanced bilingual lettering. */
+  .growth-sign{
+    width:190px;
+    right:-9px;
+    top:66%;
+    padding:16px 13px 14px;
+    border-width:2px;
+    border-radius:19px;
+    background:linear-gradient(160deg,rgba(255,253,246,.97),rgba(255,247,232,.95));
+    box-shadow:0 7px 22px rgba(80,50,30,.11),inset 0 0 0 1px rgba(160,130,90,.25);
+  }
   .growth-title{font-size:19px}
   .growth-sub{font-size:13px}
-  .growth-cn{font-size:11px}
-  .growth-en{display:none}
+  .growth-cn,.growth-en{width:100%;min-width:0;max-width:100%;text-align:center}
+  .growth-cn{font-size:13px;line-height:1.45;letter-spacing:.025em;margin-bottom:7px}
+  .growth-cn span,.growth-en span{display:block}
+  .growth-en{display:block;font-size:9.8px;line-height:1.4;letter-spacing:0;opacity:.76}
   .footer-text{font-size:13px}
 }
 
@@ -225,8 +237,8 @@ a,a:visited,a:hover,a:active,.node,.node *{color:inherit;text-decoration:none!im
           <path d="M128 92 L80 16"/>
           <circle cx="75" cy="14" r="8"/>
         </svg>
-        <div class="growth-cn">根系旧时光，枝叶向远方。</div>
-        <div class="growth-en">Rooted in the past, reaching for what lies ahead.</div>
+        <div class="growth-cn"><span>根系旧时光，</span><span>枝叶向远方。</span></div>
+        <div class="growth-en"><span>Rooted in the past,</span> <span>reaching for what lies ahead.</span></div>
       </div>
     </div>
 
