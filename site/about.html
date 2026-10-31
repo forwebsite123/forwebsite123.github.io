@@ -159,13 +159,14 @@
     var mutedByUser = localStorage.getItem(ABOUT_AUDIO_MUTED_KEY) === 'true';
     var firstGestureFallbackBound = false;
     var firstGestureFallbackCleanup = null;
+    var blockedByBrowser = false;
     function updateToggle(visible) {
       if (!toggle) return;
       if (visible) toggle.classList.add('is-visible');
       toggle.classList.toggle('is-playing', !audio.paused && !mutedByUser);
       toggle.textContent = !audio.paused && !mutedByUser ? '♫' : '♪';
       toggle.setAttribute('aria-pressed', String(!audio.paused && !mutedByUser));
-      toggle.setAttribute('aria-label', !audio.paused && !mutedByUser ? '关闭 About 背景音乐' : '打开 About 背景音乐');
+      toggle.setAttribute('aria-label', !audio.paused && !mutedByUser ? '关闭 About 背景音乐' : blockedByBrowser && !mutedByUser ? '浏览器暂时阻止自动播放，轻触页面开启背景音乐' : '打开 About 背景音乐');
     }
     function clearFirstGestureFallback() {
       if (typeof firstGestureFallbackCleanup === 'function') firstGestureFallbackCleanup();
@@ -195,10 +196,10 @@
       if (mutedByUser) { updateToggle(true); return Promise.resolve(false); }
       var playPromise = audio.play();
       if (!playPromise || typeof playPromise.then !== 'function') { clearFirstGestureFallback(); fadeAboutAudio(audio, audio.volume, ABOUT_AUDIO_VOLUME, ABOUT_AUDIO_FADE_IN); updateToggle(showToggleAfterStart); return Promise.resolve(true); }
-      return playPromise.then(function () { clearFirstGestureFallback(); fadeAboutAudio(audio, audio.volume, ABOUT_AUDIO_VOLUME, ABOUT_AUDIO_FADE_IN); updateToggle(showToggleAfterStart); return true; }).catch(function () { updateToggle(true); bindFirstGestureFallback(); return false; });
+      return playPromise.then(function () { blockedByBrowser = false; clearFirstGestureFallback(); fadeAboutAudio(audio, audio.volume, ABOUT_AUDIO_VOLUME, ABOUT_AUDIO_FADE_IN); updateToggle(showToggleAfterStart); return true; }).catch(function (error) { blockedByBrowser = !!(error && error.name === 'NotAllowedError'); updateToggle(true); bindFirstGestureFallback(); return false; });
     }
     function pauseAudio() {
-      mutedByUser = true; localStorage.setItem(ABOUT_AUDIO_MUTED_KEY, 'true'); clearFirstGestureFallback(); fadeAboutAudio(audio, audio.volume, 0, ABOUT_AUDIO_FADE_OUT);
+      mutedByUser = true; blockedByBrowser = false; localStorage.setItem(ABOUT_AUDIO_MUTED_KEY, 'true'); clearFirstGestureFallback(); fadeAboutAudio(audio, audio.volume, 0, ABOUT_AUDIO_FADE_OUT);
       window.setTimeout(function () { audio.pause(); updateToggle(true); }, ABOUT_AUDIO_FADE_OUT + 40);
     }
     function resumeAudio() { mutedByUser = false; localStorage.setItem(ABOUT_AUDIO_MUTED_KEY, 'false'); bindFirstGestureFallback(); startAudio(true); }
@@ -207,9 +208,20 @@
     audio.addEventListener('play', function () { updateToggle(true); }); audio.addEventListener('pause', function () { updateToggle(true); });
     bindFirstGestureFallback();
     startAudio(false);
+    window.addEventListener('pageshow', function () {
+      if (!mutedByUser && audio.paused) startAudio(false);
+    });
     return { fadeOutForLeaving: fadeOutForLeaving };
   }
-  var aboutAudio = bootAboutAudio();
+  var aboutAudio = null;
+  function initializeAboutAudio() {
+    if (!aboutAudio) aboutAudio = bootAboutAudio();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeAboutAudio, { once: true });
+  } else {
+    initializeAboutAudio();
+  }
 
   function readyPage() { requestAnimationFrame(function () { document.body.classList.add('about-ready'); document.body.classList.remove('about-entering'); }); }
   function reveal(el, delay) { window.setTimeout(function () { el.classList.add('is-visible'); }, delay || 0); }
