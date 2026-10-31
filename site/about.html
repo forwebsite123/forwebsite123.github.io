@@ -139,19 +139,8 @@
   var ABOUT_AUDIO_VOLUME = 0.055;
   var ABOUT_AUDIO_FADE_IN = 1800;
   var ABOUT_AUDIO_FADE_OUT = 700;
-  var ABOUT_AUDIO_MUTED_KEY = 'about-bgm-muted-v2';
-  var aboutAudioDebugEnabled = new URLSearchParams(window.location.search).has('audio-debug');
-  var aboutAudioDebugElement = null;
-  function reportAboutAudioDebug(message) {
-    if (!aboutAudioDebugEnabled) return;
-    if (!aboutAudioDebugElement) {
-      aboutAudioDebugElement = document.createElement('div');
-      aboutAudioDebugElement.setAttribute('role', 'status');
-      aboutAudioDebugElement.style.cssText = 'position:fixed;left:12px;bottom:12px;z-index:99999;max-width:calc(100vw - 24px);padding:10px 13px;border-radius:8px;background:#231d20;color:#fff;font:12px/1.5 monospace;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 4px 18px #0003;pointer-events:none';
-      document.body.appendChild(aboutAudioDebugElement);
-    }
-    aboutAudioDebugElement.textContent = 'About music diagnostic\n' + message;
-  }
+  // One-time preference reset; subsequent manual choices remain saved under v3.
+  var ABOUT_AUDIO_MUTED_KEY = 'about-bgm-muted-v3';
   document.body.classList.add('about-entering');
 
   function clampAudioVolume(value) { return Math.max(0, Math.min(1, value)); }
@@ -172,7 +161,6 @@
     var firstGestureFallbackBound = false;
     var firstGestureFallbackCleanup = null;
     var blockedByBrowser = false;
-    reportAboutAudioDebug('Initial preference: ' + (mutedByUser ? 'user muted' : 'enabled') + '\nUser activation: ' + (navigator.userActivation ? String(navigator.userActivation.hasBeenActive) : 'unknown'));
     function updateToggle(visible) {
       if (!toggle) return;
       if (visible) toggle.classList.add('is-visible');
@@ -207,10 +195,9 @@
     }
     function startAudio(showToggleAfterStart) {
       if (mutedByUser) { updateToggle(true); return Promise.resolve(false); }
-      reportAboutAudioDebug('Attempting playback...\nMuted by user: ' + mutedByUser + '\nReady state: ' + audio.readyState + '\nUser activation: ' + (navigator.userActivation ? String(navigator.userActivation.hasBeenActive) : 'unknown'));
       var playPromise = audio.play();
       if (!playPromise || typeof playPromise.then !== 'function') { clearFirstGestureFallback(); fadeAboutAudio(audio, audio.volume, ABOUT_AUDIO_VOLUME, ABOUT_AUDIO_FADE_IN); updateToggle(showToggleAfterStart); return Promise.resolve(true); }
-      return playPromise.then(function () { blockedByBrowser = false; reportAboutAudioDebug('Playback started ✓\nReady state: ' + audio.readyState); clearFirstGestureFallback(); fadeAboutAudio(audio, audio.volume, ABOUT_AUDIO_VOLUME, ABOUT_AUDIO_FADE_IN); updateToggle(showToggleAfterStart); return true; }).catch(function (error) { blockedByBrowser = !!(error && error.name === 'NotAllowedError'); reportAboutAudioDebug('Playback failed: ' + (error && error.name || 'UnknownError') + '\n' + (error && error.message || '') + '\nUser activation: ' + (navigator.userActivation ? String(navigator.userActivation.hasBeenActive) : 'unknown')); updateToggle(true); bindFirstGestureFallback(); return false; });
+      return playPromise.then(function () { blockedByBrowser = false; clearFirstGestureFallback(); fadeAboutAudio(audio, audio.volume, ABOUT_AUDIO_VOLUME, ABOUT_AUDIO_FADE_IN); updateToggle(showToggleAfterStart); return true; }).catch(function (error) { blockedByBrowser = !!(error && error.name === 'NotAllowedError'); updateToggle(true); bindFirstGestureFallback(); return false; });
     }
     function pauseAudio() {
       mutedByUser = true; blockedByBrowser = false; localStorage.setItem(ABOUT_AUDIO_MUTED_KEY, 'true'); clearFirstGestureFallback(); fadeAboutAudio(audio, audio.volume, 0, ABOUT_AUDIO_FADE_OUT);
