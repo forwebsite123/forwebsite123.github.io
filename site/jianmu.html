@@ -439,6 +439,11 @@
     */
     let JIANMU_LOCK = null;
 
+    // Web Crypto requires a secure context. Correct accidental HTTP entry links.
+    if (window.location.protocol === 'http:' && window.location.hostname === 'jiqi-kiara.com') {
+      window.location.replace('https://' + window.location.host + window.location.pathname + window.location.search + window.location.hash);
+    }
+
     const JIANMU_AUDIO_SRC = 'audio/jianmu-bgm-guqin-reflection-420785.mp3';
     const JIANMU_AUDIO_VOLUME = 0.06;
     const JIANMU_AUDIO_FADE_IN = 1600;
@@ -789,8 +794,12 @@
         error.textContent = '请输入完整的 8 位数字生日，不要输入标点或空格。';
         return;
       }
-      if (!window.isSecureContext || !window.crypto || !window.crypto.subtle || !window.TextEncoder) {
-        error.textContent = '当前浏览器不支持安全解锁，请使用 Safari 或 Chrome 打开网站重试。';
+      if (!window.isSecureContext || window.location.protocol !== 'https:') {
+        error.textContent = '当前页面不是安全连接，无法解密文章。请在 Safari 中打开 https://jiqi-kiara.com/jianmu 。';
+        return;
+      }
+      if (!window.crypto || !window.crypto.subtle || typeof window.TextEncoder !== 'function' || typeof window.TextDecoder !== 'function') {
+        error.textContent = '这个内置浏览器无法使用安全解密功能（并非密码错误）。请点右上角 ···，选择「在浏览器中打开」，使用 Safari 重试。';
         return;
       }
 
